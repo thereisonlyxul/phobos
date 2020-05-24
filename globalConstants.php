@@ -125,7 +125,7 @@ const TARGET_APPLICATION = array(
   ),
 );
 
-const EXTENSION_CATEGORY_SLUGS = array(
+const EXTENSION_CATEGORY = array(
   'alerts-and-updates'        => 'Alerts &amp; Updates',
   'appearance'                => 'Appearance',
   'bookmarks-and-tabs'        => 'Bookmarks &amp; Tabs',
@@ -139,7 +139,7 @@ const EXTENSION_CATEGORY_SLUGS = array(
   'other'                     => 'Other'
 );
 
-const OTHER_CATEGORY_SLUGS = array(
+const OTHER_CATEGORY = array(
   'themes'                    => 'Themes',
   'personas'                  => 'Personas',
   'search-plugins'            => 'Search Plugins',
