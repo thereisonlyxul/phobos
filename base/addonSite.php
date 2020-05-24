@@ -47,20 +47,23 @@ $adjustedCount = $count;
 // --------------------------------------------------------------------------------------------------------------------
 
 // Handle unified add-ons site mode
-if ($gaRuntime['unified'] && $count >= 1 && in_array($gaRuntime['explodedPath'][0], $gaRuntime['unifiedApps'])) {
-  $gaRuntime['currentApplication'] = $gaRuntime['explodedPath'][0];
-  $adjustedCount -= 1;
+if ($gaRuntime['unified']) {
+  if (in_array($gaRuntime['explodedPath'][0], $gaRuntime['unifiedApps'])) {
+    if ($count >= 1) {
+      $gaRuntime['currentApplication'] = $gaRuntime['explodedPath'][0];
+      $adjustedCount -= 1;
+    }
 
-  if ($count == 1 && $gaRuntime['explodedPath'][0] == $gaRuntime['currentApplication']) {
-    gfGenContent(TARGET_APPLICATION[$gaRuntime['currentApplication']]['name'] . ' index', null);
+    if ($count == 1 && $gaRuntime['explodedPath'][0] == $gaRuntime['currentApplication']) {
+      gfGenContent(TARGET_APPLICATION[$gaRuntime['currentApplication']]['name'] . ' index', null);
+    }
   }
-}
 
-// Don't allow adjusted URIs when in unified mode from /
-$unifiedURIs = ['addon', 'extensions', 'themes', 'personas', 'search-plugins', 'language-packs', 'dictionaries'];
-
-if ($gaRuntime['unified'] && in_array($gaRuntime['explodedPath'][0], $unifiedURIs)) {
-  gfHeader(404);
+  // Don't allow adjusted URIs when in unified mode from /
+  $unifiedURIs = ['addon', 'extensions', 'themes', 'personas', 'search-plugins', 'language-packs', 'dictionaries'];
+  if (in_array($gaRuntime['explodedPath'][0], $unifiedURIs)) {
+    gfHeader(404);
+  }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -102,11 +105,19 @@ switch ($gaRuntime['explodedPath'][adjustedIndex(0)]) {
     }
     break;
   case 'extensions':
-    if ($adjustedCount == 2 && isFeature('extensions-cat')) {
+    if ($adjustedCount == 2) {
+      if (!isFeature('extensions-cat')) {
+        gfHeader(404);
+      }
+
       gfGenContent($appText . ' Extension Category: ' . $gaRuntime['explodedPath'][adjustedIndex(1)], null);
     }
 
     if ($adjustedCount == 1) {
+      if (!isFeature('extensions')) {
+        gfheader(404);
+      }
+
       if (isFeature('extensions-cat') && !gfSuperVar('get', 'all')) {
         gfGenContent($appText . ' Extensions Categories', null);
       }
@@ -119,19 +130,22 @@ switch ($gaRuntime['explodedPath'][adjustedIndex(0)]) {
   case 'dictionaries':
   case 'search-plugins':
   case 'personas':
+    if ($adjustedCount > 1) {
+      gfHeader(404);
+    }
+
     if (!isFeature($gaRuntime['explodedPath'][adjustedIndex(0)])) {
       gfHeader(404);
     }
 
     gfGenContent($appText . ' ' . OTHER_CATEGORY[$gaRuntime['explodedPath'][adjustedIndex(0)]] . ' List', null);
     break;
-  default:
+  case 'root':
     if ($gaRuntime['requestPath'] == '/') {
       gfGenContent('Add-ons Site Root', $gaRuntime);
     }
-    else {
-      gfHeader(404);
-    }
+  default:
+    gfHeader(404);
 }
 
 // ====================================================================================================================
