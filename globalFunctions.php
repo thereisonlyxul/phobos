@@ -116,7 +116,7 @@ function gfErrorHandler($errno, $errstr, $errfile, $errline) {
     E_ERROR => 'Fatal Error',
     E_WARNING => 'Warning',
     E_PARSE => 'Parse',
-  //E_NOTICE => 'Notice',
+    E_NOTICE => 'Notice',
     E_CORE_ERROR => 'Fatal Error (Core)',
     E_CORE_WARNING => 'Warning (Core)',
     E_COMPILE_ERROR => 'Fatal Error (Compile)',
