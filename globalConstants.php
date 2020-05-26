@@ -54,6 +54,16 @@ const LIBRARIES = array(
   'rdfParser'       => ROOT_PATH . LIB_RELPATH . 'librdf/rdf_parser.php',
 );
 
+const DEVELOPER_DOMAIN = 'addons-dev.palemoon.org';
+
+// Define Domains for Applications
+const APPLICATION_DOMAINS = array(
+  'addons.palemoon.org'           => 'palemoon',
+  'addons-dev.palemoon.org'       => 'palemoon',
+  'addons.basilisk-browser.org'   => 'basilisk',
+  'addons.binaryoutcast.com'      => ['borealis', 'interlink'],
+);
+
 // --------------------------------------------------------------------------------------------------------------------
 
 /* Known Application IDs
@@ -68,15 +78,11 @@ const LIBRARIES = array(
  * Instantbird:      {33cb9019-c295-46dd-be21-8c4936574bee}
  * Adblock Browser:  {55aba3ac-94d3-41a8-9e25-5c21fe874539} */
 
-const DEVELOPER_DOMAIN = 'addons-dev.palemoon.org';
+const TOOLKIT_ID    = 'toolkit@mozilla.org';
+const TOOLKIT_ALTID = 'toolkit@palemoon.org';
+const TOOLKIT_BIT   = 1;
 
-// Define Domains for Applications
-const TARGET_DOMAIN = array(
-  'addons.palemoon.org'           => 'palemoon',
-  'addons-dev.palemoon.org'       => 'palemoon',
-  'addons.basilisk-browser.org'   => 'basilisk',
-  'addons.binaryoutcast.com'      => ['borealis', 'interlink'],
-);
+// --------------------------------------------------------------------------------------------------------------------
 
 // Define application metadata
 const TARGET_APPLICATION = array(
@@ -85,6 +91,7 @@ const TARGET_APPLICATION = array(
     'bit'           => 2,
     'name'          => 'Pale Moon',
     'shortName'     => null,
+    'commonType'    => 'browser',
     'siteTitle'     => 'Pale Moon - Add-ons',
     'features'      => ['https', 'extensions', 'extensions-cat', 'themes',
                         'personas', 'language-packs', 'search-plugins']
@@ -94,6 +101,7 @@ const TARGET_APPLICATION = array(
     'bit'           => 4,
     'name'          => 'Basilisk',
     'shortName'     => null,
+    'commonType'    => 'browser',
     'siteTitle'     => 'Basilisk: add-ons',
     'features'      => ['https', 'extensions', 'themes', 'personas', 'search-plugins']
   ),
@@ -102,6 +110,7 @@ const TARGET_APPLICATION = array(
     'bit'           => 8,
     'name'          => 'Borealis Navigator',
     'shortName'     => 'Borealis',
+    'commonType'    => 'navigator',
     'siteTitle'     => 'Add-ons - Binary Outcast',
     'features'      => ['unified', 'extensions', 'search-plugins']
   ),
@@ -110,6 +119,7 @@ const TARGET_APPLICATION = array(
     'bit'           => 16,
     'name'          => 'Interlink Mail &amp; News',
     'shortName'     => 'Interlink',
+    'commonType'    => 'client',
     'siteTitle'     => 'Add-ons - Binary Outcast',
     'features'      => ['unified', 'extensions', 'themes', 'search-plugins', 'disable-xpinstall']
   ),
@@ -118,14 +128,11 @@ const TARGET_APPLICATION = array(
     'bit'           => 32,
     'name'          => 'Ambassador',
     'shortName'     => null,
+    'commonType'    => 'client',
     'siteTitle'     => 'Add-ons - Ambassador',
     'features'      => ['extensions', 'themes', 'disable-xpinstall']
   ),
 );
-
-const TOOLKIT_ID    = 'toolkit@mozilla.org';
-const TOOLKIT_ALTID = 'toolkit@palemoon.org';
-const TOOLKIT_BIT   = 1;
 
 // --------------------------------------------------------------------------------------------------------------------
 
