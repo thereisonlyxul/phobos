@@ -40,9 +40,9 @@ $gaRuntime = array(
 // --------------------------------------------------------------------------------------------------------------------
 
 // Decide which application by domain that the software will be serving
-if (array_key_exists($gaRuntime['phpServerName'], TARGET_DOMAIN)) {
+if (array_key_exists($gaRuntime['phpServerName'], APPLICATION_DOMAINS)) {
   $gaRuntime['currentDomain'] = $gaRuntime['phpServerName'];
-  $gaRuntime['currentApplication'] = TARGET_DOMAIN[$gaRuntime['currentDomain']];
+  $gaRuntime['currentApplication'] = APPLICATION_DOMAINS[$gaRuntime['currentDomain']];
 
   // See if this is a unified add-ons site
   if (is_array($gaRuntime['currentApplication'])) {
@@ -92,7 +92,7 @@ if ($gaRuntime['debugMode']) {
       $gaRuntime['unified'] = true;
 
       // Loop through the domains
-      foreach (TARGET_DOMAIN as $_key => $_value) {
+      foreach (APPLICATION_DOMAINS as $_key => $_value) {
         // Skip any value that isn't an array
         if (!is_array($_value)) {
           continue;
