@@ -5,7 +5,7 @@
 
 // == | Functions | ===================================================================================================
 
-function isFeature($aFeature, $aReturn = null) {
+function isFeature($aFeature) {
   global $gaRuntime;
 
   if (is_bool($gaRuntime['currentApplication'])) {
@@ -16,9 +16,7 @@ function isFeature($aFeature, $aReturn = null) {
     return true;
   }
 
-  if ($aReturn) {
-    return false;
-  }
+  return false;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -68,11 +66,6 @@ if ($gaRuntime['unified']) {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// This is dev shit -- remove
-$appText = TARGET_APPLICATION[$gaRuntime['currentApplication']]['shortName'] ??
-           TARGET_APPLICATION[$gaRuntime['currentApplication']]['name'] ??
-           'Application Irreleavnt';
-
 switch ($gaRuntime['explodedPath'][adjustedIndex(0)]) {
   case 'addon':
     $slug = $gaRuntime['explodedPath'][adjustedIndex(1)] ?? null;
@@ -81,10 +74,10 @@ switch ($gaRuntime['explodedPath'][adjustedIndex(0)]) {
     if ($adjustedCount == 3) {
       switch ($gaRuntime['explodedPath'][adjustedIndex(2)]) {
         case 'versions':
-          gfGenContent($appText . ' Add-on: ' . $slug . ' - Versions', null);
+          gfGenContent('Add-on: ' . $slug . ' - Versions', null);
           break;
         case 'license':
-          gfGenContent($appText . ' Add-on: ' . $slug . ' - License', null);
+          gfGenContent('Add-on: ' . $slug . ' - License', null);
           break;
         default:
           gfHeader(404);
@@ -93,36 +86,44 @@ switch ($gaRuntime['explodedPath'][adjustedIndex(0)]) {
 
     // Add-on Page
     if ($adjustedCount == 2) {
-      gfGenContent($appText . ' Add-on: ' . $slug, null);
+      gfGenContent('Add-on: ' . $slug, null);
     }
 
     // There is no content for just /addon/ so redirect to root
     if ($adjustedCount == 1) {
       $url = $gaRuntime['unified'] ? '/' . $gaRuntime['currentApplication'] . '/' : '/';
-
-      // This is dev shit -- remove
-      gfError('This will redirect back to ' . $url);
+      gfRedirect($url);
     }
     break;
   case 'extensions':
+    $categories = array_filter(CATEGORIES, function($aElement) { return $aElement['type'] == ADDON_TYPES['extension']; });
+
+    // Extension Sub-categories
     if ($adjustedCount == 2) {
+      $category = $gaRuntime['explodedPath'][adjustedIndex(1)];
+
       if (!isFeature('extensions-cat')) {
         gfHeader(404);
       }
 
-      gfGenContent($appText . ' Extension Category: ' . $gaRuntime['explodedPath'][adjustedIndex(1)], null);
+      if (!array_key_exists($category, $categories)) {
+        gfHeader(404);
+      }
+
+      gfGenContent('Extension Category: ' . CATEGORIES[$slug]['name'], null);
     }
 
+    // Extension category
     if ($adjustedCount == 1) {
       if (!isFeature('extensions')) {
         gfheader(404);
       }
 
       if (isFeature('extensions-cat') && !gfSuperVar('get', 'all')) {
-        gfGenContent($appText . ' Extensions Categories', null);
+        gfGenContent(EXTENSION_CATEGORY['name'] . ' Categories', $categories);
       }
 
-      gfGenContent($appText . ' Extensions List', null);
+      gfGenContent(EXTENSION_CATEGORY['name'] . ' List', null);
     }
     break;
   case 'themes':
@@ -130,15 +131,13 @@ switch ($gaRuntime['explodedPath'][adjustedIndex(0)]) {
   case 'dictionaries':
   case 'search-plugins':
   case 'personas':
-    if ($adjustedCount > 1) {
+    $category = $gaRuntime['explodedPath'][adjustedIndex(0)];
+
+    if ($adjustedCount > 1 || !isFeature($category)) {
       gfHeader(404);
     }
 
-    if (!isFeature($gaRuntime['explodedPath'][adjustedIndex(0)])) {
-      gfHeader(404);
-    }
-
-    gfGenContent($appText . ' ' . OTHER_CATEGORY[$gaRuntime['explodedPath'][adjustedIndex(0)]] . ' List', null);
+    gfGenContent(CATEGORIES[$category]['name'] . ' List', null);
     break;
   case 'root':
     if ($gaRuntime['requestPath'] == '/') {

@@ -54,6 +54,8 @@ const LIBRARIES = array(
   'rdfParser'       => ROOT_PATH . LIB_RELPATH . 'librdf/rdf_parser.php',
 );
 
+// --------------------------------------------------------------------------------------------------------------------
+
 /* Known Application IDs
  * Application IDs are normally in the form of a {GUID} or user@host ID.
  *
@@ -65,10 +67,6 @@ const LIBRARIES = array(
  * Sunbird:          {718e30fb-e89b-41dd-9da7-e25a45638b28}
  * Instantbird:      {33cb9019-c295-46dd-be21-8c4936574bee}
  * Adblock Browser:  {55aba3ac-94d3-41a8-9e25-5c21fe874539} */
-
-const TOOLKIT_ID    = 'toolkit@mozilla.org';
-const TOOLKIT_ALTID = 'toolkit@palemoon.org';
-const TOOLKIT_BIT   = 1;
 
 const DEVELOPER_DOMAIN = 'addons-dev.palemoon.org';
 
@@ -125,26 +123,69 @@ const TARGET_APPLICATION = array(
   ),
 );
 
-const EXTENSION_CATEGORY = array(
-  'alerts-and-updates'        => 'Alerts &amp; Updates',
-  'appearance'                => 'Appearance',
-  'bookmarks-and-tabs'        => 'Bookmarks &amp; Tabs',
-  'download-management'       => 'Download Management',
-  'feeds-news-and-blogging'   => 'Feeds, News, &amp; Blogging',
-  'privacy-and-security'      => 'Privacy &amp; Security',
-  'search-tools'              => 'Search Tools',
-  'social-and-communication'  => 'Social &amp; Communication',
-  'tools-and-utilities'       => 'Tools &amp; Utilities',
-  'web-development'           => 'Web Development',
-  'other'                     => 'Other'
+const TOOLKIT_ID    = 'toolkit@mozilla.org';
+const TOOLKIT_ALTID = 'toolkit@palemoon.org';
+const TOOLKIT_BIT   = 1;
+
+// --------------------------------------------------------------------------------------------------------------------
+
+const ADDON_TYPES = array(
+  'app'             => 1, // No longer applicable
+  'extension'       => 2,
+  'theme'           => 4,
+  'locale'          => 8,
+  'plugin'          => 16, // No longer applicable
+  'multipackage'    => 32, // Forbidden on Phoebus
+  'dictionary'      => 64,
+  'experiment'      => 128, // Not used in UXP
+  'apiextension'    => 256, // Not used in UXP
+  'persona'         => 512, // Phoebus only
+  'search-plugin'   => 1024, // Phoebus only
 );
 
-const OTHER_CATEGORY = array(
-  'themes'                    => 'Themes',
-  'personas'                  => 'Personas',
-  'search-plugins'            => 'Search Plugins',
-  'language-packs'            => 'Language Packs',
+const BAD_XPI_TYPES = 1 | 16 | 32 | 128 | 256 | 512 | 1024;
+const AUS_TYPES = [2 => 'extension', 4 => 'theme', 8 => 'item', 64 => 'item'];
+
+// --------------------------------------------------------------------------------------------------------------------
+
+const EXTENSION_CATEGORY = ['name' => 'Extensions', 'type' => 2];
+
+const CATEGORIES = array(
+  'alerts-and-updates'        => ['name' => 'Alerts &amp; Updates',
+                                  'type' => 2],
+  'appearance'                => ['name' => 'Appearance',
+                                  'type' => 2],
+  'bookmarks-and-tabs'        => ['name' => 'Bookmarks &amp; Tabs',
+                                  'type' => 2],
+  'download-management'       => ['name' => 'Download Management',
+                                  'type' => 2],
+  'feeds-news-and-blogging'   => ['name' => 'Feeds, News, &amp; Blogging',
+                                  'type' => 2],
+  'privacy-and-security'      => ['name' => 'Privacy &amp; Security',
+                                  'type' => 2],
+  'search-tools'              => ['name' => 'Search Tools',
+                                  'type' => 2],
+  'social-and-communication'  => ['name' => 'Social &amp; Communication',
+                                  'type' => 2],
+  'tools-and-utilities'       => ['name' => 'Tools &amp; Utilities',
+                                  'type' => 2],
+  'web-development'           => ['name' => 'Web Development',
+                                  'type' => 2],
+  'other'                     => ['name' => 'Other',
+                                  'type' => 2],
+  'themes'                    => ['name' => 'Themes',
+                                  'type' => 4],
+  'language-packs'            => ['name' => 'Language Packs',
+                                  'type' => 8],
+  'dictionaries'              => ['name' => 'Dictionaries',
+                                  'type' => 64],
+  'personas'                  => ['name' => 'Personas',
+                                  'type' => 512],
+  'search-plugins'            => ['name' => 'Search Plugins',
+                                  'type' => 1024],
 );
+
+// --------------------------------------------------------------------------------------------------------------------
 
 const LICENSES = array(
   'Apache-2.0'                => 'Apache License 2.0',
