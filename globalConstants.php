@@ -23,7 +23,7 @@ const NEW_LINE            = "\n";
 
 // Define components
 const COMPONENTS = array(
-  'site'            => ROOT_PATH . BASE_RELPATH . '/addonSite.php',
+  'site'            => ROOT_PATH . BASE_RELPATH . 'site.php',
   'aus'             => ROOT_PATH . COMPONENTS_RELPATH . 'aus/addonUpdateService.php',
   'discover'        => ROOT_PATH . COMPONENTS_RELPATH . 'api/discoverPane.php',
   'download'        => ROOT_PATH . COMPONENTS_RELPATH . 'download/addonDownload.php',
