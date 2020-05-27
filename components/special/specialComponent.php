@@ -53,9 +53,13 @@ switch ($strStripPath) {
 
     unset($arrayTestsGlob);
 
-    if ($gaRuntime['requestTestCase'] &&
-        in_array($gaRuntime['requestTestCase'], $arrayFinalTests)) {
-      require_once($strComponentPath . 'tests/' . $gaRuntime['requestTestCase'] . '.php');
+    if ($gaRuntime['requestTestCase']) {
+      if (in_array($gaRuntime['requestTestCase'], $arrayFinalTests)) {
+        require_once($strComponentPath . 'tests/' . $gaRuntime['requestTestCase'] . '.php');
+      }
+      else {
+        gfError($gaRuntime['requestTestCase'] . ': Invalid Test Case');
+      }
     }
 
     $testsHTML = '';
