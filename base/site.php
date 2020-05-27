@@ -129,8 +129,6 @@ switch ($gaRuntime['explodedPath'][adjustedIndex(0)]) {
   case 'themes':
   case 'language-packs':
   case 'dictionaries':
-  case 'search-plugins':
-  case 'personas':
     $category = $gaRuntime['explodedPath'][adjustedIndex(0)];
 
     if ($adjustedCount > 1 || !isFeature($category)) {
@@ -138,6 +136,19 @@ switch ($gaRuntime['explodedPath'][adjustedIndex(0)]) {
     }
 
     gfGenContent(CATEGORIES[$category]['name'] . ' List', null);
+    break;
+  case 'search-plugins':
+    if ($adjustedCount > 1 || !isFeature('search-plugins')) {
+      gfHeader(404);
+    }
+
+    gfGenContent(CATEGORIES['search-plugins']['name'] . ' List', null);
+  case 'personas':
+    if ($adjustedCount > 1 || !isFeature('personas')) {
+      gfHeader(404);
+    }
+
+    gfGenContent(CATEGORIES['personas']['name'] . ' List', null);
     break;
   case 'root':
     if ($gaRuntime['requestPath'] == '/') {
