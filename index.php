@@ -27,13 +27,6 @@ const DATABASES_RELPATH     = '/databases/';
 const MODULES_RELPATH       = '/modules/';
 const LIB_RELPATH           = '/libraries/';
 
-// --------------------------------------------------------------------------------------------------------------------
-
-const XML_TAG               = '<?xml version="1.0" encoding="utf-8" ?>';
-const XML_API_SEARCH_BLANK  = '<searchresults total_results="0" />';
-const XML_API_LIST_BLANK    = '<addons />';
-const XML_API_ADDON_ERROR   = '<error>Add-on not found!</error>';
-const RDF_AUS_BLANK         = '<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#" />';
 const NEW_LINE              = "\n";
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -70,6 +63,8 @@ const LIBRARIES = array(
   'safeMySQL'       => ROOT_PATH . LIB_RELPATH . 'safemysql/safemysql.class.php',
   'rdfParser'       => ROOT_PATH . LIB_RELPATH . 'librdf/rdf_parser.php',
 );
+
+// --------------------------------------------------------------------------------------------------------------------
 
 const DEVELOPER_DOMAIN = 'addons-dev.palemoon.org';
 
@@ -153,60 +148,80 @@ const TARGET_APPLICATION = array(
 
 // --------------------------------------------------------------------------------------------------------------------
 
-const ADDON_TYPES = array(
-  'app'             => 1, // No longer applicable
-  'extension'       => 2,
-  'theme'           => 4,
-  'locale'          => 8,
-  'plugin'          => 16, // No longer applicable
-  'multipackage'    => 32, // Forbidden on Phoebus
-  'dictionary'      => 64,
-  'experiment'      => 128, // Not used in UXP
-  'apiextension'    => 256, // Not used in UXP
-  'persona'         => 512, // Phoebus only
-  'search-plugin'   => 1024, // Phoebus only
-);
-
-const BAD_XPI_TYPES = 1 | 16 | 32 | 128 | 256 | 512 | 1024;
-const AUS_TYPES = [2 => 'extension', 4 => 'theme', 8 => 'item', 64 => 'item'];
+const XML_TAG               = '<?xml version="1.0" encoding="utf-8" ?>';
+const XML_API_SEARCH_BLANK  = '<searchresults total_results="0" />';
+const XML_API_LIST_BLANK    = '<addons />';
+const XML_API_ADDON_ERROR   = '<error>Add-on not found!</error>';
+const RDF_AUS_BLANK         = '<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#" />';
 
 // --------------------------------------------------------------------------------------------------------------------
 
-const EXTENSION_CATEGORY = ['name' => 'Extensions', 'type' => 2];
+const MANIFEST_FILES = array(
+  'install'           => 'install.rdf',
+  'chrome'            => 'chrome.manifest',
+  'bootstrap'         => 'bootstrap.js',
+  'npmJetpack'        => 'package.json',
+  'cfxJetpack'        => 'harness-options.json',
+  'webex'             => 'manifest.jsom',
+);
+
+const ADDON_TYPES = array(
+  'app'               => 1, // No longer applicable
+  'extension'         => 2,
+  'theme'             => 4,
+  'locale'            => 8,
+  'plugin'            => 16, // No longer applicable
+  'multipackage'      => 32, // Forbidden on Phoebus
+  'dictionary'        => 64,
+  'experiment'        => 128, // Not used in UXP
+  'apiextension'      => 256, // Not used in UXP
+  'persona'           => 512, // Phoebus only
+  'search-plugin'     => 1024, // Phoebus only
+);
+
+const BAD_XPI_TYPES    = 1 | 16 | 32 | 128 | 256 | 512 | 1024;
+const AUS_TYPES        = [2 => 'extension', 4 => 'theme', 8 => 'item', 64 => 'item'];
+
+const REGEX_GUID       = '/^\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}$/i';
+const REGEX_HOST       = '/[a-z0-9-\._]+\@[a-z0-9-\._]+/i';
+
+const RESTRICTED_IDS  = array(
+  'bfc5-fc555c87dbc4', // Moonchild Productions
+  '9376-3763d1ad1978', // Pseudo-Static
+  'b98e-98e62085837f', // Ryan
+  '9aa0-aa0e607640b9', // BinOC
+  'moonchild',
+  'palemoon',
+  'basilisk',
+  'thereisonlyxul',
+  'binaryoutcast',
+  'mattatobin',
+  'mozilla.org',
+  'lootyhoof',
+  'srazzano' // BANNED FOR LIFE
+);
+
+// --------------------------------------------------------------------------------------------------------------------
+
+const EXTENSION_CATEGORY       = ['name' => 'Extensions',                   'type' => 2];
 
 const CATEGORIES = array(
-  'alerts-and-updates'        => ['name' => 'Alerts &amp; Updates',
-                                  'type' => 2],
-  'appearance'                => ['name' => 'Appearance',
-                                  'type' => 2],
-  'bookmarks-and-tabs'        => ['name' => 'Bookmarks &amp; Tabs',
-                                  'type' => 2],
-  'download-management'       => ['name' => 'Download Management',
-                                  'type' => 2],
-  'feeds-news-and-blogging'   => ['name' => 'Feeds, News, &amp; Blogging',
-                                  'type' => 2],
-  'privacy-and-security'      => ['name' => 'Privacy &amp; Security',
-                                  'type' => 2],
-  'search-tools'              => ['name' => 'Search Tools',
-                                  'type' => 2],
-  'social-and-communication'  => ['name' => 'Social &amp; Communication',
-                                  'type' => 2],
-  'tools-and-utilities'       => ['name' => 'Tools &amp; Utilities',
-                                  'type' => 2],
-  'web-development'           => ['name' => 'Web Development',
-                                  'type' => 2],
-  'other'                     => ['name' => 'Other',
-                                  'type' => 2],
-  'themes'                    => ['name' => 'Themes',
-                                  'type' => 4],
-  'language-packs'            => ['name' => 'Language Packs',
-                                  'type' => 8],
-  'dictionaries'              => ['name' => 'Dictionaries',
-                                  'type' => 64],
-  'personas'                  => ['name' => 'Personas',
-                                  'type' => 512],
-  'search-plugins'            => ['name' => 'Search Plugins',
-                                  'type' => 1024],
+  'alerts-and-updates'        => ['name' => 'Alerts &amp; Updates',         'type' => 2],
+  'appearance'                => ['name' => 'Appearance',                   'type' => 2],
+  'bookmarks-and-tabs'        => ['name' => 'Bookmarks &amp; Tabs',         'type' => 2],
+  'download-management'       => ['name' => 'Download Management',          'type' => 2],
+  'feeds-news-and-blogging'   => ['name' => 'Feeds, News, &amp; Blogging',  'type' => 2],
+  'privacy-and-security'      => ['name' => 'Privacy &amp; Security',       'type' => 2],
+  'search-tools'              => ['name' => 'Search Tools',                 'type' => 2],
+  'social-and-communication'  => ['name' => 'Social &amp; Communication',   'type' => 2],
+  'tools-and-utilities'       => ['name' => 'Tools &amp; Utilities',        'type' => 2],
+  'web-development'           => ['name' => 'Web Development',              'type' => 2],
+  'other'                     => ['name' => 'Other',                        'type' => 2],
+  'themes'                    => ['name' => 'Themes',                       'type' => 4],
+  'language-packs'            => ['name' => 'Language Packs',               'type' => 8],
+  'dictionaries'              => ['name' => 'Dictionaries',                 'type' => 64],
+  'personas'                  => ['name' => 'Personas',                     'type' => 512],
+  'search-plugins'            => ['name' => 'Search Plugins',               'type' => 1024],
 );
 
 // --------------------------------------------------------------------------------------------------------------------
