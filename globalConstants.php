@@ -24,12 +24,12 @@ const NEW_LINE            = "\n";
 // Define components
 const COMPONENTS = array(
   'site'            => ROOT_PATH . BASE_RELPATH . 'site.php',
+  'special'         => ROOT_PATH . BASE_RELPATH . 'special.php',
   'aus'             => ROOT_PATH . COMPONENTS_RELPATH . 'aus/addonUpdateService.php',
   'discover'        => ROOT_PATH . COMPONENTS_RELPATH . 'api/discoverPane.php',
   'download'        => ROOT_PATH . COMPONENTS_RELPATH . 'download/addonDownload.php',
   'integration'     => ROOT_PATH . COMPONENTS_RELPATH . 'api/amIntegration.php',
   'panel'           => ROOT_PATH . COMPONENTS_RELPATH . 'panel/phoebusPanel.php',
-  'special'         => ROOT_PATH . COMPONENTS_RELPATH . 'special/specialComponent.php'
 );
 
 // Define modules

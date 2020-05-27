@@ -7,8 +7,8 @@
 * Basic Content Generation using the Special Component's Template
 ***********************************************************************************************************************/
 function gfGenContent($aTitle, $aContent, $aTextBox = null, $aList = null, $aError = null) {
-  $templateHead = @file_get_contents('./components/special/skin/template-header.xhtml');
-  $templateFooter = @file_get_contents('./components/special/skin/template-footer.xhtml');
+  $templateHead = @file_get_contents('./base/skin/special/template-header.xhtml');
+  $templateFooter = @file_get_contents('./base/skin/special/template-footer.xhtml');
 
   // Make sure the template isn't busted, if it is send a text only error as an array
   if (!$templateHead || !$templateFooter) {
