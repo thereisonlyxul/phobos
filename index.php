@@ -165,7 +165,7 @@ const MANIFEST_FILES = array(
   'webex'             => 'manifest.jsom',
 );
 
-const ADDON_TYPES = array(
+const XPINSTALL_TYPES = array(
   'app'               => 1, // No longer applicable
   'extension'         => 2,
   'theme'             => 4,
@@ -179,49 +179,56 @@ const ADDON_TYPES = array(
   'search-plugin'     => 1024, // Phoebus only
 );
 
-const BAD_XPI_TYPES    = 1 | 16 | 32 | 128 | 256 | 512 | 1024;
-const AUS_TYPES        = [2 => 'extension', 4 => 'theme', 8 => 'item', 64 => 'item'];
+const EXTENSION_TECHNOLOGY = array(
+  'overlay'           => 1,
+  'xpcom'             => 2,
+  'bootstrap'         => 4,
+  'jetpack'           => 8,
+);
 
-const REGEX_GUID       = '/^\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}$/i';
-const REGEX_HOST       = '/[a-z0-9-\._]+\@[a-z0-9-\._]+/i';
+const INVALID_XPI_TYPES   = 1 | 16 | 32 | 128 | 256 | 512 | 1024;
+const AUS_XPI_TYPES       = [2 => 'extension', 4 => 'theme', 8 => 'item', 64 => 'item'];
+
+const REGEX_GUID          = '/^\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}$/i';
+const REGEX_HOST          = '/[a-z0-9-\._]+\@[a-z0-9-\._]+/i';
 
 const RESTRICTED_IDS  = array(
-  'bfc5-fc555c87dbc4', // Moonchild Productions
-  '9376-3763d1ad1978', // Pseudo-Static
-  'b98e-98e62085837f', // Ryan
-  '9aa0-aa0e607640b9', // BinOC
-  'moonchild',
-  'palemoon',
-  'basilisk',
+  'bfc5-fc555c87dbc4',  // Moonchild Productions
+  '9376-3763d1ad1978',  // Pseudo-Static
+  'b98e-98e62085837f',  // Ryan
+  '9aa0-aa0e607640b9',  // Binary Outcast
+  'moonchild',          // Moonchild Productions
+  'palemoon',           // Moonchild Productions
+  'basilisk',           // Moonchild Productions
   'thereisonlyxul',
-  'binaryoutcast',
-  'mattatobin',
+  'binaryoutcast',      // Binary Outcast
+  'mattatobin',         // Binary Outcast
   'mozilla.org',
-  'lootyhoof',
-  'srazzano' // BANNED FOR LIFE
+  'lootyhoof',          // Ryan
+  'srazzano'            // BANNED FOR LIFE
 );
 
 // --------------------------------------------------------------------------------------------------------------------
 
-const EXTENSION_CATEGORY       = ['name' => 'Extensions',                   'type' => 2];
+const EXTENSION_CATEGORY       = ['name' => 'Extensions',                   'type' => 2, 'bit' => 0];
 
 const CATEGORIES = array(
-  'alerts-and-updates'        => ['name' => 'Alerts &amp; Updates',         'type' => 2],
-  'appearance'                => ['name' => 'Appearance',                   'type' => 2],
-  'bookmarks-and-tabs'        => ['name' => 'Bookmarks &amp; Tabs',         'type' => 2],
-  'download-management'       => ['name' => 'Download Management',          'type' => 2],
-  'feeds-news-and-blogging'   => ['name' => 'Feeds, News, &amp; Blogging',  'type' => 2],
-  'privacy-and-security'      => ['name' => 'Privacy &amp; Security',       'type' => 2],
-  'search-tools'              => ['name' => 'Search Tools',                 'type' => 2],
-  'social-and-communication'  => ['name' => 'Social &amp; Communication',   'type' => 2],
-  'tools-and-utilities'       => ['name' => 'Tools &amp; Utilities',        'type' => 2],
-  'web-development'           => ['name' => 'Web Development',              'type' => 2],
-  'other'                     => ['name' => 'Other',                        'type' => 2],
-  'themes'                    => ['name' => 'Themes',                       'type' => 4],
-  'language-packs'            => ['name' => 'Language Packs',               'type' => 8],
-  'dictionaries'              => ['name' => 'Dictionaries',                 'type' => 64],
-  'personas'                  => ['name' => 'Personas',                     'type' => 512],
-  'search-plugins'            => ['name' => 'Search Plugins',               'type' => 1024],
+  'alerts-and-updates'        => ['name' => 'Alerts &amp; Updates',         'type' => 2,    'bit' => 1],
+  'appearance'                => ['name' => 'Appearance',                   'type' => 2,    'bit' => 2],
+  'bookmarks-and-tabs'        => ['name' => 'Bookmarks &amp; Tabs',         'type' => 2,    'bit' => 4],
+  'download-management'       => ['name' => 'Download Management',          'type' => 2,    'bit' => 8],
+  'feeds-news-and-blogging'   => ['name' => 'Feeds, News, &amp; Blogging',  'type' => 2,    'bit' => 16],
+  'privacy-and-security'      => ['name' => 'Privacy &amp; Security',       'type' => 2,    'bit' => 32],
+  'search-tools'              => ['name' => 'Search Tools',                 'type' => 2,    'bit' => 64],
+  'social-and-communication'  => ['name' => 'Social &amp; Communication',   'type' => 2,    'bit' => 128],
+  'tools-and-utilities'       => ['name' => 'Tools &amp; Utilities',        'type' => 2,    'bit' => 256],
+  'web-development'           => ['name' => 'Web Development',              'type' => 2,    'bit' => 512],
+  'other'                     => ['name' => 'Other',                        'type' => 2,    'bit' => 1024],
+  'themes'                    => ['name' => 'Themes',                       'type' => 4,    'bit' => 0],
+  'language-packs'            => ['name' => 'Language Packs',               'type' => 8,    'bit' => 0],
+  'dictionaries'              => ['name' => 'Dictionaries',                 'type' => 64,   'bit' => 0],
+  'personas'                  => ['name' => 'Personas',                     'type' => 512,  'bit' => 0],
+  'search-plugins'            => ['name' => 'Search Plugins',               'type' => 1024, 'bit' => 0],
 );
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -642,7 +649,7 @@ else {
 if ($gaRuntime['debugMode']) {
   // We can disable debug mode when on the dev url otherwise if debug mode we want all errors
   if ($gaRuntime['requestDebugOff']) {
-    $gaRuntime['debugMode'] = null;
+    $gaRuntime['debugMode'] = false;
   }
 
   // In debug mode we need to test other applications

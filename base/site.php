@@ -96,7 +96,7 @@ switch ($gaRuntime['explodedPath'][adjustedIndex(0)]) {
     }
     break;
   case 'extensions':
-    $categories = array_filter(CATEGORIES, function($aElement) { return $aElement['type'] == ADDON_TYPES['extension']; });
+    $categories = array_filter(CATEGORIES, function($aElement) { return $aElement['type'] == XPINSTALL_TYPES['extension']; });
 
     // Extension Sub-categories
     if ($adjustedCount == 2) {
