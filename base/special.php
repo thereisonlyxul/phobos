@@ -22,7 +22,7 @@ if (!$gaRuntime['debugMode']) {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-if ($function) {
+if ($function && count($gaRuntime['explodedPath']) == 2) {
   switch ($function) {
     case 'phpinfo':
       phpinfo(INFO_GENERAL | INFO_CONFIGURATION | INFO_ENVIRONMENT | INFO_VARIABLES);
