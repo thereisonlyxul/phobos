@@ -26,7 +26,13 @@ const COMPONENTS_RELPATH  = '/components/';
 const DATABASES_RELPATH   = '/databases/';
 const MODULES_RELPATH     = '/modules/';
 const LIB_RELPATH         = '/libraries/';
+
+// --------------------------------------------------------------------------------------------------------------------
+
+const XML_TAG             = '<?xml version="1.0" encoding="utf-8" ?>';
 const NEW_LINE            = "\n";
+
+// --------------------------------------------------------------------------------------------------------------------
 
 // Define components
 const COMPONENTS = array(
@@ -329,13 +335,6 @@ if ($gaRuntime['debugMode']) {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// If the entire site is offline but nothing above is busted.. We want to serve proper but empty responses
-if (file_exists(ROOT_PATH . '/.offline')) {
-  require_once(ROOT_PATH . '/mini.php');
-}
-
-// --------------------------------------------------------------------------------------------------------------------
-
 // We cannot continue without a valid currentDomain
 if (!$gaRuntime['currentDomain']) {
   gfError('Invalid domain');
@@ -360,6 +359,46 @@ elseif (str_starts_with($gaRuntime['phpRequestURI'], '/panel/')) {
 // The SPECIAL component overrides the SITE component
 elseif (str_starts_with($gaRuntime['phpRequestURI'], '/special/')) {
   $gaRuntime['requestComponent'] = 'special';
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// If the entire site is offline but nothing above is busted.. We want to serve proper but empty responses
+if (file_exists(ROOT_PATH . '/.offline')) {
+  $offlineMessage = 'This Add-ons Site is currently unavailable. Please try again later.';
+
+  if (str_contains(SOFTWARE_VERSION, 'a') || str_contains(SOFTWARE_VERSION, 'b') ||
+      str_contains(SOFTWARE_VERSION, 'pre') || $gaRuntime['debugMode']) {
+    $offlineMessage = 'This in-development version of Phoebus is not for public consumption.';
+  }
+
+  switch ($gaRuntime['requestComponent']) {
+    case 'aus':
+      gfGenXML('<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#" />');
+      break;
+    case 'integration':
+      $gaRuntime['requestAPIScope'] = gfSuperVar('get', 'type');
+      $gaRuntime['requestAPIFunction'] = gfSuperVar('get', 'request');
+      if ($gaRuntime['requestAPIScope'] == 'internal') {
+        switch ($gaRuntime['requestAPIFunction']) {
+          case 'search':
+            gfGenXML('<searchresults total_results="0" />');
+            break;      
+          case 'get':
+          case 'recommended':
+            gfGenXML('<addons />');
+            break;
+          default:
+            gfHeader(404);
+        }
+      }
+      else {
+        gfHeader(404);
+      }
+      break;
+    case 'discover': gfHeader(404);
+    default: gfError($offlineMessage);
+  }
 }
 
 // --------------------------------------------------------------------------------------------------------------------

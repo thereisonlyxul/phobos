@@ -4,6 +4,20 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /**********************************************************************************************************************
+* Basic XML Generation
+***********************************************************************************************************************/
+function gfGenXML($aContent) {
+  // Send XML Header
+  header('Content-Type: text/xml', false);
+
+  // Write out the XML
+  print(XML_TAG . $aContent);
+
+  // We're done here
+  exit();
+}
+
+/**********************************************************************************************************************
 * Basic Content Generation using the Special Component's Template
 ***********************************************************************************************************************/
 function gfGenContent($aTitle, $aContent, $aTextBox = null, $aList = null, $aError = null) {
