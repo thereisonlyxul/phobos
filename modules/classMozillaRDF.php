@@ -7,7 +7,7 @@ class classMozillaRDF {
   const EM_NS = 'http://www.mozilla.org/2004/em-rdf#';
   const INSTALL_MANIFEST_RESOURCE = 'urn:mozilla:install-manifest';
 
-  private $libRdfParser;
+  private $rdfParser;
 
   /********************************************************************************************************************
   * Class constructor that sets inital state of things
@@ -15,7 +15,7 @@ class classMozillaRDF {
   function __construct() {
     // Include the Rdf_parser
     require_once(LIBRARIES['rdfParser']);
-    $this->libRdfParser = new Rdf_parser();
+    $this->rdfParser = new Rdf_parser();
   }
 
   /********************************************************************************************************************
@@ -27,13 +27,13 @@ class classMozillaRDF {
   public function parseInstallManifest($manifestData) {
     $data = array();
 
-    $this->libRdfParser->rdf_parser_create(null);
-    $this->libRdfParser->rdf_set_user_data($data);
-    $this->libRdfParser->rdf_set_statement_handler(array('classMozillaRDF', 'installManifestStatementHandler'));
-    $this->libRdfParser->rdf_set_base('');
+    $this->rdfParser->rdf_parser_create(null);
+    $this->rdfParser->rdf_set_user_data($data);
+    $this->rdfParser->rdf_set_statement_handler(array('classMozillaRDF', 'installManifestStatementHandler'));
+    $this->rdfParser->rdf_set_base('');
 
-    if (!$this->libRdfParser->rdf_parse($manifestData, strlen($manifestData), true)) {
-      return xml_error_string(xml_get_error_code($this->libRdfParser->rdf_parser['xml_parser']));
+    if (!$this->rdfParser->rdf_parse($manifestData, strlen($manifestData), true)) {
+      return xml_error_string(xml_get_error_code($this->rdfParser->rdf_parser['xml_parser']));
     }
 
     // Set the targetApplication data
@@ -48,7 +48,7 @@ class classMozillaRDF {
 
     $data['manifest']['targetApplication'] = $targetArray;
 
-    $this->libRdfParser->rdf_parser_free();
+    $this->rdfParser->rdf_parser_free();
 
     return $data['manifest'];
   }
