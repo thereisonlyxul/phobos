@@ -17,20 +17,24 @@ ini_set("display_errors", "on");
 define('ROOT_PATH', $_SERVER['DOCUMENT_ROOT']);
 
 // Define basic constants for the software
-const SOFTWARE_NAME       = 'Phoebus Ascendant';
-const SOFTWARE_VERSION    = '3.0.0a1';
-const DATASTORE_RELPATH   = '/datastore/';
-const OBJ_RELPATH         = '/.obj/';
-const BASE_RELPATH        = '/base/';
-const COMPONENTS_RELPATH  = '/components/';
-const DATABASES_RELPATH   = '/databases/';
-const MODULES_RELPATH     = '/modules/';
-const LIB_RELPATH         = '/libraries/';
+const SOFTWARE_NAME         = 'Phoebus Ascendant';
+const SOFTWARE_VERSION      = '3.0.0a1';
+const DATASTORE_RELPATH     = '/datastore/';
+const OBJ_RELPATH           = '/.obj/';
+const BASE_RELPATH          = '/base/';
+const COMPONENTS_RELPATH    = '/components/';
+const DATABASES_RELPATH     = '/databases/';
+const MODULES_RELPATH       = '/modules/';
+const LIB_RELPATH           = '/libraries/';
 
 // --------------------------------------------------------------------------------------------------------------------
 
-const XML_TAG             = '<?xml version="1.0" encoding="utf-8" ?>';
-const NEW_LINE            = "\n";
+const XML_TAG               = '<?xml version="1.0" encoding="utf-8" ?>';
+const XML_API_SEARCH_BLANK  = '<searchresults total_results="0" />';
+const XML_API_LIST_BLANK    = '<addons />';
+const XML_API_ADDON_ERROR   = '<error>Add-on not found!</error>';
+const RDF_AUS_BLANK         = '<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#" />';
+const NEW_LINE              = "\n";
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -230,14 +234,14 @@ const LICENSES = array(
 // == | Global Functions | ============================================================================================
 
 /**********************************************************************************************************************
-* Basic XML Generation
+* Basic XML Output
 ***********************************************************************************************************************/
-function gfGenXML($aContent) {
+function gfOutputXML($aContent) {
   // Send XML Header
   header('Content-Type: text/xml', false);
 
   // Write out the XML
-  print(XML_TAG . $aContent);
+  print($aContent);
 
   // We're done here
   exit();
@@ -705,7 +709,7 @@ if (file_exists(ROOT_PATH . '/.offline')) {
 
   switch ($gaRuntime['requestComponent']) {
     case 'aus':
-      gfGenXML('<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#" />');
+      gfOutputXML(XML_TAG . RDF_AUS_BLANK);
       break;
     case 'integration':
       $gaRuntime['requestAPIScope'] = gfSuperVar('get', 'type');
@@ -713,11 +717,11 @@ if (file_exists(ROOT_PATH . '/.offline')) {
       if ($gaRuntime['requestAPIScope'] == 'internal') {
         switch ($gaRuntime['requestAPIFunction']) {
           case 'search':
-            gfGenXML('<searchresults total_results="0" />');
+            gfOutputXML(XML_TAG . XML_API_SEARCH_BLANK);
             break;      
           case 'get':
           case 'recommended':
-            gfGenXML('<addons />');
+            gfOutputXML(XML_TAG . XML_API_LIST_BLANK);
             break;
           default:
             gfHeader(404);
