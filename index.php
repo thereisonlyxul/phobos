@@ -234,11 +234,55 @@ const LICENSES = array(
 // == | Global Functions | ============================================================================================
 
 /**********************************************************************************************************************
+* Sends HTTP Headers to client using a short name
+*
+* @param $_value    Short name of header
+**********************************************************************************************************************/
+function gfHeader($aHeader) {
+  $headers = array(
+    404             => 'HTTP/1.1 404 Not Found',
+    501             => 'HTTP/1.1 501 Not Implemented',
+    'html'          => 'Content-Type: text/html',
+    'text'          => 'Content-Type: text/plain',
+    'xml'           => 'Content-Type: text/xml',
+    'json'          => 'Content-Type: application/json',
+    'css'           => 'Content-Type: text/css',
+  );
+  
+  if (!headers_sent() && array_key_exists($aHeader, $headers)) {
+    if (in_array($aHeader, [404, 501])) {
+      if ($GLOBALS['gaRuntime']['debugMode'] ?? null) {
+        gfError($headers[$aHeader]);
+      }
+      else {
+        header($headers[$aHeader]);
+        exit();
+      }
+    }
+
+    header($headers[$aHeader]);
+  }
+}
+
+/**********************************************************************************************************************
+* Sends HTTP Header to redirect the client to another URL
+*
+* @param $_strURL   URL to redirect to
+**********************************************************************************************************************/
+// This function sends a redirect header
+function gfRedirect($aURL) {
+	header('Location: ' . $aURL , true, 302);
+  
+  // We are done here
+  exit();
+}
+
+/**********************************************************************************************************************
 * Basic XML Output
 ***********************************************************************************************************************/
 function gfOutputXML($aContent) {
   // Send XML Header
-  header('Content-Type: text/xml', false);
+  gfHeader('xml');
 
   // Write out the XML
   print($aContent);
@@ -303,7 +347,7 @@ function gfGenContent($aTitle, $aContent, $aTextBox = null, $aList = null, $aErr
   }
 
   // Send an html header
-  header('Content-Type: text/html', false);
+  gfHeader('html');
 
   // write out the everything
   print($templateHead . '<h2>' . $aTitle . '</h2>' . $aContent . $templateFooter);
@@ -460,50 +504,6 @@ function gfEnsureModule($_value) {
   }
   
   return true;
-}
-
-/**********************************************************************************************************************
-* Sends HTTP Headers to client using a short name
-*
-* @param $_value    Short name of header
-**********************************************************************************************************************/
-function gfHeader($aHeader) {
-  $headers = array(
-    404             => 'HTTP/1.1 404 Not Found',
-    501             => 'HTTP/1.1 501 Not Implemented',
-    'html'          => 'Content-Type: text/html',
-    'text'          => 'Content-Type: text/plain',
-    'xml'           => 'Content-Type: text/xml',
-    'json'          => 'Content-Type: application/json',
-    'css'           => 'Content-Type: text/css',
-  );
-  
-  if (!headers_sent() && array_key_exists($aHeader, $headers)) {
-    if (in_array($aHeader, [404, 501])) {
-      if ($GLOBALS['gaRuntime']['debugMode'] ?? null) {
-        gfError($headers[$aHeader]);
-      }
-      else {
-        header($headers[$aHeader]);
-        exit();
-      }
-    }
-
-    header($headers[$aHeader]);
-  }
-}
-
-/**********************************************************************************************************************
-* Sends HTTP Header to redirect the client to another URL
-*
-* @param $_strURL   URL to redirect to
-**********************************************************************************************************************/
-// This function sends a redirect header
-function gfRedirect($aURL) {
-	header('Location: ' . $aURL , true, 302);
-  
-  // We are done here
-  exit();
 }
 
 /**********************************************************************************************************************
