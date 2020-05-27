@@ -13,15 +13,15 @@ class classDatabase {
   function __construct() {
     global $gaRuntime;
 
-    @require(ROOT_PATH . DATASTORE_RELPATH . '.phoebus/sql');
+    $include = @include(ROOT_PATH . DATASTORE_RELPATH . '.phoebus/sql');
 
-    if (!($arrayCreds ?? false)) {
+    if (!$include) {
       gfError(__CLASS__ . '::' . __FUNCTION__ . ' - Could not read aql file');
     }
 
     $arrayCreds['currentDB'] = $arrayCreds['liveDB'];
 
-    if ($this->gaRuntime['debugMode']) {
+    if ($gaRuntime['debugMode']) {
       $arrayCreds['currentDB'] = $arrayCreds['devDB'];;
     }
 
@@ -80,7 +80,7 @@ class classDatabase {
   * @param    ...$aArgs     Expanded list of arguments
   * @return   array with result or null
   ********************************************************************************************************************/
-  public function get($aQueryType, .. $aArgs) {
+  public function get($aQueryType, ...$aArgs) {
     switch ($aQueryType) {
       case 'col':
         $result = $this->sql->getCol(...$aArgs);
