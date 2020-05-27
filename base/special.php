@@ -3,81 +3,85 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// == | Functions | ===================================================================================================
-
-/**********************************************************************************************************************
-* Strips path to obtain the slug
-*
-* @param $aPath     $gaRuntime['requestPath']
-* @param $aPrefix   Prefix to strip 
-* @returns          slug
-***********************************************************************************************************************/
-function funcStripPath($aPath, $aPrefix) {
-  return str_replace('/', '', str_replace($aPrefix, '', $aPath));
-}
-
 // == | Main | ========================================================================================================
 
-$strComponentPath = dirname(COMPONENTS[$gaRuntime['requestComponent']]) . '/';
-$strStripPath = funcStripPath($gaRuntime['requestPath'], '/special/');
+$specialFunctions = array(
+  'test' => 'Test Cases',
+  'phpinfo' => 'PHP Info',
+  'software-state' => 'Software State',
+);
+
+$function = $gaRuntime['explodedPath'][1] ?? null;
+$componentPath = dirname(COMPONENTS[$gaRuntime['requestComponent']]) . '/';
 
 if (!$gaRuntime['debugMode']) {
-  if ($strStripPath != 'phpinfo') {
+  if ($specialFunction != 'phpinfo') {
     gfRedirect('/');
   }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
 
-switch ($strStripPath) {
-  case 'phpinfo':
-    phpinfo(INFO_GENERAL | INFO_CONFIGURATION | INFO_ENVIRONMENT | INFO_VARIABLES);
-    break;
-  case 'software-state':
-    gfGenContent('Software State', $gaRuntime);
-    break;
-  case 'restructure':
+if ($function) {
+  switch ($function) {
+    case 'phpinfo':
+      phpinfo(INFO_GENERAL | INFO_CONFIGURATION | INFO_ENVIRONMENT | INFO_VARIABLES);
+      break;
+    case 'software-state':
+      gfGenContent($specialFunctions[$function], $gaRuntime);
+      break;
+    case 'restructure':
+      gfHeader(404);
+      break;
+    case 'test':
+      $gaRuntime['requestTestCase'] = gfSuperVar('get', 'case');
+      $globTests = glob($componentPath . 'tests/*.php');
+      $tests = [];
+
+      foreach ($globTests as $_value) {
+        $tests[] = str_replace('.php', '', str_replace($componentPath . 'tests/', '', $_value));
+      }
+
+      unset($globTests);
+
+      if ($gaRuntime['requestTestCase']) {
+        if (in_array($gaRuntime['requestTestCase'], $tests)) {
+          require_once($componentPath . 'tests/' . $gaRuntime['requestTestCase'] . '.php');
+        }
+        else {
+          gfError($gaRuntime['requestTestCase'] . ': Invalid Test Case');
+        }
+      }
+
+      $output = '';
+
+      foreach ($tests as $_value) {
+        $output .= '<li><a href="/special/test/?case=' . $_value . '">' . $_value . '</a></li>';
+      }
+
+      $output = '<ul>' . $output . '</ul>';
+
+      gfGenContent($specialFunctions[$function], $output);
+      break;
+    default:
+      gfHeader(404);
+  }
+}
+else {
+  if ($gaRuntime['requestPath'] == '/special/') {
+    $output = '';
+
+    foreach ($specialFunctions as $_key => $_value) {
+      $output .= '<li><a href="/special/' . $_key . '/">' . $_value . '</li>';
+    }
+
+    $output = '<ul>' . $output . '</ul>';
+
+    gfGenContent('Special', $output);
+  }
+  else {
     gfHeader(404);
-    // require_once($strComponentPath . 'migrateRestructure.php');
-    break;
-  case 'test':
-    $gaRuntime['requestTestCase'] = gfSuperVar('get', 'case');
-    $arrayTestsGlob = glob($strComponentPath . 'tests/*.php');
-    $arrayFinalTests = [];
-
-    foreach ($arrayTestsGlob as $_value) {
-      $arrayFinalTests[] = str_replace('.php',
-                                       '',
-                                       str_replace($strComponentPath . 'tests/', '', $_value));
-    }
-
-    unset($arrayTestsGlob);
-
-    if ($gaRuntime['requestTestCase']) {
-      if (in_array($gaRuntime['requestTestCase'], $arrayFinalTests)) {
-        require_once($strComponentPath . 'tests/' . $gaRuntime['requestTestCase'] . '.php');
-      }
-      else {
-        gfError($gaRuntime['requestTestCase'] . ': Invalid Test Case');
-      }
-    }
-
-    $testsHTML = '';
-
-    foreach ($arrayFinalTests as $_value) {
-      $testsHTML .= '<li><a href="/special/test/?case=' . $_value . '">' . $_value . '</a></li>';
-    }
-
-    $testsHTML = '<ul>' . $testsHTML . '</ul>';
-
-    gfGenContent('Test Cases - Special Component', $testsHTML);
-    break;
-  default:
-    $rootHTML = // '<a href="/special/restructure/">Restructure SQL Data</a></li><li>' . 
-                '<a href="/special/test/">Test Cases</a></li><li>' .
-                '<a href="/special/phpinfo/">PHP Info</a></li><li>' .
-                '<a href="/special/software-state/">Software State</a>';
-    gfGenContent('Special Component', $rootHTML, null, true);
+  }
 }
 
 exit();
