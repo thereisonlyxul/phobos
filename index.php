@@ -476,12 +476,9 @@ function gfHeader($aHeader) {
     'xml'           => 'Content-Type: text/xml',
     'json'          => 'Content-Type: application/json',
     'css'           => 'Content-Type: text/css',
-    'phoebus'       => 'X-Phoebus: https://github.com/Pale-Moon-Addons-Team/phoebus/',
   );
   
   if (!headers_sent() && array_key_exists($aHeader, $headers)) {
-    header($headers['phoebus']);
-    
     if (in_array($aHeader, [404, 501])) {
       if ($GLOBALS['gaRuntime']['debugMode'] ?? null) {
         gfError($headers[$aHeader]);
@@ -513,6 +510,7 @@ function gfRedirect($aURL) {
 * Splits a path into an indexed array of parts
 *
 * @param $aPath   URI Path
+* @returns        array of uri parts in order
 ***********************************************************************************************************************/
 function gfSplitPath($aPath) {
   if ($aPath == '/') {
@@ -523,12 +521,11 @@ function gfSplitPath($aPath) {
 }
 
 /**********************************************************************************************************************
-* Polyfills for missing/proposed functions
-* str_starts_with, str_ends_with, str_contains
+* Polyfill for str_starts_with
 *
 * @param $haystack  string
 * @param $needle    substring
-* @returns          true if substring exists in string else false
+* @returns          true if substring exists at the start of the string else false
 **********************************************************************************************************************/
 
 if (!function_exists('str_starts_with')) {
@@ -538,8 +535,13 @@ if (!function_exists('str_starts_with')) {
   }
 }
 
-// --------------------------------------------------------------------------------------------------------------------
-
+/**********************************************************************************************************************
+* Polyfill for str_ends_with
+*
+* @param $haystack  string
+* @param $needle    substring
+* @returns          true if substring exists at the end of the string else false
+**********************************************************************************************************************/
 if (!function_exists('str_ends_with')) {
   function str_ends_with($haystack, $needle) {
     $length = strlen($needle);
@@ -551,8 +553,13 @@ if (!function_exists('str_ends_with')) {
   }
 }
 
-// --------------------------------------------------------------------------------------------------------------------
-
+/**********************************************************************************************************************
+* Polyfill for str_contains
+*
+* @param $haystack  string
+* @param $needle    substring
+* @returns          true if substring exists in string else false
+**********************************************************************************************************************/
 if (!function_exists('str_contains')) {
   function str_contains($haystack, $needle) {
     if (strpos($haystack, $needle) > -1) {
@@ -700,13 +707,16 @@ elseif (str_starts_with($gaRuntime['phpRequestURI'], '/special/')) {
 
 // If the entire site is offline but nothing above is busted.. We want to serve proper but empty responses
 if (file_exists(ROOT_PATH . '/.offline')) {
+  // Offline message to display where content is normally expected
   $offlineMessage = 'This Add-ons Site is currently unavailable. Please try again later.';
 
+  // Development offline message
   if (str_contains(SOFTWARE_VERSION, 'a') || str_contains(SOFTWARE_VERSION, 'b') ||
       str_contains(SOFTWARE_VERSION, 'pre') || $gaRuntime['debugMode']) {
     $offlineMessage = 'This in-development version of Phoebus is not for public consumption.';
   }
 
+  // This switch will handle requests for components
   switch ($gaRuntime['requestComponent']) {
     case 'aus':
       gfOutputXML(XML_TAG . RDF_AUS_BLANK);
@@ -731,8 +741,11 @@ if (file_exists(ROOT_PATH . '/.offline')) {
         gfHeader(404);
       }
       break;
-    case 'discover': gfHeader(404);
-    default: gfError($offlineMessage);
+    case 'discover':
+      gfHeader(404);
+      break;
+    default:
+      gfError($offlineMessage);
   }
 }
 
@@ -740,7 +753,10 @@ if (file_exists(ROOT_PATH . '/.offline')) {
 
 // Load component based on requestComponent
 if ($gaRuntime['requestComponent'] && array_key_exists($gaRuntime['requestComponent'], COMPONENTS)) {
+  // Explode the path
   $gaRuntime['explodedPath'] = gfSplitPath($gaRuntime['requestPath']);
+
+  // Include the component
   require_once(COMPONENTS[$gaRuntime['requestComponent']]);
 }
 else {
