@@ -37,7 +37,7 @@ class classDatabase {
 
     $this->sql = new SafeMysql(['mysqli' => $this->connection]);
 
-    $gaRuntime['currentDatabase'] = $this->sql->getCol("SELECT DATABASE()")[0];
+    $gaRuntime['currentDatabase'] = $arrayCreds['currentDB'];
   }
 
   /********************************************************************************************************************
