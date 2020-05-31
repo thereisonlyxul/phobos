@@ -345,6 +345,7 @@ function gfSplitPath($aPath) {
 * Get the bitwise value of valid applications from a list of application ids
 *
 * @param $aTargetApplications   list of targetApplication ids
+* @param $isAssoc               set false to use a list if ids
 * @returns                      bitwise int value representing applications
 ***********************************************************************************************************************/
 function gfApplicationBits($aTargetApplications, $isAssoc = true) {
