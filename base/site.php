@@ -37,7 +37,7 @@ function adjustedIndex($aIndex) {
 // == | Main | ========================================================================================================
 
 // We need a count for the exploded path
-$count = count($gaRuntime['explodedPath']);
+$count = count($gaRuntime['splitPath']);
 
 // We need an adjusted count in case we are in unified mode
 $adjustedCount = $count;
@@ -46,33 +46,33 @@ $adjustedCount = $count;
 
 // Handle unified add-ons site mode
 if ($gaRuntime['unified']) {
-  if (in_array($gaRuntime['explodedPath'][0], $gaRuntime['unifiedApps'])) {
+  if (in_array($gaRuntime['splitPath'][0], $gaRuntime['unifiedApps'])) {
     if ($count >= 1) {
-      $gaRuntime['currentApplication'] = $gaRuntime['explodedPath'][0];
+      $gaRuntime['currentApplication'] = $gaRuntime['splitPath'][0];
       $adjustedCount -= 1;
     }
 
-    if ($count == 1 && $gaRuntime['explodedPath'][0] == $gaRuntime['currentApplication']) {
+    if ($count == 1 && $gaRuntime['splitPath'][0] == $gaRuntime['currentApplication']) {
       gfGenContent(TARGET_APPLICATION[$gaRuntime['currentApplication']]['name'] . ' index', null);
     }
   }
 
   // Don't allow adjusted URIs when in unified mode from /
   $unifiedURIs = ['addon', 'extensions', 'themes', 'personas', 'search-plugins', 'language-packs', 'dictionaries'];
-  if (in_array($gaRuntime['explodedPath'][0], $unifiedURIs)) {
+  if (in_array($gaRuntime['splitPath'][0], $unifiedURIs)) {
     gfHeader(404);
   }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
 
-switch ($gaRuntime['explodedPath'][adjustedIndex(0)]) {
+switch ($gaRuntime['splitPath'][adjustedIndex(0)]) {
   case 'addon':
-    $slug = $gaRuntime['explodedPath'][adjustedIndex(1)] ?? null;
+    $slug = $gaRuntime['splitPath'][adjustedIndex(1)] ?? null;
 
     // Add-on Versions and License
     if ($adjustedCount == 3) {
-      switch ($gaRuntime['explodedPath'][adjustedIndex(2)]) {
+      switch ($gaRuntime['splitPath'][adjustedIndex(2)]) {
         case 'versions':
           gfGenContent('Add-on: ' . $slug . ' - Versions', null);
           break;
@@ -100,7 +100,7 @@ switch ($gaRuntime['explodedPath'][adjustedIndex(0)]) {
 
     // Extension Sub-categories
     if ($adjustedCount == 2) {
-      $category = $gaRuntime['explodedPath'][adjustedIndex(1)];
+      $category = $gaRuntime['splitPath'][adjustedIndex(1)];
 
       if (!isFeature('extensions-cat')) {
         gfHeader(404);
@@ -129,7 +129,7 @@ switch ($gaRuntime['explodedPath'][adjustedIndex(0)]) {
   case 'themes':
   case 'language-packs':
   case 'dictionaries':
-    $category = $gaRuntime['explodedPath'][adjustedIndex(0)];
+    $category = $gaRuntime['splitPath'][adjustedIndex(0)];
 
     if ($adjustedCount > 1 || !isFeature($category)) {
       gfHeader(404);

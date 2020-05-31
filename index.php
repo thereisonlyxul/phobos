@@ -195,7 +195,7 @@ if (file_exists(ROOT_PATH . '/.offline')) {
 // Load component based on requestComponent
 if ($gaRuntime['requestComponent'] && array_key_exists($gaRuntime['requestComponent'], COMPONENTS)) {
   // Explode the path
-  $gaRuntime['explodedPath'] = gfSplitPath($gaRuntime['requestPath']);
+  $gaRuntime['splitPath'] = gfSplitPath($gaRuntime['requestPath']);
 
   // Include the component
   require_once(COMPONENTS[$gaRuntime['requestComponent']]);

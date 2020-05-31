@@ -11,7 +11,7 @@ $specialFunctions = array(
   'software-state' => 'Software State',
 );
 
-$function = $gaRuntime['explodedPath'][1] ?? null;
+$function = $gaRuntime['splitPath'][1] ?? null;
 $componentPath = dirname(COMPONENTS[$gaRuntime['requestComponent']]) . '/';
 
 if (!$gaRuntime['debugMode']) {
@@ -22,7 +22,7 @@ if (!$gaRuntime['debugMode']) {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-if ($function && count($gaRuntime['explodedPath']) == 2) {
+if ($function && count($gaRuntime['splitPath']) == 2) {
   switch ($function) {
     case 'phpinfo':
       phpinfo(INFO_GENERAL | INFO_CONFIGURATION | INFO_ENVIRONMENT | INFO_VARIABLES);
