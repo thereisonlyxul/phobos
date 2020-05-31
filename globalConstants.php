@@ -168,8 +168,9 @@ const XPINSTALL_TYPES = array(
   'dictionary'        => 64,
   'experiment'        => 128, // Not used in UXP
   'apiextension'      => 256, // Not used in UXP
-  'persona'           => 512, // Phoebus only
-  'search-plugin'     => 1024, // Phoebus only
+  'external'          => 512, // Phoebus only
+  'persona'           => 1024, // Phoebus only
+  'search-plugin'     => 2048, // Phoebus only
 );
 
 const EXTENSION_TECHNOLOGY = array(
@@ -179,7 +180,7 @@ const EXTENSION_TECHNOLOGY = array(
   'jetpack'           => 8,
 );
 
-const INVALID_XPI_TYPES   = 1 | 16 | 32 | 128 | 256 | 512 | 1024;
+const INVALID_XPI_TYPES   = 1 | 16 | 32 | 128 | 256 | 512 | 1024 | 2048;
 const AUS_XPI_TYPES       = [2 => 'extension', 4 => 'theme', 8 => 'item', 64 => 'item'];
 
 const REGEX_GUID          = '/^\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}$/i';
