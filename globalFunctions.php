@@ -341,18 +341,33 @@ function gfSplitPath($aPath) {
   return array_values(array_filter(explode('/', $aPath), 'strlen'));
 }
 
-function gfIsFeature($aFeature) {
-  global $gaRuntime;
-
-  if (is_bool($gaRuntime['currentApplication'])) {
-    gfError(__FUNCTION__ . ': Cannot complete function in unified add-ons site mode from here');
+/**********************************************************************************************************************
+* Get the bitwise value of valid applications from a list of application ids
+*
+* @param $aTargetApplications   list of targetApplication ids
+* @returns                      bitwise int value representing applications
+***********************************************************************************************************************/
+function gfApplicationBits($aTargetApplications, $isAssoc = true) {
+  if (!is_array($aTargetApplications)) {
+    gfError(__FUNCTION__ . ': You must supply an array of ids');
   }
-  
-  if (in_array($aFeature, TARGET_APPLICATION[$gaRuntime['currentApplication']]['features'])) {
-    return true;
+
+  if ($isAssoc) {
+    $aTargetApplications = array_keys($aTargetApplications);
   }
 
-  return false;
+  $applications = array_combine(array_column(TARGET_APPLICATION, 'id'), array_column(TARGET_APPLICATION, 'bit'));
+  $applications = array_merge([TOOLKIT_ID => TOOLKIT_BIT, TOOLKIT_ALTID => TOOLKIT_BIT], $applications);
+
+  $applicationBits = 0;
+
+  foreach ($applications as $_key => $_value) {
+    if (in_array($_key, $aTargetApplications)) {
+      $applicationBits |= $_value;
+    }
+  }
+
+  return $applicationBits;
 }
 
 ?>
