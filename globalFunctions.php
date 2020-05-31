@@ -4,6 +4,57 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /**********************************************************************************************************************
+* Polyfill for str_starts_with
+*
+* @param $haystack  string
+* @param $needle    substring
+* @returns          true if substring exists at the start of the string else false
+**********************************************************************************************************************/
+
+if (!function_exists('str_starts_with')) {
+  function str_starts_with($haystack, $needle) {
+     $length = strlen($needle);
+     return (substr($haystack, 0, $length) === $needle);
+  }
+}
+
+/**********************************************************************************************************************
+* Polyfill for str_ends_with
+*
+* @param $haystack  string
+* @param $needle    substring
+* @returns          true if substring exists at the end of the string else false
+**********************************************************************************************************************/
+if (!function_exists('str_ends_with')) {
+  function str_ends_with($haystack, $needle) {
+    $length = strlen($needle);
+    if ($length == 0) {
+      return true;
+    }
+
+    return (substr($haystack, -$length) === $needle);
+  }
+}
+
+/**********************************************************************************************************************
+* Polyfill for str_contains
+*
+* @param $haystack  string
+* @param $needle    substring
+* @returns          true if substring exists in string else false
+**********************************************************************************************************************/
+if (!function_exists('str_contains')) {
+  function str_contains($haystack, $needle) {
+    if (strpos($haystack, $needle) > -1) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+}
+
+/**********************************************************************************************************************
 * Sends HTTP Headers to client using a short name
 *
 * @param $_value    Short name of header
@@ -290,55 +341,18 @@ function gfSplitPath($aPath) {
   return array_values(array_filter(explode('/', $aPath), 'strlen'));
 }
 
-/**********************************************************************************************************************
-* Polyfill for str_starts_with
-*
-* @param $haystack  string
-* @param $needle    substring
-* @returns          true if substring exists at the start of the string else false
-**********************************************************************************************************************/
+function gfIsFeature($aFeature) {
+  global $gaRuntime;
 
-if (!function_exists('str_starts_with')) {
-  function str_starts_with($haystack, $needle) {
-     $length = strlen($needle);
-     return (substr($haystack, 0, $length) === $needle);
+  if (is_bool($gaRuntime['currentApplication'])) {
+    gfError(__FUNCTION__ . ': Cannot complete function in unified add-ons site mode from here');
   }
-}
-
-/**********************************************************************************************************************
-* Polyfill for str_ends_with
-*
-* @param $haystack  string
-* @param $needle    substring
-* @returns          true if substring exists at the end of the string else false
-**********************************************************************************************************************/
-if (!function_exists('str_ends_with')) {
-  function str_ends_with($haystack, $needle) {
-    $length = strlen($needle);
-    if ($length == 0) {
-      return true;
-    }
-
-    return (substr($haystack, -$length) === $needle);
+  
+  if (in_array($aFeature, TARGET_APPLICATION[$gaRuntime['currentApplication']]['features'])) {
+    return true;
   }
-}
 
-/**********************************************************************************************************************
-* Polyfill for str_contains
-*
-* @param $haystack  string
-* @param $needle    substring
-* @returns          true if substring exists in string else false
-**********************************************************************************************************************/
-if (!function_exists('str_contains')) {
-  function str_contains($haystack, $needle) {
-    if (strpos($haystack, $needle) > -1) {
-      return true;
-    }
-    else {
-      return false;
-    }
-  }
+  return false;
 }
 
 ?>
