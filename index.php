@@ -23,6 +23,7 @@ $gaRuntime = array(
   'unified'             => null,
   'unifiedApps'         => null,
   'unifiedDomain'       => null,
+  'currentDatabase'     => null,
   'currentSiteTitle'    => null,
   'currentScheme'       => gfSuperVar('server', 'SCHEME'),
   'currentDomain'       => null,

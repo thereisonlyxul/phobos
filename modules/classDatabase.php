@@ -21,37 +21,58 @@ class classDatabase {
 
     $arrayCreds['currentDB'] = $arrayCreds['liveDB'];
 
-    if ($gaRuntime['debugMode']) {
+    if ($gaRuntime['debugMode'] || $gaRuntime['debugMode'] === false) {
       $arrayCreds['currentDB'] = $arrayCreds['devDB'];;
     }
 
     $this->connection = mysqli_connect('localhost', $arrayCreds['username'], $arrayCreds['password'], $arrayCreds['currentDB']);
-    
+
     if (mysqli_connect_errno($this->connection)) {
       gfError('SQL Connection Error: ' . mysqli_connect_errno($this->connection));
     }
-    
+
     mysqli_set_charset($this->connection, 'utf8');
 
     require_once(LIBRARIES['safeMySQL']);
 
     $this->sql = new SafeMysql(['mysqli' => $this->connection]);
+
+    $gaRuntime['currentDatabase'] = $this->sql->getCol("SELECT DATABASE()")[0];
   }
 
   /********************************************************************************************************************
   * Class deconstructor that cleans up items
   ********************************************************************************************************************/
   function __destruct() {
+    global $gaRuntime;
+
     if ($this->connection) {
       $this->sql = null;
       mysqli_close($this->connection);
+      $gaRuntime['currentDatabase'] = false;
     }
+  }
+
+  /********************************************************************************************************************
+  * Force a specifc database
+  ********************************************************************************************************************/
+  public function changeDB($aDatabase) {
+    global $gaRuntime;
+
+    $dbChange = mysqli_select_db($this->connection, $aDatabase);
+
+    if ($dbChange) {
+      $gaRuntime['currentDatabase'] = $this->sql->getCol("SELECT DATABASE()")[0];
+      return $dbChange;
+    }
+
+    gfError(__FUNCTION__ . ': failed to change database to ' . $aDatabase);
   }
 
   /********************************************************************************************************************
   * Raw mysqli query
   ********************************************************************************************************************/
-  public function raw ($aQuery) {
+  public function raw($aQuery) {
     return gfSuperVar('var', mysqli_query($this->connection, $aQuery));
   }
 
@@ -59,7 +80,7 @@ class classDatabase {
   /********************************************************************************************************************
   * Raw mysqli multi-query
   ********************************************************************************************************************/
-  public function multiRaw ($aQuery) {
+  public function multiRaw($aQuery) {
     return gfSuperVar('var', mysqli_multi_query($this->connection, $aQuery));
   }
 
