@@ -10,8 +10,13 @@
 define('ROOT_PATH', $_SERVER['DOCUMENT_ROOT']);
 
 // Define basic constants for the software
+const SOFTWARE_VENDOR       = 'Binary Outcast';
 const SOFTWARE_NAME         = 'Phoebus Ascendant';
 const SOFTWARE_VERSION      = '3.0.0a1';
+const SOFTWARE_REPO         = 'https://github.com/binaryoutcast/phoebus-ascendant.git';
+
+// --------------------------------------------------------------------------------------------------------------------
+
 const DATASTORE_RELPATH     = '/datastore/';
 const OBJ_RELPATH           = '/.obj/';
 const BASE_RELPATH          = '/base/';
@@ -221,8 +226,8 @@ const CATEGORIES = array(
   'themes'                    => ['name' => 'Themes',                       'type' => 4,    'bit' => 0],
   'language-packs'            => ['name' => 'Language Packs',               'type' => 8,    'bit' => 0],
   'dictionaries'              => ['name' => 'Dictionaries',                 'type' => 64,   'bit' => 0],
-  'personas'                  => ['name' => 'Personas',                     'type' => 512,  'bit' => 0],
-  'search-plugins'            => ['name' => 'Search Plugins',               'type' => 1024, 'bit' => 0],
+  'personas'                  => ['name' => 'Personas',                     'type' => 1024, 'bit' => 0],
+  'search-plugins'            => ['name' => 'Search Plugins',               'type' => 2048, 'bit' => 0],
 );
 
 // --------------------------------------------------------------------------------------------------------------------
