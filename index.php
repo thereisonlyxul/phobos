@@ -28,6 +28,7 @@ $gaRuntime = array(
   'currentScheme'       => gfSuperVar('server', 'SCHEME'),
   'currentDomain'       => null,
   'debugMode'           => null,
+  'offlineMode'         => file_exists(ROOT_PATH . '/.offline'),
   'phpServerName'       => gfSuperVar('server', 'SERVER_NAME'),
   'phpRequestURI'       => gfSuperVar('server', 'REQUEST_URI'),
   'remoteAddr'          => gfSuperVar('server', 'HTTP_X_FORWARDED_FOR') ?? gfSuperVar('server', 'REMOTE_ADDR'),
@@ -59,7 +60,59 @@ if (array_key_exists($gaRuntime['phpServerName'], APPLICATION_DOMAINS)) {
   }
 }
 else {
-  gfError('Invalid domain/application');
+  if ($gaRuntime['debugMode']) {
+    gfError('Invalid domain/application');
+  }
+
+  // We want to be able to give blank responses to any invalid domain/application
+  // when not in debug mode
+  $gaRuntime['offlineMode'] = true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// If the entire site is offline we want to serve proper but empty responses
+if ($gaRuntime['offlineMode']) {
+  // Offline message to display where content is normally expected
+  $offlineMessage = 'This Add-ons Site is currently unavailable. Please try again later.';
+
+  // Development offline message
+  if (str_contains(SOFTWARE_VERSION, 'a') || str_contains(SOFTWARE_VERSION, 'b') ||
+      str_contains(SOFTWARE_VERSION, 'pre') || $gaRuntime['debugMode']) {
+    $offlineMessage = 'This in-development version of Phoebus is not for public consumption.';
+  }
+
+  // This switch will handle requests for components
+  switch ($gaRuntime['requestComponent']) {
+    case 'aus':
+      gfOutputXML(XML_TAG . RDF_AUS_BLANK);
+      break;
+    case 'integration':
+      $gaRuntime['requestAPIScope'] = gfSuperVar('get', 'type');
+      $gaRuntime['requestAPIFunction'] = gfSuperVar('get', 'request');
+      if ($gaRuntime['requestAPIScope'] == 'internal') {
+        switch ($gaRuntime['requestAPIFunction']) {
+          case 'search':
+            gfOutputXML(XML_TAG . XML_API_SEARCH_BLANK);
+            break;      
+          case 'get':
+          case 'recommended':
+            gfOutputXML(XML_TAG . XML_API_LIST_BLANK);
+            break;
+          default:
+            gfHeader(404);
+        }
+      }
+      else {
+        gfHeader(404);
+      }
+      break;
+    case 'discover':
+      gfHeader(404);
+      break;
+    default:
+      gfError($offlineMessage);
+  }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -67,6 +120,7 @@ else {
 // Items that get changed depending on debug mode
 if ($gaRuntime['debugMode']) {
   // We can disable debug mode when on the dev url otherwise if debug mode we want all errors
+  // When important we can distingish between false and null
   if ($gaRuntime['requestDebugOff']) {
     $gaRuntime['debugMode'] = false;
   }
@@ -142,52 +196,6 @@ elseif (str_starts_with($gaRuntime['phpRequestURI'], '/panel/')) {
 // The SPECIAL component overrides the SITE component
 elseif (str_starts_with($gaRuntime['phpRequestURI'], '/special/')) {
   $gaRuntime['requestComponent'] = 'special';
-}
-
-// --------------------------------------------------------------------------------------------------------------------
-
-// If the entire site is offline but nothing above is busted.. We want to serve proper but empty responses
-if (file_exists(ROOT_PATH . '/.offline')) {
-  // Offline message to display where content is normally expected
-  $offlineMessage = 'This Add-ons Site is currently unavailable. Please try again later.';
-
-  // Development offline message
-  if (str_contains(SOFTWARE_VERSION, 'a') || str_contains(SOFTWARE_VERSION, 'b') ||
-      str_contains(SOFTWARE_VERSION, 'pre') || $gaRuntime['debugMode']) {
-    $offlineMessage = 'This in-development version of Phoebus is not for public consumption.';
-  }
-
-  // This switch will handle requests for components
-  switch ($gaRuntime['requestComponent']) {
-    case 'aus':
-      gfOutputXML(XML_TAG . RDF_AUS_BLANK);
-      break;
-    case 'integration':
-      $gaRuntime['requestAPIScope'] = gfSuperVar('get', 'type');
-      $gaRuntime['requestAPIFunction'] = gfSuperVar('get', 'request');
-      if ($gaRuntime['requestAPIScope'] == 'internal') {
-        switch ($gaRuntime['requestAPIFunction']) {
-          case 'search':
-            gfOutputXML(XML_TAG . XML_API_SEARCH_BLANK);
-            break;      
-          case 'get':
-          case 'recommended':
-            gfOutputXML(XML_TAG . XML_API_LIST_BLANK);
-            break;
-          default:
-            gfHeader(404);
-        }
-      }
-      else {
-        gfHeader(404);
-      }
-      break;
-    case 'discover':
-      gfHeader(404);
-      break;
-    default:
-      gfError($offlineMessage);
-  }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
