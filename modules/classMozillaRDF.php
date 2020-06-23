@@ -58,14 +58,14 @@ class classMozillaRDF {
   * Parses install.rdf for our desired properties
   *
   * @param string     $manifestData
-  * @param array &$data
-  * @param string $subjectType
-  * @param string $subject
-  * @param string $predicate
-  * @param int $ordinal
-  * @param string $objectType
-  * @param string $object
-  * @param string $xmlLang
+  * @param array      &$data
+  * @param string     $subjectType
+  * @param string     $subject
+  * @param string     $predicate
+  * @param int        $ordinal
+  * @param string     $objectType
+  * @param string     $object
+  * @param string     $xmlLang
   ********************************************************************************************************************/
   static function installManifestStatementHandler(&$data,
                                                   $subjectType,
@@ -74,39 +74,17 @@ class classMozillaRDF {
                                                   $ordinal,
                                                   $objectType,
                                                   $object,
-                                                  $xmlLang) {   
+                                                  $xmlLang) {
     //single properties - ignoring: optionsURL, aboutURL, and anything not listed
-    $singleProps = array(
-      'id' => 1,
-      'type' => 1,
-      'version' => 1,
-      'creator' => 1,
-      'homepageURL' => 1,
-      'updateURL' => 1,
-      'updateKey' => 1,
-      'bootstrap' => 1,
-      'hasEmbeddedWebExtension' => 1,
-      'multiprocessCompatible' => 1,
-      'skinnable' => 1,
-      'strictCompatibility' => 1,
-      'license' => 1,
-      'iconURL' => 1,
-      'icon64URL' => 1
-    );
-    
+    $singleProps = ['id', 'type', 'version', 'creator', 'homepageURL', 'updateURL', 'updateKey', 'bootstrap',
+                    'hasEmbeddedWebExtension', 'multiprocessCompatible', 'skinnable', 'strictCompatibility',
+                    'license', 'iconURL', 'icon64URL'];
+
     //multiple properties - ignoring: File
-    $multiProps = array(
-      'contributor' => 1,
-      'developer' => 1,
-      'translator' => 1,
-      'targetApplication' => 1
-    );
+    $multiProps = ['contributor', 'developer', 'translator', 'targetApplication'];
     
-    //localizable properties
-    $l10nProps = array(
-      'name' => 1,
-      'description' => 1
-    );
+    //localizable properties   
+    $localeProps = ['name', 'description'];
 
     //Look for properties on the install manifest itself
     if ($subject == self::INSTALL_MANIFEST_RESOURCE) {
@@ -115,13 +93,13 @@ class classMozillaRDF {
       if (strncmp($predicate, self::EM_NS, $length) == 0) {
         $prop = substr($predicate, $length, strlen($predicate)-$length);
 
-        if (array_key_exists($prop, $singleProps) ) {
+        if (in_array($prop, $singleProps) ) {
           $data['manifest'][$prop] = $object;
         }
-        elseif (array_key_exists($prop, $multiProps)) {
+        elseif (in_array($prop, $multiProps)) {
           $data['manifest'][$prop][] = $object;
         }
-        elseif (array_key_exists($prop, $l10nProps)) {
+        elseif (in_array($prop, $localeProps)) {
           $lang = ($xmlLang) ? $xmlLang : 'en-US';
           $data['manifest'][$prop][$lang] = $object;
         }
