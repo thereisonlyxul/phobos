@@ -178,18 +178,26 @@ const XPINSTALL_TYPES = array(
   'search-plugin'     => 2048, // Phoebus only
 );
 
+const INVALID_XPI_TYPES   = 1 | 16 | 32 | 128 | 256 | 512 | 1024 | 2048;
+const AUS_XPI_TYPES       = [2 => 'extension', 4 => 'theme', 8 => 'item', 64 => 'item'];
+const SEARCH_XPI_TYPES    = array(
+  2                       => 1, // extension
+  4                       => 2, // theme
+  8                       => 6, // locale
+  64                      => 3, // dictionary
+);
+
+const REGEX_GUID          = '/^\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}$/i';
+const REGEX_HOST          = '/[a-z0-9-\._]+\@[a-z0-9-\._]+/i';
+
+// --------------------------------------------------------------------------------------------------------------------
+
 const EXTENSION_TECHNOLOGY = array(
   'overlay'           => 1,
   'xpcom'             => 2,
   'bootstrap'         => 4,
   'jetpack'           => 8,
 );
-
-const INVALID_XPI_TYPES   = 1 | 16 | 32 | 128 | 256 | 512 | 1024 | 2048;
-const AUS_XPI_TYPES       = [2 => 'extension', 4 => 'theme', 8 => 'item', 64 => 'item'];
-
-const REGEX_GUID          = '/^\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}$/i';
-const REGEX_HOST          = '/[a-z0-9-\._]+\@[a-z0-9-\._]+/i';
 
 const RESTRICTED_IDS  = array(
   'bfc5-fc555c87dbc4',  // Moonchild Productions
