@@ -155,6 +155,7 @@ const RDF_AUS_BLANK         = '<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-
 // --------------------------------------------------------------------------------------------------------------------
 
 const MANIFEST_FILES = array(
+  'xpinstall'         => 'install.js',
   'install'           => 'install.rdf',
   'chrome'            => 'chrome.manifest',
   'bootstrap'         => 'bootstrap.js',
