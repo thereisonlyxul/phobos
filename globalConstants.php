@@ -161,7 +161,7 @@ const MANIFEST_FILES = array(
   'bootstrap'         => 'bootstrap.js',
   'npmJetpack'        => 'package.json',
   'cfxJetpack'        => 'harness-options.json',
-  'webex'             => 'manifest.jsom',
+  'webex'             => 'manifest.json',
 );
 
 const XPINSTALL_TYPES = array(
