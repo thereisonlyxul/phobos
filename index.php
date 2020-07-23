@@ -36,7 +36,8 @@ $gaRuntime = array(
   'requestPath'         => gfSuperVar('get', 'path'),
   'requestApplication'  => gfSuperVar('get', 'appOverride'),
   'requestDebugOff'     => gfSuperVar('get', 'debugOff'),
-  'requestSearchTerms'  => gfSuperVar('get', 'terms')
+  'requestSearchTerms'  => gfSuperVar('get', 'terms'),
+  'includes'            => [],
 );
 
 // --------------------------------------------------------------------------------------------------------------------

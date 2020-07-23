@@ -310,21 +310,52 @@ function gfSuperVar($_type, $_value, $_allowFalsy = null) {
 }
 
 /**********************************************************************************************************************
+* Includes a module
+*
+* @param $aModules    List of modules
+**********************************************************************************************************************/
+function gfImportModules(...$aModules) {
+  global $gaRuntime;
+  foreach ($aModules as $_value) {
+    if (!array_key_exists($_value, MODULES)) {
+      gfError('Unable to import unknown module ' . $_value);
+    }
+
+    if (in_array($_value, $gaRuntime['includes'])) {
+      gfError('Module ' . $_value . ' has already been imported');
+    }
+
+    require(MODULES[$_value]);
+    $gaRuntime['includes'][] = $_value;
+  }
+}
+
+/**********************************************************************************************************************
 * Check if a module is in $arrayIncludes
 *
-* @param $_value    A module
-* @returns          true or null depending on if $_value is in $arrayIncludes
+* @param $aClass      Class name
+* @param $aIncludes   List of includes
 **********************************************************************************************************************/
-function gfEnsureModule($_value) {
-  if (!array_key_exists('arrayIncludes', $GLOBALS)) {
-    gfError('$arrayIncludes is not defined');
+function gfEnsureModules($aClass, ...$aIncludes) { 
+  if (empty($aIncludes)) {
+    gfError('You did not specify any modules');
   }
   
-  if (!in_array($_value, $GLOBALS['arrayIncludes'])) {
-    return null;
+  $unloadedModules = [];
+  $indicative = ' is ';
+  foreach ($aIncludes as $_value) {
+    if (!in_array($_value, $GLOBALS['gaRuntime']['includes'])) {
+      $unloadedModules[] = $_value;
+    }
   }
-  
-  return true;
+
+  if (count($unloadedModules) > 0) {
+    if (count($unloadedModules) > 1) {
+      $indicative = ' are ';
+    }
+
+    gfError(implode(', ', $unloadedModules) . $indicative . 'required for ' . $aClass);
+  }
 }
 
 /**********************************************************************************************************************
