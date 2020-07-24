@@ -42,10 +42,18 @@ $count = count($gaRuntime['splitPath']);
 // We need an adjusted count in case we are in unified mode
 $adjustedCount = $count;
 
+// Set the site skin
+$gaRuntime['currentSkin'] = $gaRuntime['currentApplication'];
+
 // --------------------------------------------------------------------------------------------------------------------
 
 // Handle unified add-ons site mode
 if ($gaRuntime['unified']) {
+  // Determin the skin from the assigned domain name in unified mode
+  $gaRuntime['currentSkin'] = preg_replace('/(addons\.|addons-dev\.|\.com|\.net|\.org)/i',
+                                          '',
+                                          array_search($gaRuntime['unifiedApps'], APPLICATION_DOMAINS));
+
   if (in_array($gaRuntime['splitPath'][0], $gaRuntime['unifiedApps'])) {
     if ($count >= 1) {
       $gaRuntime['currentApplication'] = $gaRuntime['splitPath'][0];
@@ -62,6 +70,17 @@ if ($gaRuntime['unified']) {
   if (in_array($gaRuntime['splitPath'][0], $unifiedURIs)) {
     gfHeader(404);
   }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// Make sure the skin path exists
+if ((!$gaRuntime['currentSkin']) ||
+    (!file_exists(dirname(COMPONENTS[$gaRuntime['requestComponent']]) . '/skin/' . $gaRuntime['currentSkin']))) {
+  gfError('Skin ' .
+          (string)$gaRuntime['currentSkin'] .
+          ' path does not exist for component ' .
+          $gaRuntime['requestComponent']);
 }
 
 // --------------------------------------------------------------------------------------------------------------------

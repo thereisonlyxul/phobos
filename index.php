@@ -27,6 +27,7 @@ $gaRuntime = array(
   'currentSiteTitle'    => null,
   'currentScheme'       => gfSuperVar('server', 'SCHEME'),
   'currentDomain'       => null,
+  'currentSkin'         => null,
   'debugMode'           => null,
   'offlineMode'         => file_exists(ROOT_PATH . '/.offline'),
   'phpServerName'       => gfSuperVar('server', 'SERVER_NAME'),
