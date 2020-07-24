@@ -6,6 +6,7 @@
 class classMozillaRDF {
   const EM_NS = 'http://www.mozilla.org/2004/em-rdf#';
   const INSTALL_MANIFEST_RESOURCE = 'urn:mozilla:install-manifest';
+  const ANON_PREFIX = '#genid';
 
   private $rdfParser;
 
@@ -40,6 +41,12 @@ class classMozillaRDF {
     $targetArray = array();
     if (!empty($data['manifest']['targetApplication']) && is_array($data['manifest']['targetApplication'])) {
       foreach ($data['manifest']['targetApplication'] as $targetApp) {
+        if (str_starts_with($data[$targetApp][self::EM_NS."id"], self::ANON_PREFIX) ||
+            str_starts_with($data[$targetApp][self::EM_NS.'minVersion'], self::ANON_PREFIX) ||
+            str_starts_with($data[$targetApp][self::EM_NS.'maxVersion'], self::ANON_PREFIX)) {
+          gfError('em:targetApplication description tags/attributes em:id, em:minVersion, and em:maxVersion MUST have a value');
+        }
+
         $id = $data[$targetApp][self::EM_NS."id"];
         $targetArray[$id]['minVersion'] = $data[$targetApp][self::EM_NS.'minVersion'];
         $targetArray[$id]['maxVersion'] = $data[$targetApp][self::EM_NS.'maxVersion'];
@@ -93,7 +100,9 @@ class classMozillaRDF {
       if (strncmp($predicate, self::EM_NS, $length) == 0) {
         $prop = substr($predicate, $length, strlen($predicate)-$length);
 
-        if (in_array($prop, $singleProps) ) {
+        if (in_array($prop, $singleProps) &&
+            !str_starts_with($object, self::ANON_PREFIX) &&
+            $object != 'false') {
           $data['manifest'][$prop] = $object;
         }
         elseif (in_array($prop, $multiProps)) {
