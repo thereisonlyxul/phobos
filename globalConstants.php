@@ -26,6 +26,7 @@ const MODULES_RELPATH       = '/modules/';
 const LIB_RELPATH           = '/libraries/';
 
 const NEW_LINE              = "\n";
+const SPACE                 = " ";
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -43,6 +44,7 @@ const COMPONENTS = array(
 // Define modules
 const MODULES = array(
   'account'         => ROOT_PATH . MODULES_RELPATH . 'classAccount.php',
+  'addon'           => ROOT_PATH . MODULES_RELPATH . 'classAddon.php',
   'database'        => ROOT_PATH . MODULES_RELPATH . 'classDatabase.php',
   'generateContent' => ROOT_PATH . MODULES_RELPATH . 'classGenerateContent.php',
   'mozillaRDF'      => ROOT_PATH . MODULES_RELPATH . 'classMozillaRDF.php',
