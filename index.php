@@ -601,7 +601,6 @@ function gfSuperVar($_type, $_value, $_allowFalsy = null) {
 * @param $aModules    List of modules
 **********************************************************************************************************************/
 function gfImportModules(...$aModules) {
-  global $gaRuntime;
   foreach ($aModules as $_value) {
     if (!array_key_exists($_value, MODULES)) {
       gfError('Unable to import unknown module ' . $_value);
@@ -632,7 +631,10 @@ function gfImportModules(...$aModules) {
 * @param $aIncludes   List of includes
 **********************************************************************************************************************/
 function gfEnsureModules($aClass, ...$aIncludes) { 
-  global $gaRuntime;
+  if (!$aClass) {
+    $aClass = "Global";
+  }
+
   if (empty($aIncludes)) {
     gfError('You did not specify any modules');
   }
@@ -688,8 +690,7 @@ function gfReadFile($aFile) {
     $file = json_decode($file, true);
   }
 
-  if (str_ends_with($aFile, MANIFEST_FILES['installRDF'])) {
-    gfImportModules('mozillaRDF');
+  if (str_ends_with($aFile, MANIFEST_FILES['installRDF']) && array_key_exists('moduleMozillaRDF', $GLOBALS)) {
     global $moduleMozillaRDF;
     $file = $moduleMozillaRDF->parseInstallManifest($file);
 
