@@ -183,7 +183,8 @@ const RDF_AUS_BLANK         = '<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-
 
 const MANIFEST_FILES = array(
   'xpinstall'         => 'install.js',
-  'install'           => 'install.rdf',
+  'installRDF'        => 'install.rdf',
+  'installJSON'       => 'install.json',
   'chrome'            => 'chrome.manifest',
   'bootstrap'         => 'bootstrap.js',
   'npmJetpack'        => 'package.json',
@@ -289,6 +290,57 @@ const LICENSES = array(
 // ====================================================================================================================
 
 // == | Global Functions | ============================================================================================
+
+/**********************************************************************************************************************
+* Polyfill for str_starts_with
+*
+* @param $haystack  string
+* @param $needle    substring
+* @returns          true if substring exists at the start of the string else false
+**********************************************************************************************************************/
+
+if (!function_exists('str_starts_with')) {
+  function str_starts_with($haystack, $needle) {
+     $length = strlen($needle);
+     return (substr($haystack, 0, $length) === $needle);
+  }
+}
+
+/**********************************************************************************************************************
+* Polyfill for str_ends_with
+*
+* @param $haystack  string
+* @param $needle    substring
+* @returns          true if substring exists at the end of the string else false
+**********************************************************************************************************************/
+if (!function_exists('str_ends_with')) {
+  function str_ends_with($haystack, $needle) {
+    $length = strlen($needle);
+    if ($length == 0) {
+      return true;
+    }
+
+    return (substr($haystack, -$length) === $needle);
+  }
+}
+
+/**********************************************************************************************************************
+* Polyfill for str_contains
+*
+* @param $haystack  string
+* @param $needle    substring
+* @returns          true if substring exists in string else false
+**********************************************************************************************************************/
+if (!function_exists('str_contains')) {
+  function str_contains($haystack, $needle) {
+    if (strpos($haystack, $needle) > -1) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+}
 
 /**********************************************************************************************************************
 * Sends HTTP Headers to client using a short name
@@ -482,6 +534,7 @@ function gfErrorHandler($errno, $errstr, $errfile, $errline) {
   gfError($errorMessage, 1);
 }
 
+// Set error handler fairly early...
 set_error_handler("gfErrorHandler");
 
 /**********************************************************************************************************************
@@ -622,37 +675,7 @@ function gfSplitPath($aPath) {
 }
 
 /**********************************************************************************************************************
-* Get the bitwise value of valid applications from a list of application ids
-*
-* @param $aTargetApplications   list of targetApplication ids
-* @param $isAssoc               set false to use a list if ids
-* @returns                      bitwise int value representing applications
-***********************************************************************************************************************/
-function gfApplicationBits($aTargetApplications, $isAssoc = true) {
-  if (!is_array($aTargetApplications)) {
-    gfError(__FUNCTION__ . ': You must supply an array of ids');
-  }
-
-  if ($isAssoc) {
-    $aTargetApplications = array_keys($aTargetApplications);
-  }
-
-  $applications = array_combine(array_column(TARGET_APPLICATION, 'id'), array_column(TARGET_APPLICATION, 'bit'));
-  $applications = array_merge([TOOLKIT_ID => TOOLKIT_BIT, TOOLKIT_ALTID => TOOLKIT_BIT], $applications);
-
-  $applicationBits = 0;
-
-  foreach ($applications as $_key => $_value) {
-    if (in_array($_key, $aTargetApplications)) {
-      $applicationBits |= $_value;
-    }
-  }
-
-  return $applicationBits;
-}
-
-/**********************************************************************************************************************
-* Read file (decode json if the file has that extension)
+* Read file (decode json if the file has that extension or parse install.rdf if that is the target file)
 *
 * @param $aFile     File to read
 * @returns          file contents or array if json
@@ -665,7 +688,29 @@ function gfReadFile($aFile) {
     $file = json_decode($file, true);
   }
 
+  if (str_ends_with($aFile, MANIFEST_FILES['installRDF'])) {
+    gfImportModules('mozillaRDF');
+    global $moduleMozillaRDF;
+    $file = $moduleMozillaRDF->parseInstallManifest($file);
+
+    if (is_string($file)) {
+      gfError('RDF Parsing Error: ' . $file);
+    }
+  }
+
   return gfSuperVar('var', $file);
+}
+
+/**********************************************************************************************************************
+* Read file from zip-type archive
+*
+* @param $aArchive  Archive to read
+* @param $aFile     File in archive
+* @returns          file contents or array if json
+                    null if error, empty string, or empty array
+**********************************************************************************************************************/
+function gfReadFileFromArchive($aArchive, $aFile) {
+  return gfReadFile('zip://' . $aArchive . "#" . $aFile);
 }
 
 /**********************************************************************************************************************
@@ -700,54 +745,33 @@ function gfWriteFile($aData, $aFile, $aRenameFile = null) {
 }
 
 /**********************************************************************************************************************
-* Polyfill for str_starts_with
+* Get the bitwise value of valid applications from a list of application ids
 *
-* @param $haystack  string
-* @param $needle    substring
-* @returns          true if substring exists at the start of the string else false
-**********************************************************************************************************************/
-
-if (!function_exists('str_starts_with')) {
-  function str_starts_with($haystack, $needle) {
-     $length = strlen($needle);
-     return (substr($haystack, 0, $length) === $needle);
+* @param $aTargetApplications   list of targetApplication ids
+* @param $isAssoc               set false to use a list if ids
+* @returns                      bitwise int value representing applications
+***********************************************************************************************************************/
+function gfApplicationBits($aTargetApplications, $isAssoc = true) {
+  if (!is_array($aTargetApplications)) {
+    gfError(__FUNCTION__ . ': You must supply an array of ids');
   }
-}
 
-/**********************************************************************************************************************
-* Polyfill for str_ends_with
-*
-* @param $haystack  string
-* @param $needle    substring
-* @returns          true if substring exists at the end of the string else false
-**********************************************************************************************************************/
-if (!function_exists('str_ends_with')) {
-  function str_ends_with($haystack, $needle) {
-    $length = strlen($needle);
-    if ($length == 0) {
-      return true;
-    }
-
-    return (substr($haystack, -$length) === $needle);
+  if ($isAssoc) {
+    $aTargetApplications = array_keys($aTargetApplications);
   }
-}
 
-/**********************************************************************************************************************
-* Polyfill for str_contains
-*
-* @param $haystack  string
-* @param $needle    substring
-* @returns          true if substring exists in string else false
-**********************************************************************************************************************/
-if (!function_exists('str_contains')) {
-  function str_contains($haystack, $needle) {
-    if (strpos($haystack, $needle) > -1) {
-      return true;
-    }
-    else {
-      return false;
+  $applications = array_combine(array_column(TARGET_APPLICATION, 'id'), array_column(TARGET_APPLICATION, 'bit'));
+  $applications = array_merge([TOOLKIT_ID => TOOLKIT_BIT, TOOLKIT_ALTID => TOOLKIT_BIT], $applications);
+
+  $applicationBits = 0;
+
+  foreach ($applications as $_key => $_value) {
+    if (in_array($_key, $aTargetApplications)) {
+      $applicationBits |= $_value;
     }
   }
+
+  return $applicationBits;
 }
 
 // ====================================================================================================================
