@@ -554,13 +554,21 @@ function gfImportModules(...$aModules) {
       gfError('Unable to import unknown module ' . $_value);
     }
 
-    if (array_key_exists($_value, $gaRuntime['module'])) {
+    $className = 'class' . ucfirst($_value);
+    $moduleName = 'module' . ucfirst($_value);
+
+    // Special case for nsIVersionComparator
+    if ($_value == 'vc') {
+      $className = 'ToolkitVersionComparator';
+      $moduleName = 'module' . strtoupper($_value);
+    }
+   
+    if (array_key_exists($moduleName, $GLOBALS)) {
       gfError('Module ' . $_value . ' has already been imported');
     }
 
     require(MODULES[$_value]);
-    $className = 'class' . ucfirst($_value);
-    $gaRuntime['module'][$_value] = new $className();
+    $GLOBALS[$moduleName] = new $className();
   }
 }
 
@@ -579,7 +587,13 @@ function gfEnsureModules($aClass, ...$aIncludes) {
   $unloadedModules = [];
   $indicative = ' is ';
   foreach ($aIncludes as $_value) {
-    if (!array_key_exists($_value, $gaRuntime['module'])) {
+    $moduleName = 'module' . ucfirst($_value);
+
+    if ($_value == 'vc') {
+      $moduleName = 'module' . strtoupper($_value);
+    }
+
+    if (!array_key_exists($moduleName, $GLOBALS)) {
       $unloadedModules[] = $_value;
     }
   }
