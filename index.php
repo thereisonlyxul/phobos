@@ -607,12 +607,12 @@ function gfImportModules(...$aModules) {
     }
 
     $className = 'class' . ucfirst($_value);
-    $moduleName = 'module' . ucfirst($_value);
+    $moduleName = 'gm' . ucfirst($_value);
 
     // Special case for nsIVersionComparator
     if ($_value == 'vc') {
       $className = 'ToolkitVersionComparator';
-      $moduleName = 'module' . strtoupper($_value);
+      $moduleName = 'gm' . strtoupper($_value);
     }
    
     if (array_key_exists($moduleName, $GLOBALS)) {
@@ -642,10 +642,10 @@ function gfEnsureModules($aClass, ...$aIncludes) {
   $unloadedModules = [];
   $indicative = ' is ';
   foreach ($aIncludes as $_value) {
-    $moduleName = 'module' . ucfirst($_value);
+    $moduleName = 'gm' . ucfirst($_value);
 
     if ($_value == 'vc') {
-      $moduleName = 'module' . strtoupper($_value);
+      $moduleName = 'gm' . strtoupper($_value);
     }
 
     if (!array_key_exists($moduleName, $GLOBALS)) {
@@ -690,9 +690,9 @@ function gfReadFile($aFile) {
     $file = json_decode($file, true);
   }
 
-  if (str_ends_with($aFile, MANIFEST_FILES['installRDF']) && array_key_exists('moduleMozillaRDF', $GLOBALS)) {
-    global $moduleMozillaRDF;
-    $file = $moduleMozillaRDF->parseInstallManifest($file);
+  if (str_ends_with($aFile, MANIFEST_FILES['installRDF']) && array_key_exists('gmMozillaRDF', $GLOBALS)) {
+    global $gmMozillaRDF;
+    $file = $gmMozillaRDF->parseInstallManifest($file);
 
     if (is_string($file)) {
       gfError('RDF Parsing Error: ' . $file);

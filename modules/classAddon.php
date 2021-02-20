@@ -33,7 +33,7 @@ class classAddon {
 
   public function getAddonsByType($aType) {
     global $gaRuntime;
-    global $moduleDatabase;
+    global $gmDatabase;
 
     switch ($aType) {
       case XPINSTALL_TYPES['extension']:
@@ -52,12 +52,12 @@ class classAddon {
           }
         }
 
-        $rv = $moduleDatabase->get('all', $query, $this->genSelect(), self::TABLE_METADATA, $aType, $aType);
+        $rv = $gmDatabase->get('all', $query, $this->genSelect(), self::TABLE_METADATA, $aType, $aType);
         break;
       case XPINSTALL_TYPES['external']:
         $this->querySelect = [self::TABLE_METADATA => ['*']];
         $query = "SELECT ?p FROM ?n WHERE `type` = ?i";
-        $rv = $moduleDatabase->get('all', $query, $this->genSelect(), self::TABLE_METADATA, XPINSTALL_TYPES['external']);
+        $rv = $gmDatabase->get('all', $query, $this->genSelect(), self::TABLE_METADATA, XPINSTALL_TYPES['external']);
         break;
       default:
         gfError(__METHOD__ . ' - Unknown type: ' . $aType);
@@ -70,7 +70,7 @@ class classAddon {
   * Internal method to generate a select string from $this->querySelect
   *******************************************************************************************************************/
   private function genSelect() {
-    global $moduleDatabase;
+    global $gmDatabase;
 
     if (!gfSuperVar('var', $this->querySelect)) {
       gfError(__METHOD__ . ' - $this->querySelect cannot be empty/null');
@@ -79,12 +79,12 @@ class classAddon {
     $querySelect = '';
     foreach ($this->querySelect as $_key => $_value) {
       if ($_value[0] == '*') {
-        $querySelect .= $moduleDatabase->parse("?n.*", $_key) . ', ';
+        $querySelect .= $gmDatabase->parse("?n.*", $_key) . ', ';
         continue;
       }
 
       foreach ($_value as $_value2) {
-        $querySelect .= $moduleDatabase->parse("?n.?n", $_key, $_value2) . ', '; 
+        $querySelect .= $gmDatabase->parse("?n.?n", $_key, $_value2) . ', '; 
       }
     }
 
