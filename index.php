@@ -209,13 +209,7 @@ const XPINSTALL_TYPES = array(
 
 const INVALID_XPI_TYPES   = 1 | 16 | 32 | 128 | 256 | 512 | 1024 | 2048;
 const AUS_XPI_TYPES       = [2 => 'extension', 4 => 'theme', 8 => 'item', 64 => 'item'];
-const SEARCH_XPI_TYPES    = array(
-  2                       => 1, // extension
-  4                       => 2, // theme
-  8                       => 6, // locale
-  64                      => 3, // dictionary
-);
-
+const SEARCH_XPI_TYPES    = [2 => 1 /* extension */, 4 => 2 /* theme */,  8 => 6 /* locale */, 64 => 3 /* dictionary */];
 const REGEX_GUID          = '/^\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}$/i';
 const REGEX_HOST          = '/[a-z0-9-\._]+\@[a-z0-9-\._]+/i';
 
@@ -246,25 +240,25 @@ const RESTRICTED_IDS  = array(
 
 // --------------------------------------------------------------------------------------------------------------------
 
-const EXTENSION_CATEGORY       = ['name' => 'Extensions',                   'type' => 2, 'bit' => 0];
-
+const UNLISTED_CATEGORY        = ['name' => 'Unlisted',                     'type' => 0,    'bit' => 0];
+const EXTENSION_CATEGORY       = ['name' => 'Extensions',                   'type' => 2,    'bit' => 1];
 const CATEGORIES = array(
-  'alerts-and-updates'        => ['name' => 'Alerts &amp; Updates',         'type' => 2,    'bit' => 1],
-  'appearance'                => ['name' => 'Appearance',                   'type' => 2,    'bit' => 2],
-  'bookmarks-and-tabs'        => ['name' => 'Bookmarks &amp; Tabs',         'type' => 2,    'bit' => 4],
-  'download-management'       => ['name' => 'Download Management',          'type' => 2,    'bit' => 8],
-  'feeds-news-and-blogging'   => ['name' => 'Feeds, News, &amp; Blogging',  'type' => 2,    'bit' => 16],
-  'privacy-and-security'      => ['name' => 'Privacy &amp; Security',       'type' => 2,    'bit' => 32],
-  'search-tools'              => ['name' => 'Search Tools',                 'type' => 2,    'bit' => 64],
-  'social-and-communication'  => ['name' => 'Social &amp; Communication',   'type' => 2,    'bit' => 128],
-  'tools-and-utilities'       => ['name' => 'Tools &amp; Utilities',        'type' => 2,    'bit' => 256],
-  'web-development'           => ['name' => 'Web Development',              'type' => 2,    'bit' => 512],
-  'other'                     => ['name' => 'Other',                        'type' => 2,    'bit' => 1024],
-  'themes'                    => ['name' => 'Themes',                       'type' => 4,    'bit' => 0],
-  'language-packs'            => ['name' => 'Language Packs',               'type' => 8,    'bit' => 0],
-  'dictionaries'              => ['name' => 'Dictionaries',                 'type' => 64,   'bit' => 0],
-  'personas'                  => ['name' => 'Personas',                     'type' => 1024, 'bit' => 0],
-  'search-plugins'            => ['name' => 'Search Plugins',               'type' => 2048, 'bit' => 0],
+  'alerts-and-updates'        => ['name' => 'Alerts &amp; Updates',         'type' => 2,    'bit' => 2],
+  'appearance'                => ['name' => 'Appearance',                   'type' => 2,    'bit' => 4],
+  'bookmarks-and-tabs'        => ['name' => 'Bookmarks &amp; Tabs',         'type' => 2,    'bit' => 8],
+  'download-management'       => ['name' => 'Download Management',          'type' => 2,    'bit' => 16],
+  'feeds-news-and-blogging'   => ['name' => 'Feeds, News, &amp; Blogging',  'type' => 2,    'bit' => 32],
+  'privacy-and-security'      => ['name' => 'Privacy &amp; Security',       'type' => 2,    'bit' => 64],
+  'search-tools'              => ['name' => 'Search Tools',                 'type' => 2,    'bit' => 128],
+  'social-and-communication'  => ['name' => 'Social &amp; Communication',   'type' => 2,    'bit' => 256],
+  'tools-and-utilities'       => ['name' => 'Tools &amp; Utilities',        'type' => 2,    'bit' => 512],
+  'web-development'           => ['name' => 'Web Development',              'type' => 2,    'bit' => 1024],
+  'other'                     => ['name' => 'Other',                        'type' => 2,    'bit' => 2048],
+  'themes'                    => ['name' => 'Themes',                       'type' => 4,    'bit' => 1],
+  'language-packs'            => ['name' => 'Language Packs',               'type' => 8,    'bit' => 1],
+  'dictionaries'              => ['name' => 'Dictionaries',                 'type' => 64,   'bit' => 1],
+  'personas'                  => ['name' => 'Personas',                     'type' => 1024, 'bit' => 1],
+  'search-plugins'            => ['name' => 'Search Plugins',               'type' => 2048, 'bit' => 1],
 );
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -639,7 +633,7 @@ function gfEnsureModules($aClass, ...$aIncludes) {
     gfError('You did not specify any modules');
   }
   
-  $unloadedModules = [];
+  $unloadedModules = EMPTY_ARRAY;
   $indicative = ' is ';
   foreach ($aIncludes as $_value) {
     $moduleName = 'gm' . ucfirst($_value);
@@ -802,7 +796,6 @@ $gaRuntime = array(
   'requestApplication'  => gfSuperVar('get', 'appOverride'),
   'requestDebugOff'     => gfSuperVar('get', 'debugOff'),
   'requestSearchTerms'  => gfSuperVar('get', 'terms'),
-  'module'              => [],
 );
 
 // --------------------------------------------------------------------------------------------------------------------

@@ -5,7 +5,7 @@
 
 // == | Functions | ===================================================================================================
 
-function isFeature($aFeature) {
+function gfIsFeature($aFeature) {
   global $gaRuntime;
 
   if (is_bool($gaRuntime['currentApplication'])) {
@@ -21,12 +21,12 @@ function isFeature($aFeature) {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-function adjustedIndex($aIndex) {
-  global $count;
-  global $adjustedCount;
+function gfAdjustedIndex($aIndex) {
+  global $gvCount;
+  global $gvAdjustedCount;
   
-  if ($count != $adjustedCount) {
-    return $aIndex + ($count - $adjustedCount);
+  if ($gvCount != $gvAdjustedCount) {
+    return $aIndex + ($gvCount - $gvAdjustedCount);
   }
 
   return $aIndex;
@@ -37,10 +37,10 @@ function adjustedIndex($aIndex) {
 // == | Main | ========================================================================================================
 
 // We need a count for the exploded path
-$count = count($gaRuntime['splitPath']);
+$gvCount = count($gaRuntime['splitPath']);
 
 // We need an adjusted count in case we are in unified mode
-$adjustedCount = $count;
+$gvAdjustedCount = $gvCount;
 
 // Set the site skin
 $gaRuntime['currentSkin'] = $gaRuntime['currentApplication'];
@@ -55,12 +55,12 @@ if ($gaRuntime['unified']) {
                                           array_search($gaRuntime['unifiedApps'], APPLICATION_DOMAINS));
 
   if (in_array($gaRuntime['splitPath'][0], $gaRuntime['unifiedApps'])) {
-    if ($count >= 1) {
+    if ($gvCount >= 1) {
       $gaRuntime['currentApplication'] = $gaRuntime['splitPath'][0];
-      $adjustedCount -= 1;
+      $gvAdjustedCount -= 1;
     }
 
-    if ($count == 1 && $gaRuntime['splitPath'][0] == $gaRuntime['currentApplication']) {
+    if ($gvCount == 1 && $gaRuntime['splitPath'][0] == $gaRuntime['currentApplication']) {
       gfGenContent(TARGET_APPLICATION[$gaRuntime['currentApplication']]['name'] . ' index', null);
     }
   }
@@ -85,13 +85,13 @@ if ((!$gaRuntime['currentSkin']) ||
 
 // --------------------------------------------------------------------------------------------------------------------
 
-switch ($gaRuntime['splitPath'][adjustedIndex(0)]) {
+switch ($gaRuntime['splitPath'][gfAdjustedIndex(0)]) {
   case 'addon':
-    $slug = $gaRuntime['splitPath'][adjustedIndex(1)] ?? null;
+    $slug = $gaRuntime['splitPath'][gfAdjustedIndex(1)] ?? null;
 
     // Add-on Versions and License
-    if ($adjustedCount == 3) {
-      switch ($gaRuntime['splitPath'][adjustedIndex(2)]) {
+    if ($gvAdjustedCount == 3) {
+      switch ($gaRuntime['splitPath'][gfAdjustedIndex(2)]) {
         case 'versions':
           gfGenContent('Add-on: ' . $slug . ' - Versions', null);
           break;
@@ -104,12 +104,12 @@ switch ($gaRuntime['splitPath'][adjustedIndex(0)]) {
     }
 
     // Add-on Page
-    if ($adjustedCount == 2) {
+    if ($gvAdjustedCount == 2) {
       gfGenContent('Add-on: ' . $slug, null);
     }
 
     // There is no content for just /addon/ so redirect to root
-    if ($adjustedCount == 1) {
+    if ($gvAdjustedCount == 1) {
       $url = $gaRuntime['unified'] ? '/' . $gaRuntime['currentApplication'] . '/' : '/';
       gfRedirect($url);
     }
@@ -118,10 +118,10 @@ switch ($gaRuntime['splitPath'][adjustedIndex(0)]) {
     $categories = array_filter(CATEGORIES, function($aElement) { return $aElement['type'] == XPINSTALL_TYPES['extension']; });
 
     // Extension Sub-categories
-    if ($adjustedCount == 2) {
-      $category = $gaRuntime['splitPath'][adjustedIndex(1)];
+    if ($gvAdjustedCount == 2) {
+      $category = $gaRuntime['splitPath'][gfAdjustedIndex(1)];
 
-      if (!isFeature('extensions-cat')) {
+      if (!gfIsFeature('extensions-cat')) {
         gfHeader(404);
       }
 
@@ -129,16 +129,16 @@ switch ($gaRuntime['splitPath'][adjustedIndex(0)]) {
         gfHeader(404);
       }
 
-      gfGenContent('Extension Category: ' . CATEGORIES[$slug]['name'], null);
+      gfGenContent('Extension Category: ' . CATEGORIES[$category]['name'], null);
     }
 
     // Extension category
-    if ($adjustedCount == 1) {
-      if (!isFeature('extensions')) {
+    if ($gvAdjustedCount == 1) {
+      if (!gfIsFeature('extensions')) {
         gfheader(404);
       }
 
-      if (isFeature('extensions-cat') && !gfSuperVar('get', 'all')) {
+      if (gfIsFeature('extensions-cat') && !gfSuperVar('get', 'all')) {
         gfGenContent(EXTENSION_CATEGORY['name'] . ' Categories', $categories);
       }
 
@@ -148,22 +148,22 @@ switch ($gaRuntime['splitPath'][adjustedIndex(0)]) {
   case 'themes':
   case 'language-packs':
   case 'dictionaries':
-    $category = $gaRuntime['splitPath'][adjustedIndex(0)];
+    $category = $gaRuntime['splitPath'][gfAdjustedIndex(0)];
 
-    if ($adjustedCount > 1 || !isFeature($category)) {
+    if ($gvAdjustedCount > 1 || !gfIsFeature($category)) {
       gfHeader(404);
     }
 
     gfGenContent(CATEGORIES[$category]['name'] . ' List', null);
     break;
   case 'search-plugins':
-    if ($adjustedCount > 1 || !isFeature('search-plugins')) {
+    if ($gvAdjustedCount > 1 || !gfIsFeature('search-plugins')) {
       gfHeader(404);
     }
 
     gfGenContent(CATEGORIES['search-plugins']['name'] . ' List', null);
   case 'personas':
-    if ($adjustedCount > 1 || !isFeature('personas')) {
+    if ($gvAdjustedCount > 1 || !gfIsFeature('personas')) {
       gfHeader(404);
     }
 

@@ -23,7 +23,7 @@ class classAddon {
   private $querySelect;
 
   /********************************************************************************************************************
-  * Class constructor that sets inital state of things
+  * Class constructor that sets initial state of things
   ********************************************************************************************************************/
   function __construct($aEnableWrite = null) {
     gfEnsureModules(__METHOD__, 'database');
@@ -45,11 +45,7 @@ class classAddon {
         $query = "SELECT ?p FROM ?n WHERE (`type` = ?i OR `subType` = ?i)";
 
         if ($gaRuntime['requestComponent'] == 'site') {
-          $query .= SPACE . "AND `active` = 1 AND `reviewed` = 1";
-
-          if ($aType == XPINSTALL_TYPES['extension']) {
-            $query .= SPACE . "`AND NOT category` = 0";
-          }
+          $query .= SPACE . "AND `active` = 1 AND `reviewed` = 1 AND NOT `category` = 0";
         }
 
         $rv = $gmDatabase->get('all', $query, $this->genSelect(), self::TABLE_METADATA, $aType, $aType);
