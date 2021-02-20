@@ -14,14 +14,37 @@ ini_set("display_errors", "on");
 // NOTE: DOCUMENT_ROOT does NOT have a trailing slash.
 define('ROOT_PATH', $_SERVER['DOCUMENT_ROOT']);
 
-// Define basic constants for the software
-const SOFTWARE_VENDOR       = 'Binary Outcast';
-const SOFTWARE_NAME         = 'Phoebus Ascendant';
-const SOFTWARE_VERSION      = '3.0.0a1';
-const SOFTWARE_REPO         = 'https://github.com/binaryoutcast/phoebus-ascendant.git';
+// --------------------------------------------------------------------------------------------------------------------
+
+// Define some primitives
+const NEW_LINE              = "\n";
+const EMPTY_STRING          = "";
+const EMPTY_ARRAY           = [];
+const SPACE                 = " ";
+const DOT                   = ".";
+const SLASH                 = "/";
+const DASH                  = "-";
+const WILDCARD              = "*";
+
+const PHP_EXTENSION         = DOT . 'php';
+const JSON_EXTENSION        = DOT . 'json';
+const TEMP_EXTENSION        = DOT . 'temp';
+const XPINSTALL_EXTENSION   = DOT . 'xpi';
+
+const JSON_ENCODE_FLAGS     = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+const FILE_WRITE_FLAGS      = "w+";
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// Define the software
+const SOFTWARE_VENDOR       = 'Binary Outcast';
+const SOFTWARE_NAME         = 'Phoebus Ascendant';
+const SOFTWARE_VERSION      = '3.0.0a1';
+const SOFTWARE_REPO         = 'https://repo.palemoon.org/binaryoutcast/phoebus-ascendant.git';
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// Define paths
 const DATASTORE_RELPATH     = '/datastore/';
 const OBJ_RELPATH           = '/.obj/';
 const BASE_RELPATH          = '/base/';
@@ -29,9 +52,6 @@ const COMPONENTS_RELPATH    = '/components/';
 const DATABASES_RELPATH     = '/databases/';
 const MODULES_RELPATH       = '/modules/';
 const LIB_RELPATH           = '/libraries/';
-
-const NEW_LINE              = "\n";
-const SPACE                 = " ";
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -172,16 +192,16 @@ const MANIFEST_FILES = array(
 );
 
 const XPINSTALL_TYPES = array(
-  'app'               => 1, // No longer applicable
+  'app'               => 1,    // No longer applicable
   'extension'         => 2,
   'theme'             => 4,
   'locale'            => 8,
-  'plugin'            => 16, // No longer applicable
-  'multipackage'      => 32, // Forbidden on Phoebus
+  'plugin'            => 16,   // No longer applicable
+  'multipackage'      => 32,   // Forbidden on Phoebus
   'dictionary'        => 64,
-  'experiment'        => 128, // Not used in UXP
-  'apiextension'      => 256, // Not used in UXP
-  'external'          => 512, // Phoebus only
+  'experiment'        => 128,  // Not used in UXP
+  'apiextension'      => 256,  // Not used in UXP
+  'external'          => 512,  // Phoebus only
   'persona'           => 1024, // Phoebus only
   'search-plugin'     => 2048, // Phoebus only
 );
@@ -352,7 +372,7 @@ function gfGenContent($aTitle, $aContent, $aTextBox = null, $aList = null, $aErr
 
   // If not a string var_export it and enable the textbox
   if ($notString()) {
-    $aContent = json_encode($aContent, 448);
+    $aContent = json_encode($aContent, JSON_ENCODE_FLAGS);
     $aTextBox = true;
     $aList = false;
   }
@@ -371,7 +391,7 @@ function gfGenContent($aTitle, $aContent, $aTextBox = null, $aList = null, $aErr
 
   // Set page title
   $templateHead = str_replace('<title></title>',
-                  '<title>' . $aTitle . ' - ' . SOFTWARE_NAME . ' ' . SOFTWARE_VERSION . '</title>',
+                  '<title>' . $aTitle . DASH . SOFTWARE_NAME . SPACE . SOFTWARE_VERSION . '</title>',
                   $templateHead);
 
   if (str_contains(SOFTWARE_VERSION, 'a') || str_contains(SOFTWARE_VERSION, 'b') || str_contains(SOFTWARE_VERSION, 'pre')) {
@@ -398,7 +418,7 @@ function gfGenContent($aTitle, $aContent, $aTextBox = null, $aList = null, $aErr
 **********************************************************************************************************************/
 function gfError($aValue, $aMode = 0) {
   $varExport  = var_export($aValue, true);
-  $jsonEncode = json_encode($aValue, 448); // JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+  $jsonEncode = json_encode($aValue, JSON_ENCODE_FLAGS);
   
   $pageHeader = array(
     'default' => 'Unable to Comply',
@@ -432,22 +452,22 @@ function gfError($aValue, $aMode = 0) {
 
 function gfErrorHandler($errno, $errstr, $errfile, $errline) {
   $errorCodes = array(
-    E_ERROR => 'Fatal Error',
-    E_WARNING => 'Warning',
-    E_PARSE => 'Parse',
-    E_NOTICE => 'Notice',
-    E_CORE_ERROR => 'Fatal Error (Core)',
-    E_CORE_WARNING => 'Warning (Core)',
-    E_COMPILE_ERROR => 'Fatal Error (Compile)',
-    E_COMPILE_WARNING => 'Warning (Compile)',
-    E_USER_ERROR => 'Fatal Error (User Generated)',
-    E_USER_WARNING => 'Warning (User Generated)',
-    E_USER_NOTICE => 'Notice (User Generated)',
-    E_STRICT => 'Strict',
+    E_ERROR             => 'Fatal Error',
+    E_WARNING           => 'Warning',
+    E_PARSE             => 'Parse',
+    E_NOTICE            => 'Notice',
+    E_CORE_ERROR        => 'Fatal Error (Core)',
+    E_CORE_WARNING      => 'Warning (Core)',
+    E_COMPILE_ERROR     => 'Fatal Error (Compile)',
+    E_COMPILE_WARNING   => 'Warning (Compile)',
+    E_USER_ERROR        => 'Fatal Error (User Generated)',
+    E_USER_WARNING      => 'Warning (User Generated)',
+    E_USER_NOTICE       => 'Notice (User Generated)',
+    E_STRICT            => 'Strict',
     E_RECOVERABLE_ERROR => 'Fatal Error (Recoverable)',
-    E_DEPRECATED => 'Depercated',
-    E_USER_DEPRECATED => 'Depercated (User Generated)',
-    E_ALL => 'All',
+    E_DEPRECATED        => 'Depercated',
+    E_USER_DEPRECATED   => 'Depercated (User Generated)',
+    E_ALL               => 'All',
   );
 
   $errorType = $errorCodes[$errno] ?? $errno;
@@ -534,12 +554,13 @@ function gfImportModules(...$aModules) {
       gfError('Unable to import unknown module ' . $_value);
     }
 
-    if (in_array($_value, $gaRuntime['includes'])) {
+    if (array_key_exists($_value, $gaRuntime['module'])) {
       gfError('Module ' . $_value . ' has already been imported');
     }
 
     require(MODULES[$_value]);
-    $gaRuntime['includes'][] = $_value;
+    $className = 'class' . ucfirst($_value);
+    $gaRuntime['module'][$_value] = new $className();
   }
 }
 
@@ -550,6 +571,7 @@ function gfImportModules(...$aModules) {
 * @param $aIncludes   List of includes
 **********************************************************************************************************************/
 function gfEnsureModules($aClass, ...$aIncludes) { 
+  global $gaRuntime;
   if (empty($aIncludes)) {
     gfError('You did not specify any modules');
   }
@@ -557,7 +579,7 @@ function gfEnsureModules($aClass, ...$aIncludes) {
   $unloadedModules = [];
   $indicative = ' is ';
   foreach ($aIncludes as $_value) {
-    if (!in_array($_value, $GLOBALS['gaRuntime']['includes'])) {
+    if (!array_key_exists($_value, $gaRuntime['module'])) {
       $unloadedModules[] = $_value;
     }
   }
@@ -578,11 +600,11 @@ function gfEnsureModules($aClass, ...$aIncludes) {
 * @returns        array of uri parts in order
 ***********************************************************************************************************************/
 function gfSplitPath($aPath) {
-  if ($aPath == '/') {
+  if ($aPath == SLASH) {
     return ['root'];
   }
 
-  return array_values(array_filter(explode('/', $aPath), 'strlen'));
+  return array_values(array_filter(explode(SLASH, $aPath), 'strlen'));
 }
 
 /**********************************************************************************************************************
@@ -613,6 +635,54 @@ function gfApplicationBits($aTargetApplications, $isAssoc = true) {
   }
 
   return $applicationBits;
+}
+
+/**********************************************************************************************************************
+* Read file (decode json if the file has that extension)
+*
+* @param $aFile     File to read
+* @returns          file contents or array if json
+                    null if error, empty string, or empty array
+**********************************************************************************************************************/
+function gfReadFile($aFile) {
+  $file = @file_get_contents($aFile);
+
+  if (str_ends_with($aFile, JSON_EXTENSION)) {
+    $file = json_decode($file, true);
+  }
+
+  return gfSuperVar('var', $file);
+}
+
+/**********************************************************************************************************************
+* Write file (encodes json if the file has that extension)
+*
+* @param $aData     Data to be written
+* @param $aFile     File to write
+* @returns          true else return error string
+**********************************************************************************************************************/
+function gfWriteFile($aData, $aFile, $aRenameFile = null) {
+  if (!gfSuperVar('var', $aData)) {
+    return 'No useful data to write';
+  }
+
+  if (file_exists($aFile)) {
+    return 'File already exists';
+  }
+
+  if (str_ends_with($aFile, JSON_EXTENSION)) {
+    $aData = json_encode($aData, JSON_ENCODE_FLAGS);
+  }
+
+  $file = fopen($aFile, FILE_WRITE_FLAGS);
+  fwrite($file, $aData);
+  fclose($file);
+
+  if ($aRenameFile) {
+    rename($aFile, $aRenameFile);
+  }
+
+  return true;
 }
 
 /**********************************************************************************************************************
@@ -684,7 +754,7 @@ $gaRuntime = array(
   'currentDomain'       => null,
   'currentSkin'         => null,
   'debugMode'           => null,
-  'offlineMode'         => file_exists(ROOT_PATH . '/.offline'),
+  'offlineMode'         => file_exists(ROOT_PATH . SLASH . '.offline'),
   'phpServerName'       => gfSuperVar('server', 'SERVER_NAME'),
   'phpRequestURI'       => gfSuperVar('server', 'REQUEST_URI'),
   'remoteAddr'          => gfSuperVar('server', 'HTTP_X_FORWARDED_FOR') ?? gfSuperVar('server', 'REMOTE_ADDR'),
@@ -693,7 +763,7 @@ $gaRuntime = array(
   'requestApplication'  => gfSuperVar('get', 'appOverride'),
   'requestDebugOff'     => gfSuperVar('get', 'debugOff'),
   'requestSearchTerms'  => gfSuperVar('get', 'terms'),
-  'includes'            => [],
+  'module'              => [],
 );
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -844,14 +914,14 @@ if (!$gaRuntime['currentApplication']) {
 // Root (/) won't set a component or path
 if (!$gaRuntime['requestComponent'] && !$gaRuntime['requestPath']) {
   $gaRuntime['requestComponent'] = 'site';
-  $gaRuntime['requestPath'] = '/';
+  $gaRuntime['requestPath'] = SLASH;
 }
 // The PANEL component overrides the SITE component
-elseif (str_starts_with($gaRuntime['phpRequestURI'], '/panel/')) {
+elseif (str_starts_with($gaRuntime['phpRequestURI'], SLASH . 'panel' . SLASH)) {
   $gaRuntime['requestComponent'] = 'panel';
 }
 // The SPECIAL component overrides the SITE component
-elseif (str_starts_with($gaRuntime['phpRequestURI'], '/special/')) {
+elseif (str_starts_with($gaRuntime['phpRequestURI'], SLASH . 'special' . SLASH)) {
   $gaRuntime['requestComponent'] = 'special';
 }
 

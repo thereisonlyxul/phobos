@@ -49,7 +49,7 @@ $gaRuntime['currentSkin'] = $gaRuntime['currentApplication'];
 
 // Handle unified add-ons site mode
 if ($gaRuntime['unified']) {
-  // Determin the skin from the assigned domain name in unified mode
+  // Determine the skin from the assigned domain name in unified mode
   $gaRuntime['currentSkin'] = preg_replace('/(addons\.|addons-dev\.|\.com|\.net|\.org)/i',
                                           '',
                                           array_search($gaRuntime['unifiedApps'], APPLICATION_DOMAINS));
