@@ -27,7 +27,7 @@ class classDatabase {
 
     $this->connection = mysqli_connect('localhost', $arrayCreds['username'], $arrayCreds['password'], $arrayCreds['currentDB']);
 
-    if (mysqli_connect_errno($this->connection)) {
+    if (mysqli_connect_errno()) {
       gfError('SQL Connection Error: ' . mysqli_connect_errno($this->connection));
     }
 
