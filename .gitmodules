@@ -6,4 +6,4 @@
 	url = https://github.com/smarty-php/smarty.git
 [submodule "libraries/librdf"]
 	path = libraries/librdf
-	url = https://github.com/binaryoutcast/librdf.git
+url=https://repo.palemoon.org/binaryoutcast/librdf.git
