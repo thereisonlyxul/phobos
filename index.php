@@ -740,7 +740,7 @@ function gfWriteFile($aData, $aFile, $aRenameFile = null) {
 }
 
 /**********************************************************************************************************************
-* Basic Filter Substution of a string
+* Basic Filter Substitution of a string
 *
 * @param $aSubsts               multi-dimentional array of keys and values to be replaced
 * @param $aString               string to operate on
@@ -769,7 +769,7 @@ function gfSubst($aSubsts, $aString, $aRegEx = null) {
     }
   }
 
-  if (!$string || $string == $aString) {
+  if (!$string) {
     gfError('Something has gone wrong with' . SPACE . __FUNCTION__);
   }
 
