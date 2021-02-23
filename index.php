@@ -740,6 +740,43 @@ function gfWriteFile($aData, $aFile, $aRenameFile = null) {
 }
 
 /**********************************************************************************************************************
+* Basic Filter Substution of a string
+*
+* @param $aSubsts               multi-dimentional array of keys and values to be replaced
+* @param $aString               string to operate on
+* @param $aRegEx                set to true if pcre
+* @returns                      bitwise int value representing applications
+***********************************************************************************************************************/
+function gfSubst($aSubsts, $aString, $aRegEx = null) {
+  if (!is_array($aSubsts)) {
+    gfError('$aSubsts must be an array');
+  }
+
+  if (!is_string($aString)) {
+    gfError('$aString must be a string');
+  }
+
+  $string = $aString;
+
+  if ($aRegEx) {
+    foreach ($aSubsts as $_key => $_value) {
+      $string = preg_replace('/' . $_key . '/iU', $_value, $string);
+    }
+  }
+  else {
+    foreach ($aSubsts as $_key => $_value) {
+      $string = str_replace('{%' . $_key . '}', $_value, $string);
+    }
+  }
+
+  if (!$string || $string == $aString) {
+    gfError('Something has gone wrong with' . SPACE . __FUNCTION__);
+  }
+
+  return $string;
+}
+
+/**********************************************************************************************************************
 * Get the bitwise value of valid applications from a list of application ids
 *
 * @param $aTargetApplications   list of targetApplication ids
