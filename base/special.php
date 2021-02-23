@@ -12,7 +12,7 @@ $specialFunctions = array(
 );
 
 $function = $gaRuntime['splitPath'][1] ?? null;
-$componentPath = dirname(COMPONENTS[$gaRuntime['requestComponent']]) . '/';
+$componentPath = dirname(COMPONENTS[$gaRuntime['reqComponent']]) . '/';
 
 if (!$gaRuntime['debugMode']) {
   if ($specialFunction != 'phpinfo') {
@@ -34,7 +34,7 @@ if ($function && count($gaRuntime['splitPath']) == 2) {
       gfHeader(404);
       break;
     case 'test':
-      $gaRuntime['requestTestCase'] = gfSuperVar('get', 'case');
+      $gaRuntime['reqTestCase'] = gfSuperVar('get', 'case');
       $globTests = glob($componentPath . 'tests/*.php');
       $tests = [];
 
@@ -44,12 +44,12 @@ if ($function && count($gaRuntime['splitPath']) == 2) {
 
       unset($globTests);
 
-      if ($gaRuntime['requestTestCase']) {
-        if (in_array($gaRuntime['requestTestCase'], $tests)) {
-          require_once($componentPath . 'tests/' . $gaRuntime['requestTestCase'] . '.php');
+      if ($gaRuntime['reqTestCase']) {
+        if (in_array($gaRuntime['reqTestCase'], $tests)) {
+          require_once($componentPath . 'tests/' . $gaRuntime['reqTestCase'] . '.php');
         }
         else {
-          gfError($gaRuntime['requestTestCase'] . ': Invalid Test Case');
+          gfError($gaRuntime['reqTestCase'] . ': Invalid Test Case');
         }
       }
 
@@ -68,7 +68,7 @@ if ($function && count($gaRuntime['splitPath']) == 2) {
   }
 }
 else {
-  if ($gaRuntime['requestPath'] == '/special/') {
+  if ($gaRuntime['reqPath'] == '/special/') {
     $output = '';
 
     foreach ($specialFunctions as $_key => $_value) {

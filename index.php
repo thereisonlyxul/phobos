@@ -778,11 +778,11 @@ $gaRuntime = array(
   'phpServerName'       => gfSuperVar('server', 'SERVER_NAME'),
   'phpRequestURI'       => gfSuperVar('server', 'REQUEST_URI'),
   'remoteAddr'          => gfSuperVar('server', 'HTTP_X_FORWARDED_FOR') ?? gfSuperVar('server', 'REMOTE_ADDR'),
-  'requestComponent'    => gfSuperVar('get', 'component'),
-  'requestPath'         => gfSuperVar('get', 'path'),
-  'requestApplication'  => gfSuperVar('get', 'appOverride'),
-  'requestDebugOff'     => gfSuperVar('get', 'debugOff'),
-  'requestSearchTerms'  => gfSuperVar('get', 'terms'),
+  'reqComponent'        => gfSuperVar('get', 'component'),
+  'reqPath'             => gfSuperVar('get', 'path'),
+  'reqApplication'      => gfSuperVar('get', 'appOverride'),
+  'reqDebugOff'         => gfSuperVar('get', 'debugOff'),
+  'reqSearchTerms'      => gfSuperVar('get', 'terms'),
 );
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -829,15 +829,15 @@ if ($gaRuntime['offlineMode']) {
   }
 
   // This switch will handle requests for components
-  switch ($gaRuntime['requestComponent']) {
+  switch ($gaRuntime['reqComponent']) {
     case 'aus':
       gfOutputXML(XML_TAG . RDF_AUS_BLANK);
       break;
     case 'integration':
-      $gaRuntime['requestAPIScope'] = gfSuperVar('get', 'type');
-      $gaRuntime['requestAPIFunction'] = gfSuperVar('get', 'request');
-      if ($gaRuntime['requestAPIScope'] == 'internal') {
-        switch ($gaRuntime['requestAPIFunction']) {
+      $gaRuntime['reqAPIScope'] = gfSuperVar('get', 'type');
+      $gaRuntime['reqAPIFunction'] = gfSuperVar('get', 'request');
+      if ($gaRuntime['reqAPIScope'] == 'internal') {
+        switch ($gaRuntime['reqAPIFunction']) {
           case 'search':
             gfOutputXML(XML_TAG . XML_API_SEARCH_BLANK);
             break;      
@@ -867,25 +867,25 @@ if ($gaRuntime['offlineMode']) {
 if ($gaRuntime['debugMode']) {
   // We can disable debug mode when on the dev url otherwise if debug mode we want all errors
   // When important we can distingish between false and null
-  if ($gaRuntime['requestDebugOff']) {
+  if ($gaRuntime['reqDebugOff']) {
     $gaRuntime['debugMode'] = false;
   }
 
   // In debug mode we need to test other applications
-  if ($gaRuntime['requestApplication']) {
+  if ($gaRuntime['reqApplication']) {
     // We can't test an application that doesn't exist
-    if (!array_key_exists($gaRuntime['requestApplication'], TARGET_APPLICATION)) {
+    if (!array_key_exists($gaRuntime['reqApplication'], TARGET_APPLICATION)) {
       gfError('Invalid override application');
     }
 
     // Stupidity check
-    if ($gaRuntime['requestApplication'] == $gaRuntime['currentApplication']) {
+    if ($gaRuntime['reqApplication'] == $gaRuntime['currentApplication']) {
       gfError('It makes no sense to override to the same application');
     }
 
     // Set the application
     $gaRuntime['orginalApplication'] = $gaRuntime['currentApplication'];
-    $gaRuntime['currentApplication'] = $gaRuntime['requestApplication'];
+    $gaRuntime['currentApplication'] = $gaRuntime['reqApplication'];
 
     // If this is a unified add-ons site then we need to try and figure out the domain
     if (in_array('unified', TARGET_APPLICATION[$gaRuntime['currentApplication']]['features'])) {
@@ -931,28 +931,28 @@ if (!$gaRuntime['currentApplication']) {
 // --------------------------------------------------------------------------------------------------------------------
 
 // Root (/) won't set a component or path
-if (!$gaRuntime['requestComponent'] && !$gaRuntime['requestPath']) {
-  $gaRuntime['requestComponent'] = 'site';
-  $gaRuntime['requestPath'] = SLASH;
+if (!$gaRuntime['reqComponent'] && !$gaRuntime['reqPath']) {
+  $gaRuntime['reqComponent'] = 'site';
+  $gaRuntime['reqPath'] = SLASH;
 }
 // The PANEL component overrides the SITE component
 elseif (str_starts_with($gaRuntime['phpRequestURI'], SLASH . 'panel' . SLASH)) {
-  $gaRuntime['requestComponent'] = 'panel';
+  $gaRuntime['reqComponent'] = 'panel';
 }
 // The SPECIAL component overrides the SITE component
 elseif (str_starts_with($gaRuntime['phpRequestURI'], SLASH . 'special' . SLASH)) {
-  $gaRuntime['requestComponent'] = 'special';
+  $gaRuntime['reqComponent'] = 'special';
 }
 
 // --------------------------------------------------------------------------------------------------------------------
 
 // Load component based on requestComponent
-if ($gaRuntime['requestComponent'] && array_key_exists($gaRuntime['requestComponent'], COMPONENTS)) {
+if ($gaRuntime['reqComponent'] && array_key_exists($gaRuntime['reqComponent'], COMPONENTS)) {
   // Explode the path
-  $gaRuntime['splitPath'] = gfSplitPath($gaRuntime['requestPath']);
+  $gaRuntime['splitPath'] = gfSplitPath($gaRuntime['reqPath']);
 
   // Include the component
-  require_once(COMPONENTS[$gaRuntime['requestComponent']]);
+  require_once(COMPONENTS[$gaRuntime['reqComponent']]);
 }
 else {
   if (!$gaRuntime['debugMode']) {
