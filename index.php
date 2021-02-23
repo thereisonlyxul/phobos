@@ -7,6 +7,7 @@
 
 error_reporting(E_ALL);
 ini_set("display_errors", "on");
+ini_set('html_errors', false);
 
 // This has to be defined using the function at runtime because it is based
 // on a variable. However, constants defined with the language construct
