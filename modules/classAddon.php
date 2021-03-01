@@ -44,7 +44,7 @@ class classAddon {
 
         $query = "SELECT ?p FROM ?n WHERE (`type` = ?i OR `subType` = ?i)";
 
-        if ($gaRuntime['reqComponent'] == 'site') {
+        if ($gaRuntime['qComponent'] == 'site') {
           $query .= SPACE . "AND `active` = 1 AND `reviewed` = 1 AND NOT `category` = 0";
         }
 

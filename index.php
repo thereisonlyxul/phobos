@@ -331,6 +331,56 @@ function gfRedirect($aURL) {
 }
 
 /**********************************************************************************************************************
+* Splits a path into an indexed array of parts
+*
+* @param $aPath   URI Path
+* @returns        array of uri parts in order
+***********************************************************************************************************************/
+function gfSplitPath($aPath) {
+  if ($aPath == SLASH) {
+    return ['root'];
+  }
+
+  return array_values(array_filter(explode(SLASH, $aPath), 'strlen'));
+}
+
+/**********************************************************************************************************************
+* Builds a path from a list of arguments
+* If the last part contains a dot but does not physically exist on the filesystem a trailing slash will be added
+*
+* @param        ...$aPathParts  Path Parts
+* @namedParam   absolutePath:   Named Paramature that will prepend the absolute document root path
+* @returns                      Path string
+***********************************************************************************************************************/
+function gfBuildPath(...$aPathParts) {
+  $path = EMPTY_STRING;
+
+  if (array_key_exists('absolutePath', $aPathParts)) {
+    if ($aPathParts['absolutePath']) {
+      $path = ROOT_PATH;
+    }
+
+    unset($aPathParts['absolutePath']);
+  }
+
+  $path .= SLASH . implode(SLASH, $aPathParts);
+ 
+  if (str_contains(basename($path), DOT)) {
+    $checkPath = $path;
+
+    if (!str_starts_with($checkPath, ROOT_PATH)) {
+      $checkPath = ROOT_PATH . $checkPath;
+    }
+
+    if (is_dir($checkPath)) {
+      $path .= SLASH;
+    }
+  }
+
+  return $path;
+}
+
+/**********************************************************************************************************************
 * Basic XML Output
 ***********************************************************************************************************************/
 function gfOutputXML($aContent) {
@@ -607,20 +657,6 @@ function gfEnsureModules($aClass, ...$aIncludes) {
 }
 
 /**********************************************************************************************************************
-* Splits a path into an indexed array of parts
-*
-* @param $aPath   URI Path
-* @returns        array of uri parts in order
-***********************************************************************************************************************/
-function gfSplitPath($aPath) {
-  if ($aPath == SLASH) {
-    return ['root'];
-  }
-
-  return array_values(array_filter(explode(SLASH, $aPath), 'strlen'));
-}
-
-/**********************************************************************************************************************
 * Read file (decode json if the file has that extension or parse install.rdf if that is the target file)
 *
 * @param $aFile     File to read
@@ -692,7 +728,7 @@ function gfWriteFile($aData, $aFile, $aRenameFile = null) {
 /**********************************************************************************************************************
 * Basic Filter Substitution of a string
 *
-* @param $aSubsts               multi-dimentional array of keys and values to be replaced
+* @param $aSubsts               multi-dimensional array of keys and values to be replaced
 * @param $aString               string to operate on
 * @param $aRegEx                set to true if pcre
 * @returns                      bitwise int value representing applications
@@ -778,11 +814,11 @@ $gaRuntime = array(
   'phpServerName'       => gfSuperVar('server', 'SERVER_NAME'),
   'phpRequestURI'       => gfSuperVar('server', 'REQUEST_URI'),
   'remoteAddr'          => gfSuperVar('server', 'HTTP_X_FORWARDED_FOR') ?? gfSuperVar('server', 'REMOTE_ADDR'),
-  'reqComponent'        => gfSuperVar('get', 'component'),
-  'reqPath'             => gfSuperVar('get', 'path'),
-  'reqApplication'      => gfSuperVar('get', 'appOverride'),
-  'reqDebugOff'         => gfSuperVar('get', 'debugOff'),
-  'reqSearchTerms'      => gfSuperVar('get', 'terms'),
+  'qComponent'          => gfSuperVar('get', 'component'),
+  'qPath'               => gfSuperVar('get', 'path'),
+  'qApplication'        => gfSuperVar('get', 'appOverride'),
+  'qDebugOff'           => gfSuperVar('get', 'debugOff'),
+  'qSearchTerms'        => gfSuperVar('get', 'terms'),
 );
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -829,15 +865,15 @@ if ($gaRuntime['offlineMode']) {
   }
 
   // This switch will handle requests for components
-  switch ($gaRuntime['reqComponent']) {
+  switch ($gaRuntime['qComponent']) {
     case 'aus':
       gfOutputXML(XML_TAG . RDF_AUS_BLANK);
       break;
     case 'integration':
-      $gaRuntime['reqAPIScope'] = gfSuperVar('get', 'type');
-      $gaRuntime['reqAPIFunction'] = gfSuperVar('get', 'request');
-      if ($gaRuntime['reqAPIScope'] == 'internal') {
-        switch ($gaRuntime['reqAPIFunction']) {
+      $gaRuntime['qAPIScope'] = gfSuperVar('get', 'type');
+      $gaRuntime['qAPIFunction'] = gfSuperVar('get', 'quest');
+      if ($gaRuntime['qAPIScope'] == 'internal') {
+        switch ($gaRuntime['qAPIFunction']) {
           case 'search':
             gfOutputXML(XML_TAG . XML_API_SEARCH_BLANK);
             break;      
@@ -867,25 +903,25 @@ if ($gaRuntime['offlineMode']) {
 if ($gaRuntime['debugMode']) {
   // We can disable debug mode when on the dev url otherwise if debug mode we want all errors
   // When important we can distingish between false and null
-  if ($gaRuntime['reqDebugOff']) {
+  if ($gaRuntime['qDebugOff']) {
     $gaRuntime['debugMode'] = false;
   }
 
   // In debug mode we need to test other applications
-  if ($gaRuntime['reqApplication']) {
+  if ($gaRuntime['qApplication']) {
     // We can't test an application that doesn't exist
-    if (!array_key_exists($gaRuntime['reqApplication'], TARGET_APPLICATION)) {
+    if (!array_key_exists($gaRuntime['qApplication'], TARGET_APPLICATION)) {
       gfError('Invalid override application');
     }
 
     // Stupidity check
-    if ($gaRuntime['reqApplication'] == $gaRuntime['currentApplication']) {
+    if ($gaRuntime['qApplication'] == $gaRuntime['currentApplication']) {
       gfError('It makes no sense to override to the same application');
     }
 
     // Set the application
     $gaRuntime['orginalApplication'] = $gaRuntime['currentApplication'];
-    $gaRuntime['currentApplication'] = $gaRuntime['reqApplication'];
+    $gaRuntime['currentApplication'] = $gaRuntime['qApplication'];
 
     // If this is a unified add-ons site then we need to try and figure out the domain
     if (in_array('unified', TARGET_APPLICATION[$gaRuntime['currentApplication']]['features'])) {
@@ -931,28 +967,28 @@ if (!$gaRuntime['currentApplication']) {
 // --------------------------------------------------------------------------------------------------------------------
 
 // Root (/) won't set a component or path
-if (!$gaRuntime['reqComponent'] && !$gaRuntime['reqPath']) {
-  $gaRuntime['reqComponent'] = 'site';
-  $gaRuntime['reqPath'] = SLASH;
+if (!$gaRuntime['qComponent'] && !$gaRuntime['qPath']) {
+  $gaRuntime['qComponent'] = 'site';
+  $gaRuntime['qPath'] = SLASH;
 }
 // The PANEL component overrides the SITE component
-elseif (str_starts_with($gaRuntime['phpRequestURI'], SLASH . 'panel' . SLASH)) {
-  $gaRuntime['reqComponent'] = 'panel';
+elseif (str_starts_with($gaRuntime['phpRequestURI'], gfBuildPath('panel'))) {
+  $gaRuntime['qComponent'] = 'panel';
 }
 // The SPECIAL component overrides the SITE component
-elseif (str_starts_with($gaRuntime['phpRequestURI'], SLASH . 'special' . SLASH)) {
-  $gaRuntime['reqComponent'] = 'special';
+elseif (str_starts_with($gaRuntime['phpRequestURI'], gfBuildPath('special'))) {
+  $gaRuntime['qComponent'] = 'special';
 }
 
 // --------------------------------------------------------------------------------------------------------------------
 
 // Load component based on requestComponent
-if ($gaRuntime['reqComponent'] && array_key_exists($gaRuntime['reqComponent'], COMPONENTS)) {
+if ($gaRuntime['qComponent'] && array_key_exists($gaRuntime['qComponent'], COMPONENTS)) {
   // Explode the path
-  $gaRuntime['splitPath'] = gfSplitPath($gaRuntime['reqPath']);
+  $gaRuntime['splitPath'] = gfSplitPath($gaRuntime['qPath']);
 
   // Include the component
-  require_once(COMPONENTS[$gaRuntime['reqComponent']]);
+  require_once(COMPONENTS[$gaRuntime['qComponent']]);
 }
 else {
   if (!$gaRuntime['debugMode']) {

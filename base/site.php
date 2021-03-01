@@ -76,11 +76,11 @@ if ($gaRuntime['unified']) {
 
 // Make sure the skin path exists
 if ((!$gaRuntime['currentSkin']) ||
-    (!file_exists(dirname(COMPONENTS[$gaRuntime['reqComponent']]) . '/skin/' . $gaRuntime['currentSkin']))) {
+    (!file_exists(dirname(COMPONENTS[$gaRuntime['qComponent']]) . '/skin/' . $gaRuntime['currentSkin']))) {
   gfError('Skin ' .
           (string)$gaRuntime['currentSkin'] .
           ' path does not exist for component ' .
-          $gaRuntime['reqComponent']);
+          $gaRuntime['qComponent']);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -170,7 +170,7 @@ switch ($gaRuntime['splitPath'][gfAdjustedIndex(0)]) {
     gfGenContent(CATEGORIES['personas']['name'] . ' List', null);
     break;
   case 'root':
-    if ($gaRuntime['reqPath'] == '/') {
+    if ($gaRuntime['qPath'] == '/') {
       gfGenContent('Add-ons Site Root', $gaRuntime);
     }
   default:
