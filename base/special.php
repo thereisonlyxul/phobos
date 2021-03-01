@@ -25,6 +25,7 @@ if (!$gaRuntime['debugMode']) {
 if ($function && count($gaRuntime['splitPath']) == 2) {
   switch ($function) {
     case 'phpinfo':
+      gfheader('html');
       phpinfo(INFO_GENERAL | INFO_CONFIGURATION | INFO_ENVIRONMENT | INFO_VARIABLES);
       break;
     case 'software-state':

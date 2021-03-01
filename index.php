@@ -58,13 +58,14 @@ const LIB_RELPATH           = '/libraries/';
 
 // Define components
 const COMPONENTS = array(
-  'site'            => ROOT_PATH . BASE_RELPATH . 'site.php',
-  'special'         => ROOT_PATH . BASE_RELPATH . 'special.php',
-  'aus'             => ROOT_PATH . COMPONENTS_RELPATH . 'aus/addonUpdateService.php',
-  'discover'        => ROOT_PATH . COMPONENTS_RELPATH . 'api/discoverPane.php',
-  'download'        => ROOT_PATH . COMPONENTS_RELPATH . 'download/addonDownload.php',
-  'integration'     => ROOT_PATH . COMPONENTS_RELPATH . 'api/amIntegration.php',
+  'site'            => ROOT_PATH . BASE_RELPATH       . 'addonsSite.php',
+  'download'        => ROOT_PATH . BASE_RELPATH       . 'addonsDownload.php',
+  'special'         => ROOT_PATH . BASE_RELPATH       . 'special.php',
+  'aus'             => ROOT_PATH . COMPONENTS_RELPATH . 'services/addonsUpdateService.php',
+  'discover'        => ROOT_PATH . COMPONENTS_RELPATH . 'services/amDiscover.php',
+  'integration'     => ROOT_PATH . COMPONENTS_RELPATH . 'services/amIntegration.php',
   'panel'           => ROOT_PATH . COMPONENTS_RELPATH . 'panel/phoebusPanel.php',
+
 );
 
 // Define modules
@@ -349,18 +350,18 @@ function gfSplitPath($aPath) {
 * If the last part contains a dot but does not physically exist on the filesystem a trailing slash will be added
 *
 * @param        ...$aPathParts  Path Parts
-* @namedParam   absolutePath:   Named Paramature that will prepend the absolute document root path
+* @namedParam   absoluteRoot:   Named Paramature that will prepend the absolute document root path
 * @returns                      Path string
 ***********************************************************************************************************************/
 function gfBuildPath(...$aPathParts) {
   $path = EMPTY_STRING;
 
-  if (array_key_exists('absolutePath', $aPathParts)) {
-    if ($aPathParts['absolutePath']) {
+  if (array_key_exists('absoluteRoot', $aPathParts)) {
+    if ($aPathParts['absoluteRoot']) {
       $path = ROOT_PATH;
     }
 
-    unset($aPathParts['absolutePath']);
+    unset($aPathParts['absoluteRoot']);
   }
 
   $path .= SLASH . implode(SLASH, $aPathParts);
