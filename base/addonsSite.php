@@ -9,7 +9,7 @@ function gfIsFeature($aFeature) {
   global $gaRuntime;
 
   if (is_bool($gaRuntime['currentApplication'])) {
-    gfError(__FUNCTION__ . ': Cannot complete function in unified add-ons site mode from here');
+    gfError(__FUNCTION__ . ': Unable to determin the application features.');
   }
   
   if (in_array($aFeature, TARGET_APPLICATION[$gaRuntime['currentApplication']]['features'])) {
@@ -21,160 +21,181 @@ function gfIsFeature($aFeature) {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-function gfAdjustedIndex($aIndex) {
-  global $gvCount;
-  global $gvAdjustedCount;
-  
-  if ($gvCount != $gvAdjustedCount) {
-    return $aIndex + ($gvCount - $gvAdjustedCount);
+function gfLegacyAddonRedirect($aSlug, $aSubPage = null) { 
+  global $gaRuntime;
+
+  if (is_bool($gaRuntime['currentApplication'])) {
+    gfError(__FUNCTION__ . ': Unable to determin the application.');
   }
 
-  return $aIndex;
+  $uri = SLASH . 'addon' . SLASH . $aSlug . SLASH;
+
+  if ($aSubPage) {
+    $uri .= $aSubPage . SLASH;
+  }
+ 
+  if ($gaRuntime['unified']) {
+    $uri = SLASH . $gaRuntime['currentApplication'] . $uri;
+  }
+  
+  gfRedirect($uri);
 }
 
 // ====================================================================================================================
 
 // == | Main | ========================================================================================================
 
-// We need a count for the exploded path
-$gvCount = count($gaRuntime['splitPath']);
+// Get a count of the exploded path
+$gaRuntime['explodedCount'] = count($gaRuntime['explodedPath']);
 
-// We need an adjusted count in case we are in unified mode
-$gvAdjustedCount = $gvCount;
-
-// Set the site skin
+// Set the skin to the current application
 $gaRuntime['currentSkin'] = $gaRuntime['currentApplication'];
 
-// --------------------------------------------------------------------------------------------------------------------
-
-// Handle unified add-ons site mode
+// Check if we are operating in Unified Mode
 if ($gaRuntime['unified']) {
-  // Determine the skin from the assigned domain name in unified mode
-  $gaRuntime['currentSkin'] = preg_replace('/(addons\.|addons-dev\.|\.com|\.net|\.org)/i',
-                                          '',
-                                          array_search($gaRuntime['unifiedApps'], APPLICATION_DOMAINS));
+  // Get a possible unified application from index zero of the exploded path
+  // and remove it from the exploded path array
+  $gvMaybeApplication = array_shift($gaRuntime['explodedPath']);
 
-  if (in_array($gaRuntime['splitPath'][0], $gaRuntime['unifiedApps'])) {
-    if ($gvCount >= 1) {
-      $gaRuntime['currentApplication'] = $gaRuntime['splitPath'][0];
-      $gvAdjustedCount -= 1;
-    }
+  // Check if the possible unified application is valid
+  if (in_array($gvMaybeApplication, $gaRuntime['unifiedApps'])) {
+    // Set current application to the valid unified application
+    $gaRuntime['currentApplication'] = $gvMaybeApplication;
 
-    if ($gvCount == 1 && $gaRuntime['splitPath'][0] == $gaRuntime['currentApplication']) {
-      gfGenContent(TARGET_APPLICATION[$gaRuntime['currentApplication']]['name'] . ' index', null);
-    }
+    // Re-count the exploded path array because we removed the application from it
+    $gaRuntime['explodedCount'] = count($gaRuntime['explodedPath']);
   }
 
-  // Don't allow adjusted URIs when in unified mode from /
-  $unifiedURIs = ['addon', 'extensions', 'themes', 'personas', 'search-plugins', 'language-packs', 'dictionaries'];
-  if (in_array($gaRuntime['splitPath'][0], $unifiedURIs)) {
-    gfHeader(404);
+  // Set the skin to match the unified domain
+    $gaRuntime['currentSkin'] = preg_replace('/(addons\.|addons-dev\.|\.com|\.net|\.org)/i',
+                                             EMPTY_STRING,
+                                             array_search($gaRuntime['unifiedApps'], APPLICATION_DOMAINS));
+
+  // We need to provide a page for the application root
+  if ($gaRuntime['qPath'] != SLASH &&
+      $gaRuntime['currentApplication'] === $gvMaybeApplication &&
+      $gaRuntime['explodedCount'] == 0) {
+    gfGenContent($gaRuntime['currentApplication'] . SPACE . 'Add-ons Application Root', $gaRuntime); 
+  }
+
+  // Check to see if we have a valid unified application if not then use the current skin
+  if (is_bool($gaRuntime['currentApplication'])) {
+    $gaRuntime['currentApplication'] = $gaRuntime['currentSkin'];
   }
 }
 
-// --------------------------------------------------------------------------------------------------------------------
+// In unified mode the exploded path array may be empty so it will fall through to the default case
+// where it will either be the Add-ons Site Root or 404
+$gvSection = $gaRuntime['explodedPath'][0] ?? null;
 
-// Make sure the skin path exists
-if ((!$gaRuntime['currentSkin']) ||
-    (!file_exists(dirname(COMPONENTS[$gaRuntime['qComponent']]) . '/skin/' . $gaRuntime['currentSkin']))) {
-  gfError('Skin ' .
-          (string)$gaRuntime['currentSkin'] .
-          ' path does not exist for component ' .
-          $gaRuntime['qComponent']);
-}
-
-// --------------------------------------------------------------------------------------------------------------------
-
-switch ($gaRuntime['splitPath'][gfAdjustedIndex(0)]) {
+switch ($gvSection) {
   case 'addon':
-    $slug = $gaRuntime['splitPath'][gfAdjustedIndex(1)] ?? null;
+    // Longer than three uri parts is not sane
+    if ($gaRuntime['explodedCount'] > 3) {
+      gfHeader(404);
+    }
 
-    // Add-on Versions and License
-    if ($gvAdjustedCount == 3) {
-      switch ($gaRuntime['splitPath'][gfAdjustedIndex(2)]) {
-        case 'versions':
-          gfGenContent('Add-on: ' . $slug . ' - Versions', null);
-          break;
-        case 'license':
-          gfGenContent('Add-on: ' . $slug . ' - License', null);
-          break;
-        default:
+    // Get the Add-on Slug
+    $gvAddonSlug = $gaRuntime['explodedPath'][1] ?? null;
+
+    // Get the Add-on Sub-Page
+    $gvAddonSubPage = $gaRuntime['explodedPath'][2] ?? null;
+
+    if ($gvAddonSlug) {
+      if ($gvAddonSubPage) {
+        if (!in_array($gvAddonSubPage, ['releases', 'license'])) {
           gfHeader(404);
+        }
+
+        gfGenContent($gvAddonSlug . SPACE . ucfirst($gvAddonSubPage), $gaRuntime);
       }
+
+      gfGenContent($gvAddonSlug . SPACE . 'Add-on Page', $gaRuntime);
     }
 
-    // Add-on Page
-    if ($gvAdjustedCount == 2) {
-      gfGenContent('Add-on: ' . $slug, null);
-    }
-
-    // There is no content for just /addon/ so redirect to root
-    if ($gvAdjustedCount == 1) {
-      $url = $gaRuntime['unified'] ? '/' . $gaRuntime['currentApplication'] . '/' : '/';
-      gfRedirect($url);
-    }
+    gfHeader(404);
     break;
   case 'extensions':
-    $categories = array_filter(CATEGORIES, function($aElement) { return $aElement['type'] == XPINSTALL_TYPES['extension']; });
+    // Send Phoebus <= 1.0 links to the correct place
+    $gvLegacySlug = $gaRuntime['explodedPath'][2] ?? null;
+    if ($gvLegacySlug) {
+      gfLegacyAddonRedirect($gvLegacySlug);
+    }
 
-    // Extension Sub-categories
-    if ($gvAdjustedCount == 2) {
-      $category = $gaRuntime['splitPath'][gfAdjustedIndex(1)];
+    if (!gfIsFeature($gvSection)) {
+      gfHeader(404);
+    }
 
-      if (!gfIsFeature('extensions-cat')) {
+    $gaRuntime['qAllExtensions'] = gfSuperVar('get', 'all');
+    $gvCategory = $gaRuntime['explodedPath'][1] ?? null;
+
+    if (gfIsFeature('extensions-cat') && !$gaRuntime['qAllExtensions']) {
+      // Longer than three uri parts is not sane
+      if ($gaRuntime['explodedCount'] > 3) {
         gfHeader(404);
       }
 
-      if (!array_key_exists($category, $categories)) {
+      $gvCategories = array_filter(CATEGORIES,
+                                   function($aCat) { return $aCat['type'] == XPINSTALL_TYPES['extension']; });
+
+      if ($gvCategory) {
+        if (!array_key_exists($gvCategory, $gvCategories)) {
+          gfHeader(404);
+        }
+
+        gfGenContent($gvCategories[$gvCategory]['name'] . SPACE . 'Category', $gaRuntime);
+      }
+
+      gfGenContent('Extensions', $gvCategories);
+    }
+    else {
+      // Longer than one uri part is not sane
+      if ($gaRuntime['explodedCount'] > 1) {
         gfHeader(404);
       }
 
-      gfGenContent('Extension Category: ' . CATEGORIES[$category]['name'], null);
+      gfGenContent('All Extensions', $gaRuntime);
     }
 
-    // Extension category
-    if ($gvAdjustedCount == 1) {
-      if (!gfIsFeature('extensions')) {
-        gfheader(404);
-      }
-
-      if (gfIsFeature('extensions-cat') && !gfSuperVar('get', 'all')) {
-        gfGenContent(EXTENSION_CATEGORY['name'] . ' Categories', $categories);
-      }
-
-      gfGenContent(EXTENSION_CATEGORY['name'] . ' List', null);
-    }
+    gfHeader(404);
     break;
   case 'themes':
+    // Send Phoebus <= 1.0 links to the correct place
+    $gvLegacySlug = $gaRuntime['explodedPath'][1] ?? null;
+    if ($gvLegacySlug) {
+      gfLegacyAddonRedirect($gvLegacySlug);
+    }
+  case 'personas':
+  case 'search-plugins':
   case 'language-packs':
   case 'dictionaries':
-    $category = $gaRuntime['splitPath'][gfAdjustedIndex(0)];
-
-    if ($gvAdjustedCount > 1 || !gfIsFeature($category)) {
+    // Not an enabled feature or longer than one uri part is not sane
+    // Themes legacy urls are handled above but fall through to here
+    if (!gfIsFeature($gvSection) || $gaRuntime['explodedCount'] > 1) {
       gfHeader(404);
     }
 
-    gfGenContent(CATEGORIES[$category]['name'] . ' List', null);
+    gfGenContent(ucfirst($gaRuntime['currentApplication']) . SPACE . DASH . SPACE . ucfirst($gaRuntime['explodedPath'][0]), $gaRuntime);
     break;
-  case 'search-plugins':
-    if ($gvAdjustedCount > 1 || !gfIsFeature('search-plugins')) {
-      gfHeader(404);
-    }
-
-    gfGenContent(CATEGORIES['search-plugins']['name'] . ' List', null);
-  case 'personas':
-    if ($gvAdjustedCount > 1 || !gfIsFeature('personas')) {
-      gfHeader(404);
-    }
-
-    gfGenContent(CATEGORIES['personas']['name'] . ' List', null);
+  case 'search':
+    gfHeader(501);
     break;
-  case 'root':
-    if ($gaRuntime['qPath'] == '/') {
+  case 'license':
+  case 'releases':
+    // Send Phoebus 2.0 links to the correct place
+    $gvLegacySlug = $gaRuntime['explodedPath'][1] ?? null;
+    if ($gvLegacySlug) {
+      gfLegacyAddonRedirect($gvLegacySlug, $gvSection);
+    }
+    gfHeader(404);
+    break;
+  default:
+    if ($gaRuntime['qPath'] == SLASH) {
       gfGenContent('Add-ons Site Root', $gaRuntime);
     }
-  default:
-    gfHeader(404);
+    else {
+      gfHeader(404);
+    }
 }
 
 // ====================================================================================================================
