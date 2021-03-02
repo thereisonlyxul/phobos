@@ -337,7 +337,7 @@ function gfRedirect($aURL) {
 * @param $aPath   URI Path
 * @returns        array of uri parts in order
 ***********************************************************************************************************************/
-function gfSplitPath($aPath) {
+function gfExplodePath($aPath) {
   if ($aPath == SLASH) {
     return ['root'];
   }
@@ -986,7 +986,7 @@ elseif (str_starts_with($gaRuntime['phpRequestURI'], gfBuildPath('special'))) {
 // Load component based on requestComponent
 if ($gaRuntime['qComponent'] && array_key_exists($gaRuntime['qComponent'], COMPONENTS)) {
   // Explode the path
-  $gaRuntime['splitPath'] = gfSplitPath($gaRuntime['qPath']);
+  $gaRuntime['explodedPath'] = gfExplodePath($gaRuntime['qPath']);
 
   // Include the component
   require_once(COMPONENTS[$gaRuntime['qComponent']]);

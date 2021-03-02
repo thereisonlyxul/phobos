@@ -22,7 +22,7 @@ if (!$gaRuntime['debugMode']) {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-if ($function && count($gaRuntime['splitPath']) == 2) {
+if ($function && count($gaRuntime['explodedPath']) == 2) {
   switch ($function) {
     case 'phpinfo':
       gfheader('html');
