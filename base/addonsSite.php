@@ -9,7 +9,7 @@ function gfIsFeature($aFeature) {
   global $gaRuntime;
 
   if (is_bool($gaRuntime['currentApplication'])) {
-    gfError(__FUNCTION__ . ': Unable to determin the application features.');
+    gfError(__FUNCTION__ . ': Unable to determine the application features.');
   }
   
   if (in_array($aFeature, TARGET_APPLICATION[$gaRuntime['currentApplication']]['features'])) {
@@ -25,7 +25,7 @@ function gfLegacyAddonRedirect($aSlug, $aSubPage = null) {
   global $gaRuntime;
 
   if (is_bool($gaRuntime['currentApplication'])) {
-    gfError(__FUNCTION__ . ': Unable to determin the application.');
+    gfError(__FUNCTION__ . ': Unable to determine the application.');
   }
 
   $uri = SLASH . 'addon' . SLASH . $aSlug . SLASH;
