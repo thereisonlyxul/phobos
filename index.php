@@ -347,35 +347,23 @@ function gfExplodePath($aPath) {
 
 /**********************************************************************************************************************
 * Builds a path from a list of arguments
-* If the last part contains a dot but does not physically exist on the filesystem a trailing slash will be added
 *
 * @param        ...$aPathParts  Path Parts
-* @namedParam   absoluteRoot:   Named Paramature that will prepend the absolute document root path
 * @returns                      Path string
 ***********************************************************************************************************************/
 function gfBuildPath(...$aPathParts) {
-  $path = EMPTY_STRING;
-
-  if (array_key_exists('absoluteRoot', $aPathParts)) {
-    if ($aPathParts['absoluteRoot']) {
-      $path = ROOT_PATH;
-    }
-
-    unset($aPathParts['absoluteRoot']);
+  $path = implode(SLASH, $aPathParts);
+  $filesystem = str_starts_with($path, ROOT_PATH);
+  
+  // Add a prepending slash if this is not a filesystem path
+  if (!$filesystem) {
+    $path = SLASH . $path;
   }
 
-  $path .= SLASH . implode(SLASH, $aPathParts);
- 
-  if (str_contains(basename($path), DOT)) {
-    $checkPath = $path;
-
-    if (!str_starts_with($checkPath, ROOT_PATH)) {
-      $checkPath = ROOT_PATH . $checkPath;
-    }
-
-    if (is_dir($checkPath)) {
-      $path .= SLASH;
-    }
+  // Add a trailing slash if the last part does not contain a dot
+  // If it is a filesystem path then we will also add a trailing slash if the last part starts with a dot
+  if (!str_contains(basename($path), DOT) || ($filesystem && str_starts_with(basename($path), DOT))) {
+    $path .= SLASH;
   }
 
   return $path;
