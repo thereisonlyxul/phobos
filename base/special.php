@@ -11,7 +11,7 @@ $specialFunctions = array(
   'software-state' => 'Software State',
 );
 
-$function = $gaRuntime['splitPath'][1] ?? null;
+$function = $gaRuntime['explodedPath'][1] ?? null;
 $componentPath = dirname(COMPONENTS[$gaRuntime['qComponent']]) . '/';
 
 if (!$gaRuntime['debugMode']) {
