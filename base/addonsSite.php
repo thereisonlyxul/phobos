@@ -115,6 +115,15 @@ switch ($gvSection) {
 
     gfHeader(404);
     break;
+  case 'license':
+  case 'releases':
+    // Send Phoebus 2.0 links to the correct place
+    $gvLegacySlug = $gaRuntime['explodedPath'][1] ?? null;
+    if ($gvLegacySlug) {
+      gfLegacyAddonRedirect($gvLegacySlug, $gvSection);
+    }
+    gfHeader(404);
+    break;
   case 'extensions':
     // Send Phoebus <= 1.0 links to the correct place
     $gvLegacySlug = $gaRuntime['explodedPath'][2] ?? null;
@@ -165,8 +174,6 @@ switch ($gvSection) {
     if ($gvLegacySlug) {
       gfLegacyAddonRedirect($gvLegacySlug);
     }
-  case 'personas':
-  case 'search-plugins':
   case 'language-packs':
   case 'dictionaries':
     // Not an enabled feature or longer than one uri part is not sane
@@ -178,16 +185,24 @@ switch ($gvSection) {
     gfGenContent(ucfirst($gaRuntime['currentApplication']) . SPACE . DASH . SPACE . ucfirst($gaRuntime['explodedPath'][0]), $gaRuntime);
     break;
   case 'search':
+    if ($gaRuntime['explodedCount'] > 1) {
+      gfHeader(404);
+    }
     gfHeader(501);
     break;
-  case 'license':
-  case 'releases':
-    // Send Phoebus 2.0 links to the correct place
-    $gvLegacySlug = $gaRuntime['explodedPath'][1] ?? null;
-    if ($gvLegacySlug) {
-      gfLegacyAddonRedirect($gvLegacySlug, $gvSection);
+  case 'personas':
+    if (!gfIsFeature($gvSection) || $gaRuntime['explodedCount'] > 1) {
+      gfHeader(404);
     }
-    gfHeader(404);
+
+    gfHeader(501);
+    break;
+  case 'search-plugins':
+    if (!gfIsFeature($gvSection) || $gaRuntime['explodedCount'] > 1) {
+      gfHeader(404);
+    }
+
+    gfHeader(501);
     break;
   default:
     if ($gaRuntime['qPath'] == SLASH) {
