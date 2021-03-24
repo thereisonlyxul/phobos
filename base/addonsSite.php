@@ -182,7 +182,10 @@ switch ($gvSection) {
       gfHeader(404);
     }
 
-    gfGenContent(ucfirst($gaRuntime['currentApplication']) . SPACE . DASH . SPACE . ucfirst($gaRuntime['explodedPath'][0]), $gaRuntime);
+    $gvCategoryName = CATEGORIES[$gvSection]['name'];
+    $gvAddonType = CATEGORIES[$gvSection]['type'];
+
+    gfGenContent(ucfirst($gaRuntime['currentApplication']) . SPACE . $gvCategoryName . SPACE . $gvAddonType, $gaRuntime);
     break;
   case 'search':
     if ($gaRuntime['explodedCount'] > 1) {
