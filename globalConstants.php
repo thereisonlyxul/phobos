@@ -201,16 +201,35 @@ const XPINSTALL_TYPES = array(
   'external'          => 512,  // Phoebus only
   'persona'           => 1024, // Phoebus only
   'search-plugin'     => 2048, // Phoebus only
+  'user-script'       => 4096, // Phoebus only
+  'user-style'        => 8192, // Phoebus only
 );
 
-const INVALID_XPI_TYPES   = 1 | 16 | 32 | 128 | 256 | 512 | 1024 | 2048;
-const AUS_XPI_TYPES       = [2 => 'extension', 4 => 'theme', 8 => 'item', 64 => 'item'];
-const SEARCH_XPI_TYPES    = [2 => 1 /* extension */, 4 => 2 /* theme */,  8 => 6 /* locale */, 64 => 3 /* dictionary */];
-const REGEX_GUID          = '/^\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}$/i';
-const REGEX_HOST          = '/[a-z0-9-\._]+\@[a-z0-9-\._]+/i';
+// These are the supported "real" XPInstall types
+const VALID_XPI_TYPES       = 2 | 4 | 8 | 64;
+
+// These are types that only have a meaning in Phoebus (save External (512)
+const PHOEBUS_XPI_TYPES     = 1024 | 2048 | 4096 | 8192;
+
+// These are depercated or unsupported "real" XPInstall types
+// NOTE: External (512) is a completely virtual Phoebus type so never allow it in an install manifest
+const INVALID_XPI_TYPES     = 1 | 16 | 32 | 128 | 256 | 512;
+
+// For some reason, when Mozilla killed the full XPInstall system and replaced Smart Update with the Add-ons Update Checker
+// they used "item" for locales and dictionaries as the type in update.rdf
+const AUS_XPI_TYPES         = [2 => 'extension', 4 => 'theme', 8 => 'item', 64 => 'item'];
+
+// Add-ons Manager Search completely ignored the established bitwise types so we need to have a way to remap them to what
+// the Add-ons Manager search results xml expects
+const SEARCH_XPI_TYPES      = [2 => 1 /* extension */, 4 => 2 /* theme */,  8 => 6 /* locale */, 64 => 3 /* dictionary */];
+
+// These are the regular expressions to check both GUID and HOST style add-on ids against
+const REGEX_GUID            = '/^\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}$/i';
+const REGEX_HOST            = '/[a-z0-9-\._]+\@[a-z0-9-\._]+/i';
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// Define the specific technology that Extensions can have
 const EXTENSION_TECHNOLOGY = array(
   'overlay'           => 1,
   'xpcom'             => 2,
@@ -218,6 +237,7 @@ const EXTENSION_TECHNOLOGY = array(
   'jetpack'           => 8,
 );
 
+// These ID fragments are NOT allowed anywhere in an Add-on ID unless you are a member of the Add-ons Team or higher
 const RESTRICTED_IDS  = array(
   'bfc5-fc555c87dbc4',  // Moonchild Productions
   '9376-3763d1ad1978',  // Pseudo-Static
@@ -236,6 +256,9 @@ const RESTRICTED_IDS  = array(
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// These category defines allow mapping the slugs with normal text names as well as identifing the type
+// Non-extension categories and the root extension category have an indiviual bit of 1 because they are
+// interpreted as Add-ons Site sections rather than categories and largely programmically assigned
 const UNLISTED_CATEGORY        = ['name' => 'Unlisted',                     'type' => 0,    'bit' => 0];
 const EXTENSION_CATEGORY       = ['name' => 'Extensions',                   'type' => 2,    'bit' => 1];
 const CATEGORIES = array(
@@ -255,10 +278,13 @@ const CATEGORIES = array(
   'dictionaries'              => ['name' => 'Dictionaries',                 'type' => 64,   'bit' => 1],
   'personas'                  => ['name' => 'Personas',                     'type' => 1024, 'bit' => 1],
   'search-plugins'            => ['name' => 'Search Plugins',               'type' => 2048, 'bit' => 1],
+  'user-scripts'              => ['name' => 'User Scripts',                 'type' => 4096, 'bit' => 1],
+  'user-styles'               => ['name' => 'User Styles',                  'type' => 8192, 'bit' => 1],
 );
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// Open Source Licenses users can set for their Add-ons
 const LICENSES = array(
   'Apache-2.0'                => 'Apache License 2.0',
   'Apache-1.1'                => 'Apache License 1.1',
