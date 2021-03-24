@@ -150,7 +150,7 @@ function gfGenContent($aTitle, $aContent, $aTextBox = null, $aList = null, $aErr
 
   // Set page title
   $templateHead = str_replace('<title></title>',
-                  '<title>' . $aTitle . DASH . SOFTWARE_NAME . SPACE . SOFTWARE_VERSION . '</title>',
+                  '<title>' . $aTitle . ' - ' . SOFTWARE_NAME . SPACE . SOFTWARE_VERSION . '</title>',
                   $templateHead);
 
   if (str_contains(SOFTWARE_VERSION, 'a') || str_contains(SOFTWARE_VERSION, 'b') || str_contains(SOFTWARE_VERSION, 'pre')) {
@@ -436,6 +436,23 @@ function gfWriteFile($aData, $aFile, $aRenameFile = null) {
   }
 
   return true;
+}
+
+/**********************************************************************************************************************
+* Generate a random hexadecimal string
+*
+* @param $aLength   Desired number of final chars
+* @returns          Random hexadecimal string of desired lenth
+**********************************************************************************************************************/
+function gfHexString($aLength = 40) {
+  if ($aLength <= 1) {
+    $length = 1;
+  }
+  else {
+    $length = (int)($aLength / 2);
+  }
+
+  return bin2hex(random_bytes($length));
 }
 
 /**********************************************************************************************************************
