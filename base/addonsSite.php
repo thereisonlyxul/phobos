@@ -207,6 +207,20 @@ switch ($gvSection) {
 
     gfHeader(501);
     break;
+  case 'user-scripts':
+    if (!gfIsFeature($gvSection) || $gaRuntime['explodedCount'] > 1) {
+      gfHeader(404);
+    }
+
+    gfHeader(501);
+    break;
+  case 'user-styles':
+    if (!gfIsFeature($gvSection) || $gaRuntime['explodedCount'] > 1) {
+      gfHeader(404);
+    }
+
+    gfHeader(501);
+    break;
   default:
     if ($gaRuntime['qPath'] == SLASH) {
       gfGenContent('Add-ons Site Root', $gaRuntime);

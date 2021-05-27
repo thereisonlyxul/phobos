@@ -22,9 +22,11 @@ const DASH                  = "-";
 const WILDCARD              = "*";
 
 const PHP_EXTENSION         = DOT . 'php';
-const JSON_EXTENSION        = DOT . 'json';
 const TEMP_EXTENSION        = DOT . 'temp';
 const XPINSTALL_EXTENSION   = DOT . 'xpi';
+const RDF_EXTENSION         = DOT . 'rdf';
+const JSON_EXTENSION        = DOT . 'json';
+
 
 const JSON_ENCODE_FLAGS     = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
 const FILE_WRITE_FLAGS      = "w+";
@@ -126,8 +128,8 @@ const TARGET_APPLICATION = array(
     'shortName'     => null,
     'commonType'    => 'browser',
     'siteTitle'     => 'Pale Moon - Add-ons',
-    'features'      => ['https', 'extensions', 'extensions-cat', 'themes',
-                        'personas', 'language-packs', 'search-plugins']
+    'features'      => ['https', 'extensions', 'extensions-cat', 'themes', 'personas', 'language-packs',
+                        'search-plugins', 'user-scripts', 'user-styles']
   ),
   'basilisk' => array(
     'id'            => '{ec8030f7-c20a-464f-9b0e-13a3a9e97384}',
@@ -136,7 +138,7 @@ const TARGET_APPLICATION = array(
     'shortName'     => null,
     'commonType'    => 'browser',
     'siteTitle'     => 'Basilisk: add-ons',
-    'features'      => ['https', 'extensions', 'themes', 'personas', 'search-plugins']
+    'features'      => ['https', 'extensions', 'themes', 'personas', 'search-plugins', 'user-scripts', 'user-styles']
   ),
   'borealis' => array(
     'id'            => '{a3210b97-8e8a-4737-9aa0-aa0e607640b9}',
@@ -145,7 +147,7 @@ const TARGET_APPLICATION = array(
     'shortName'     => 'Borealis',
     'commonType'    => 'navigator',
     'siteTitle'     => 'Add-ons - Binary Outcast',
-    'features'      => ['unified', 'extensions', 'search-plugins']
+    'features'      => ['https', 'unified', 'extensions', 'themes', 'search-plugins', 'user-scripts', 'user-styles']
   ),
   'interlink' => array(
     'id'            => '{3550f703-e582-4d05-9a08-453d09bdfdc6}',
@@ -154,16 +156,7 @@ const TARGET_APPLICATION = array(
     'shortName'     => 'Interlink',
     'commonType'    => 'client',
     'siteTitle'     => 'Add-ons - Binary Outcast',
-    'features'      => ['unified', 'extensions', 'themes', 'search-plugins', 'disable-xpinstall']
-  ),
-  'ambassador' => array(
-    'id'            => '{4523665a-317f-4a66-9376-3763d1ad1978}',
-    'bit'           => 32,
-    'name'          => 'Ambassador',
-    'shortName'     => null,
-    'commonType'    => 'client',
-    'siteTitle'     => 'Add-ons - Ambassador',
-    'features'      => ['extensions', 'themes', 'disable-xpinstall']
+    'features'      => ['https', 'unified', 'extensions', 'themes', 'search-plugins', 'disable-xpinstall']
   ),
 );
 
