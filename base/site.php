@@ -62,6 +62,14 @@ $gvPathCount = count($gaRuntime['currentPath']);
 // Set the skin to the current application
 $gaRuntime['currentSkin'] = $gaRuntime['currentApplication'];
 
+// Set the menu
+$gaRuntime['siteMenu'] = EMPTY_ARRAY;
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// We use this to tell if a page in unified mode BUT without a known application
+$gvUnifiedPrePage = false;
+
 // Check if we are operating in Unified Mode
 if ($gaRuntime['unifiedMode']) {
   // Get a possible unified application from index zero of the exploded path
@@ -82,17 +90,32 @@ if ($gaRuntime['unifiedMode']) {
                                              EMPTY_STRING,
                                              array_search($gaRuntime['unifiedApps'], APPLICATION_DOMAINS));
 
-  // We need to provide a page for the application root
-  if ($gaRuntime['qPath'] != SLASH &&
-      $gaRuntime['currentApplication'] === $gvMaybeApplication && $gvPathCount == 0) {
-    gfGenContent($gaRuntime['currentApplication'] . SPACE . 'Add-ons Application Root', $gaRuntime); 
-  }
-
   // Check to see if we have a valid unified application if not then use the current skin
   if (is_bool($gaRuntime['currentApplication'])) {
     $gaRuntime['currentApplication'] = $gaRuntime['currentSkin'];
+    $gvUnifiedPrePage = true;
   }
 }
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// Add enabled features to the site menu
+$gvMenuItems = ['extensions', 'themes', 'personas', 'language-packs', 'search-plugins', 'user-scripts', 'user-styles'];
+$gaRuntime['siteMenu'] = [SLASH => 'Root'];
+foreach ($gvMenuItems as $_value) {
+  if ($gaRuntime['unifiedMode'] && $gvUnifiedPrePage) {
+    break;
+  }
+
+  if (gfCheckFeature($_value, true)) {
+    $_link = $gaRuntime['unifiedMode'] ?
+             SLASH . $gaRuntime['currentApplication'] . SLASH . $_value . SLASH :
+             SLASH . $_value . SLASH;
+    $gaRuntime['siteMenu'][$_link] = CATEGORIES[$_value]['name'] ?? EXTENSION_CATEGORY['name'];
+  }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
 
 // In unified mode the exploded path array may be empty so it will fall through to the default case
 // where it will either be the Add-ons Site Root or 404
@@ -115,10 +138,16 @@ switch ($gvSection) {
           gfHeader(404);
         }
 
-        gfGenContent($gvAddonSlug . SPACE . ucfirst($gvAddonSubPage), $gaRuntime);
+        $gvPage = ['title' => $gvAddonSlug . SPACE . ucfirst($gvAddonSubPage),
+                   'content' => $gaRuntime,
+                   'menu' => $gaRuntime['siteMenu']];
+        gfGenContent($gvPage);
       }
 
-      gfGenContent($gvAddonSlug . SPACE . 'Add-on Page', $gaRuntime);
+      $gvPage = ['title' => $gvAddonSlug . SPACE . 'Add-on Page',
+                 'content' => $gaRuntime,
+                 'menu' => $gaRuntime['siteMenu']];
+      gfGenContent($gvPage);
     }
 
     gfHeader(404);
@@ -148,14 +177,23 @@ switch ($gvSection) {
           gfHeader(404);
         }
 
-        gfGenContent($gvCategories[$gvCategory]['name'] . SPACE . 'Category', $gaRuntime);
+        $gvPage = ['title' => $gvCategories[$gvCategory]['name'] . SPACE . 'Category',
+                   'content' => $gaRuntime,
+                   'menu' => $gaRuntime['siteMenu']];
+        gfGenContent($gvPage);
       }
 
-      gfGenContent('Extensions', $gvCategories);
+      $gvPage = ['title' => 'Extensions',
+                 'content' => $gvCategories,
+                 'menu' => $gaRuntime['siteMenu']];
+      gfGenContent($gvPage);
     }
     else {
       gfCheckPathCount(1);
-      gfGenContent('All Extensions', $gaRuntime);
+      $gvPage = ['title' => 'All Extensions',
+                 'content' => $gaRuntime,
+                 'menu' => $gaRuntime['siteMenu']];
+      gfGenContent($gvPage);
     }
 
     gfHeader(404);
@@ -178,7 +216,10 @@ switch ($gvSection) {
     $gvCategoryName = CATEGORIES[$gvSection]['name'];
     $gvAddonType = CATEGORIES[$gvSection]['type'];
 
-    gfGenContent(ucfirst($gaRuntime['currentApplication']) . SPACE . $gvCategoryName . SPACE . $gvAddonType, $gaRuntime);
+    $gvPage = ['title' => ucfirst($gaRuntime['currentApplication']) . SPACE . $gvCategoryName . SPACE . $gvAddonType,
+               'content' => $gaRuntime,
+               'menu' => $gaRuntime['siteMenu']];
+    gfGenContent($gvPage);
     break;
   case 'license':
   case 'releases':
@@ -195,7 +236,21 @@ switch ($gvSection) {
     break;
   default:
     if ($gaRuntime['qPath'] == SLASH) {
-      gfGenContent('Add-ons Site Root', $gaRuntime);
+      if ($gaRuntime['unifiedMode']) {
+        $gaRuntime['siteMenu'] = [SLASH => 'Root'];
+        foreach ($gaRuntime['unifiedApps'] as $_value) {
+          $gaRuntime['siteMenu'][SLASH . $_value . SLASH] = TARGET_APPLICATION[$_value]['name'];
+        }
+      }
+      $gvPage = ['title' => 'Add-ons Site Root', 'content' => $gaRuntime, 'menu' => $gaRuntime['siteMenu']];
+      gfGenContent($gvPage);
+    }
+    elseif ($gaRuntime['unifiedMode'] && $gvPathCount == 0 &&
+            in_array($gaRuntime['currentApplication'], $gaRuntime['unifiedApps']) ?? EMPTY_ARRAY) {
+      $gvPage = ['title' => $gaRuntime['currentApplication'] . SPACE . 'Add-ons Application Root',
+                 'content' => $gaRuntime,
+                 'menu' => $gaRuntime['siteMenu']];
+      gfGenContent($gvPage);
     }
     else {
       gfHeader(404);
