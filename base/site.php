@@ -12,7 +12,7 @@ function gfCheckPathCount($aExpectedCount) {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-function gfIsFeature($aFeature, $aReturn = null) {
+function gfCheckFeature($aFeature, $aReturn = null) {
   global $gaRuntime;
 
   if (is_bool($gaRuntime['currentApplication'])) {
@@ -130,12 +130,12 @@ switch ($gvSection) {
       gfLegacyAddonRedirect($gvLegacySlug);
     }
 
-    gfIsFeature($gvSection);
+    gfCheckFeature($gvSection);
 
     $gaRuntime['qAllExtensions'] = gfSuperVar('get', 'all');
     $gvCategory = $gaRuntime['currentPath'][1] ?? null;
 
-    if (gfIsFeature('extensions-cat', true) && !$gaRuntime['qAllExtensions']) {
+    if (gfCheckFeature('extensions-cat', true) && !$gaRuntime['qAllExtensions']) {
       gfCheckPathCount(2);
 
       $gvCategories = array_filter(CATEGORIES,
@@ -172,7 +172,7 @@ switch ($gvSection) {
   case 'search-plugins':
   case 'user-scripts':
   case 'user-styles':
-    gfIsFeature($gvSection);
+    gfCheckFeature($gvSection);
     gfCheckPathCount(1);
 
     $gvCategoryName = CATEGORIES[$gvSection]['name'];
