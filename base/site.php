@@ -32,7 +32,7 @@ function gfCheckFeature($aFeature, $aReturn = null) {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-function gfLegacyAddonRedirect($aSlug, $aSubPage = null) { 
+function gfLegacyRedirect($aSlug, $aSubPage = null) { 
   global $gaRuntime;
 
   if (is_bool($gaRuntime['currentApplication'])) {
@@ -127,7 +127,7 @@ switch ($gvSection) {
     // Send Phoebus <= 1.0 links to the correct place
     $gvLegacySlug = $gaRuntime['currentPath'][2] ?? null;
     if ($gvLegacySlug) {
-      gfLegacyAddonRedirect($gvLegacySlug);
+      gfLegacyRedirect($gvLegacySlug);
     }
 
     gfCheckFeature($gvSection);
@@ -164,7 +164,7 @@ switch ($gvSection) {
     // Send Phoebus <= 1.0 links to the correct place
     $gvLegacySlug = $gaRuntime['currentPath'][1] ?? null;
     if ($gvLegacySlug) {
-      gfLegacyAddonRedirect($gvLegacySlug);
+      gfLegacyRedirect($gvLegacySlug);
     }
   case 'language-packs':
   case 'dictionaries':
@@ -185,7 +185,7 @@ switch ($gvSection) {
     // Send Phoebus 2.0 links to the correct place
     $gvLegacySlug = $gaRuntime['currentPath'][1] ?? null;
     if ($gvLegacySlug) {
-      gfLegacyAddonRedirect($gvLegacySlug, $gvSection);
+      gfLegacyRedirect($gvLegacySlug, $gvSection);
     }
     gfHeader(404);
     break;
