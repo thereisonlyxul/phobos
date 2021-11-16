@@ -62,9 +62,6 @@ $gvPathCount = count($gaRuntime['currentPath']);
 // Set the skin to the current application
 $gaRuntime['currentSkin'] = $gaRuntime['currentApplication'];
 
-// Set the menu
-$gaRuntime['siteMenu'] = EMPTY_ARRAY;
-
 // --------------------------------------------------------------------------------------------------------------------
 
 // We use this to tell if a page in unified mode BUT without a known application
@@ -100,8 +97,9 @@ if ($gaRuntime['unifiedMode']) {
 // --------------------------------------------------------------------------------------------------------------------
 
 // Add enabled features to the site menu
-$gvMenuItems = ['extensions', 'themes', 'personas', 'language-packs', 'search-plugins', 'user-scripts', 'user-styles'];
+// Set the menu
 $gaRuntime['siteMenu'] = [SLASH => 'Root'];
+$gvMenuItems = ['extensions', 'themes', 'personas', 'language-packs', 'search-plugins', 'user-scripts', 'user-styles'];
 foreach ($gvMenuItems as $_value) {
   if ($gaRuntime['unifiedMode'] && $gvUnifiedPrePage) {
     break;
