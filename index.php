@@ -35,14 +35,20 @@ const COMPONENTS = array(
 
 // Define modules
 const MODULES = array(
-  'generateContent' => ROOT_PATH . MODULES_RELPATH . 'classGenerateContent.php'
+  'generateContent' => ROOT_PATH . MODULES_RELPATH . 'classGenerateContent.php',
+  'vc'              => ROOT_PATH . MODULES_RELPATH . 'nsIVersionComparator.php',
 );
 
 // Define JS Modules
 const JSMODULES = null;
 
 // Define libraries
-const LIBRARIES = null;
+const LIBRARIES = array(
+  'smarty'          => ROOT_PATH . LIB_RELPATH . 'smarty/Smarty.class.php',
+  'safeMySQL'       => ROOT_PATH . LIB_RELPATH . 'safemysql.class.php',
+  'rdfParser'       => ROOT_PATH . LIB_RELPATH . 'rdf_parser.php',
+);
+
 
 // Load fundamental constants and global functions
 require_once('./fundamentals.php');
@@ -69,8 +75,8 @@ const RDF_AUS_BLANK         = '<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-
  * Adblock Browser:  {55aba3ac-94d3-41a8-9e25-5c21fe874539} */
 
 const TOOLKIT_ID    = 'toolkit@mozilla.org';
-const TOOLKIT_ALTID = 'toolkit@palemoon.org';
 const TOOLKIT_BIT   = 1;
+const TOOLKIT_ALTID = 'toolkit@palemoon.org';
 const OLD_PM_ID     = '{8de7fcbb-c55c-4fbe-bfc5-fc555c87dbc4}';
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -90,33 +96,36 @@ const TARGET_APPLICATION = array(
   'palemoon' => array(
     'id'            => '{ec8030f7-c20a-464f-9b0e-13a3a9e97384}',
     'bit'           => 2,
+    'oldVersion'    => '29.3.*',
     'name'          => 'Pale Moon',
-    'shortName'     => null,
+    'shortName'     => 'Pale Moon',
     'commonType'    => 'browser',
-    'org'           => 'Moonchild Productions',
+    'vendor'        => 'Moonchild Productions',
     'siteTitle'     => 'Pale Moon - Add-ons',
-    'features'      => ['extensions', 'extensions-cat', 'themes', 'personas', 'language-packs',
+    'features'      => ['extensions', 'extensions-cat', 'themes', 'personas', 'language-packs', 'dictionaries',
                         'search-plugins', 'user-scripts', 'user-styles']
   ),
   'borealis' => array(
     'id'            => '{a3210b97-8e8a-4737-9aa0-aa0e607640b9}',
     'bit'           => 4,
+    'oldVersion'    => '0.9.0a1',
     'name'          => 'Borealis Navigator',
     'shortName'     => 'Borealis',
     'commonType'    => 'navigator',
-    'org'           => 'Binary Outcast',
+    'vendor'        => 'Binary Outcast',
     'siteTitle'     => 'Add-ons - Binary Outcast',
-    'features'      => ['unified', 'extensions', 'themes', 'search-plugins', 'user-scripts', 'user-styles']
+    'features'      => ['unified', 'extensions', 'dictionaries', 'search-plugins']
   ),
   'interlink' => array(
     'id'            => '{3550f703-e582-4d05-9a08-453d09bdfdc6}',
     'bit'           => 8,
+    'oldVersion'    => '52.9.0a1',
     'name'          => 'Interlink Mail &amp; News',
     'shortName'     => 'Interlink',
     'commonType'    => 'client',
-    'org'           => 'Binary Outcast',
+    'vendor'        => 'Binary Outcast',
     'siteTitle'     => 'Add-ons - Binary Outcast',
-    'features'      => ['unified', 'extensions', 'themes', 'search-plugins', 'disable-xpinstall']
+    'features'      => ['unified', 'disable-xpinstall', 'extensions', 'themes', 'dictionaries', 'search-plugins']
   ),
 );
 
@@ -124,8 +133,6 @@ const TARGET_APPLICATION = array(
 
 const MANIFEST_FILES = array(
   'xpinstall'         => 'install.js',
-  'installRDF'        => 'install.rdf',
-  'installJSON'       => 'install.json',
   'chrome'            => 'chrome.manifest',
   'bootstrap'         => 'bootstrap.js',
   'npmJetpack'        => 'package.json',
@@ -375,6 +382,139 @@ function gfGenContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aLi
 }
 
 /**********************************************************************************************************************
+* 404 or Error
+*
+* @param $aErrorMessage   Error message if debug
+***********************************************************************************************************************/
+function gfErrorOr404($aErrorMessage) {
+  global $gaRuntime;
+
+  if ($gaRuntime['debugMode'] ?? null) {
+    gfError($aErrorMessage);
+  }
+
+  gfHeader(404);
+}
+
+/**********************************************************************************************************************
+* Checks for old versions
+*
+* @param $aFeature    feature
+* @param $aReturn     if true we will return a value else 404
+***********************************************************************************************************************/
+function gfValidClientVersion($aCheckVersion = null, $aVersion = null) {
+  global $gaRuntime;
+
+  $currentApplication = $gaRuntime['currentApplication'];
+
+  // No user agent is a blatantly bullshit state
+  if (!$gaRuntime['userAgent']) {
+    gfError('Reference Code - ID-10-T');
+  }
+
+  // Knock the UA to lowercase so it is easier to deal with
+  $userAgent = strtolower($gaRuntime['userAgent']);
+
+  // Check for invalid clients
+  foreach (['curl/', 'wget/', 'git/'] as $_value) {
+    if (str_contains($userAgent, $_value)) {
+      gfError('Reference Code - ID-10-T');
+    }
+  }
+
+  // This function doesn't work in unifiedMode when the application hasn't been determined yet.
+  if ($gaRuntime['unifiedMode'] && is_bool($currentApplication)) {
+    return true;
+  }
+
+  // ------------------------------------------------------------------------------------------------------------------
+
+  // This is our basic client ua check.
+  if (!$aCheckVersion) {
+    $oldAndInsecureHackJobs = array(
+      'nt 5',
+      'nt 6.0',
+      'macintosh',
+      'intel',
+      'ppc',
+      'mac os',
+      'iphone',
+      'ipad',
+      'ipod',
+      'android',
+      'goanna/3.5',
+      'goanna/4.0',
+      'rv:3.5',
+      'rv:52.9',
+      'basilisk/52.9.0',
+      '55.0',
+      'mypal/',
+      'centaury/',
+      'bnavigator/',
+    );
+
+    // Check for old and insecure Windows versions and enemy hackjobs
+    foreach ($oldAndInsecureHackJobs as $_value) {
+      if (str_contains($userAgent, $_value)) {
+        return false;
+      }
+    }
+
+    // Check if the application slice matches the current site.
+    if (!str_contains($userAgent, $currentApplication)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  // ------------------------------------------------------------------------------------------------------------------
+
+  // This is the main meat of this function. To detect old and insecure application versions
+  // Try to find the position of the application slice in the UA
+  $uaVersion = strpos($userAgent, $currentApplication . SLASH);
+
+  // Make sure we have a position for the application slice
+  // If we don't then it ain't gonna match the current add-ons site
+  if ($uaVersion === false) {
+    return false;
+  }
+
+  // Extract the application slice by slicing off everything before it
+  // UXP Applications ALWAYS have the application slice at the end of the UA
+  $uaVersion = substr($userAgent, $uaVersion, $uaVersion);
+
+  // Extract the application version
+  $uaVersion = str_replace($currentApplication . SLASH, EMPTY_STRING, $uaVersion);
+
+  // Make sure we actually have a string
+  if (!gfSuperVar('var', $uaVersion)) {
+    return false;
+  }
+
+  // Set currentVersion to the supplied version else the extracted version from the ua
+  $currentVersion = $aVersion ?? $uaVersion;
+
+  // ------------------------------------------------------------------------------------------------------------------
+
+  // Set the old version to compare against 
+  $oldVersion = TARGET_APPLICATION[$currentApplication]['oldVersion'];
+
+  // If we are supplying the version number to check make sure it actually matches the UA.
+  if ($aVersion && ($currentVersion != $uaVersion)) {
+    return false;
+  }
+
+  // NOW we can compare it against the old version.. Finally.
+  if (ToolkitVersionComparator::compare($currentVersion, $oldVersion) <= 0) {
+    return false;
+  }
+
+  // Welp, seems it is newer than the currently stated old version so pass
+  return true;
+}
+
+/**********************************************************************************************************************
 * Get the bitwise value of valid applications from a list of application ids
 *
 * @param $aTargetApplications   list of targetApplication ids
@@ -404,21 +544,6 @@ function gfApplicationBits($aTargetApplications, $isAssoc = true) {
   return $applicationBits;
 }
 
-/**********************************************************************************************************************
-* 404 or Error
-*
-* @param $aErrorMessage   Error message if debug
-***********************************************************************************************************************/
-function gfErrorOr404($aErrorMessage) {
-  global $gaRuntime;
-
-  if ($gaRuntime['debugMode'] ?? null) {
-    gfError($aErrorMessage);
-  }
-
-  gfHeader(404);
-}
-
 // ====================================================================================================================
 
 // == | Main | ========================================================================================================
@@ -429,6 +554,8 @@ $gaRuntime = array(
   'orginalApplication'  => null,
   'unifiedMode'         => null,
   'unifiedApps'         => null,
+  'validClient'         => null,
+  'validVersion'        => null,
   'currentPath'         => null,
   'currentDomain'       => null,
   'currentSubDomain'    => null,
@@ -438,6 +565,7 @@ $gaRuntime = array(
   'phpServerName'       => gfSuperVar('server', 'SERVER_NAME'),
   'phpRequestURI'       => gfSuperVar('server', 'REQUEST_URI'),
   'remoteAddr'          => gfSuperVar('server', 'HTTP_X_FORWARDED_FOR') ?? gfSuperVar('server', 'REMOTE_ADDR'),
+  'userAgent'           => gfSuperVar('server', 'HTTP_USER_AGENT'),
   'qComponent'          => gfSuperVar('get', 'component'),
   'qPath'               => gfSuperVar('get', 'path'),
   'qApplication'        => gfSuperVar('get', 'appOverride'),
@@ -498,12 +626,12 @@ if ($gaRuntime['offlineMode']) {
       exit();
       break;
     case 'integration':
-      $gaRuntime['requestAPIScope'] = gfSuperVar('get', 'type');
-      $gaRuntime['requestAPIFunction'] = gfSuperVar('get', 'request');
-      if ($gaRuntime['requestAPIScope'] != 'internal') {
+      $gaRuntime['qAPIScope'] = gfSuperVar('get', 'type');
+      $gaRuntime['qAPIFunction'] = gfSuperVar('get', 'request');
+      if ($gaRuntime['qAPIScope'] != 'internal') {
         gfHeader(404);
       }
-      switch ($gaRuntime['requestAPIFunction']) {
+      switch ($gaRuntime['qAPIFunction']) {
         case 'search':
           gfHeader('xml');
           print('<?xml version="1.0" encoding="utf-8" ?><searchresults total_results="0" />');
@@ -573,6 +701,13 @@ if ($gaRuntime['debugMode']) {
     }
   }
 }
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// Set valid client
+gfImportModules('vc');
+$gaRuntime['validClient'] = gfValidClientVersion();
+$gaRuntime['validVersion'] = gfValidClientVersion(true);
 
 // --------------------------------------------------------------------------------------------------------------------
 

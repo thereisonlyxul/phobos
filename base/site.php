@@ -80,6 +80,12 @@ if ($gaRuntime['unifiedMode']) {
 
     // Re-count the exploded path array because we removed the application from it
     $gvPathCount = count($gaRuntime['currentPath']);
+
+    // Re-run the client validity checks unless disable-xpinstall
+    if (!gfCheckFeature('disable-xpinstall', true)) {
+      $gaRuntime['validClient'] = gfValidClientVersion();
+      $gaRuntime['validVersion'] = gfValidClientVersion(true);
+    }
   }
 
   // Set the skin to match the unified domain
@@ -99,7 +105,8 @@ if ($gaRuntime['unifiedMode']) {
 // Add enabled features to the site menu
 // Set the menu
 $gaRuntime['siteMenu'] = [SLASH => 'Root'];
-$gvMenuItems = ['extensions', 'themes', 'personas', 'language-packs', 'search-plugins', 'user-scripts', 'user-styles'];
+$gvMenuItems = ['extensions', 'themes', 'personas', 'language-packs', 'dictionaries',
+                'search-plugins', 'user-scripts', 'user-styles'];
 foreach ($gvMenuItems as $_value) {
   if ($gaRuntime['unifiedMode'] && $gvUnifiedPrePage) {
     break;
@@ -148,6 +155,15 @@ switch ($gvSection) {
       gfGenContent($gvPage);
     }
 
+    gfHeader(404);
+    break;
+  case 'license':
+  case 'releases':
+    // Send Phoebus 2.0 links to the correct place
+    $gvLegacySlug = $gaRuntime['currentPath'][1] ?? null;
+    if ($gvLegacySlug) {
+      gfLegacyRedirect($gvLegacySlug, $gvSection);
+    }
     gfHeader(404);
     break;
   case 'extensions':
@@ -202,9 +218,9 @@ switch ($gvSection) {
     if ($gvLegacySlug) {
       gfLegacyRedirect($gvLegacySlug);
     }
+  case 'personas':
   case 'language-packs':
   case 'dictionaries':
-  case 'personas':
   case 'search-plugins':
   case 'user-scripts':
   case 'user-styles':
@@ -218,15 +234,6 @@ switch ($gvSection) {
                'content' => $gaRuntime,
                'menu' => $gaRuntime['siteMenu']];
     gfGenContent($gvPage);
-    break;
-  case 'license':
-  case 'releases':
-    // Send Phoebus 2.0 links to the correct place
-    $gvLegacySlug = $gaRuntime['currentPath'][1] ?? null;
-    if ($gvLegacySlug) {
-      gfLegacyRedirect($gvLegacySlug, $gvSection);
-    }
-    gfHeader(404);
     break;
   case 'search':
     gfCheckPathCount(1);
