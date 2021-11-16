@@ -232,6 +232,15 @@ const CATEGORIES = array(
 
 // --------------------------------------------------------------------------------------------------------------------
 
+const USER_GROUPS = array(
+  'banned'  => ['level' => 0, 'name' => 'EX-TER-MIN-ATED'],
+  'user'    => ['level' => 1, 'name' => 'Developer'],
+  'mod'     => ['level' => 2, 'name' => 'Add-ons Team'],
+  'admin'   => ['level' => 3, 'name' => SOFTWARE_NAME . SPACE . 'Administrator'],
+);
+
+// --------------------------------------------------------------------------------------------------------------------
+
 // Open Source Licenses users can set for their Add-ons
 const LICENSES = array(
   'Apache-2.0'                => 'Apache License 2.0',
