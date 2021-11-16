@@ -7,24 +7,21 @@
 ***********************************************************************************************************************/
 function gfCheckPathCount($aExpectedCount) {
   global $gaRuntime;
-  if (count($gaRuntime['explodedPath']) > $aExpectedCount) {
+  if (count($gaRuntime['currentPath']) > $aExpectedCount) {
     gfHeader(404);
   }
 }
 
 // == | Main | ========================================================================================================
 
-// Explode the path
-$gaRuntime['explodedPath'] = gfExplodePath($gaRuntime['qPath']);
-
 // The Special Component never has more than one level below it
 // We still have to determine the root of the component though...
-if (count($gaRuntime['explodedPath']) == 1) {
+if (count($gaRuntime['currentPath']) == 1) {
   $gvSpecialFunction = 'root';
 }
 else {
   gfCheckPathCount(2);
-  $gvSpecialFunction = $gaRuntime['explodedPath'][1];
+  $gvSpecialFunction = $gaRuntime['currentPath'][1];
 }
 
 $gaRuntime['siteMenu'] = array(

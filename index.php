@@ -17,7 +17,7 @@ define('DEBUG_MODE', $_GET['debug'] ?? null);
 
 // Define basic constants for the software
 const SOFTWARE_NAME       = 'Phobos';
-const SOFTWARE_VERSION    = '1.0.0a1';
+const SOFTWARE_VERSION    = '3.0.0a1';
 const SOFTWARE_REPO       = 'about:blank';
 const DATASTORE_RELPATH   = '/datastore/';
 const OBJ_RELPATH         = '/.obj/';
@@ -93,8 +93,9 @@ const TARGET_APPLICATION = array(
     'name'          => 'Pale Moon',
     'shortName'     => null,
     'commonType'    => 'browser',
+    'org'           => 'Moonchild Productions',
     'siteTitle'     => 'Pale Moon - Add-ons',
-    'features'      => ['https', 'extensions', 'extensions-cat', 'themes', 'personas', 'language-packs',
+    'features'      => ['extensions', 'extensions-cat', 'themes', 'personas', 'language-packs',
                         'search-plugins', 'user-scripts', 'user-styles']
   ),
   'borealis' => array(
@@ -103,8 +104,9 @@ const TARGET_APPLICATION = array(
     'name'          => 'Borealis Navigator',
     'shortName'     => 'Borealis',
     'commonType'    => 'navigator',
+    'org'           => 'Binary Outcast',
     'siteTitle'     => 'Add-ons - Binary Outcast',
-    'features'      => ['https', 'unified', 'extensions', 'themes', 'search-plugins', 'user-scripts', 'user-styles']
+    'features'      => ['unified', 'extensions', 'themes', 'search-plugins', 'user-scripts', 'user-styles']
   ),
   'interlink' => array(
     'id'            => '{3550f703-e582-4d05-9a08-453d09bdfdc6}',
@@ -112,8 +114,9 @@ const TARGET_APPLICATION = array(
     'name'          => 'Interlink Mail &amp; News',
     'shortName'     => 'Interlink',
     'commonType'    => 'client',
+    'org'           => 'Binary Outcast',
     'siteTitle'     => 'Add-ons - Binary Outcast',
-    'features'      => ['https', 'unified', 'extensions', 'themes', 'search-plugins', 'disable-xpinstall']
+    'features'      => ['unified', 'extensions', 'themes', 'search-plugins', 'disable-xpinstall']
   ),
 );
 
@@ -131,30 +134,30 @@ const MANIFEST_FILES = array(
 );
 
 const XPINSTALL_TYPES = array(
-  'app'               => 1,    // No longer applicable
+  'app'               => 1,     // No longer applicable
   'extension'         => 2,
   'theme'             => 4,
   'locale'            => 8,
-  'plugin'            => 16,   // No longer applicable
-  'multipackage'      => 32,   // Forbidden on Phoebus
+  'plugin'            => 16,    // No longer applicable
+  'multipackage'      => 32,    // Forbidden on Phobos
   'dictionary'        => 64,
-  'experiment'        => 128,  // Not used in UXP
-  'apiextension'      => 256,  // Not used in UXP
-  'external'          => 512,  // Phoebus only
-  'persona'           => 1024, // Phoebus only
-  'search-plugin'     => 2048, // Phoebus only
-  'user-script'       => 4096, // Phoebus only
-  'user-style'        => 8192, // Phoebus only
+  'experiment'        => 128,   // No longer applicable
+  'apiextension'      => 256,   // No longer applicable
+  'external'          => 512,   // Phobos only
+  'persona'           => 1024,  // Phobos only
+  'search-plugin'     => 2048,  // Phobos only
+  'user-script'       => 4096,  // Phobos only
+  'user-style'        => 8192,  // Phobos only
 );
 
 // These are the supported "real" XPInstall types
 const VALID_XPI_TYPES       = 2 | 4 | 8 | 64;
 
-// These are types that only have a meaning in Phoebus (save External (512)
-const PHOEBUS_XPI_TYPES     = 1024 | 2048 | 4096 | 8192;
+// These are types that only have a meaning in Phobos (save External (512))
+const PHOBOS_XPI_TYPES     = 1024 | 2048 | 4096 | 8192;
 
-// These are depercated or unsupported "real" XPInstall types
-// NOTE: External (512) is a completely virtual Phoebus type so never allow it in an install manifest
+// These are deprecated or unsupported "real" XPInstall types
+// NOTE: External (512) is a completely virtual Phobos type so never allow it in an install manifest
 const INVALID_XPI_TYPES     = 1 | 16 | 32 | 128 | 256 | 512;
 
 // For some reason, when Mozilla killed the full XPInstall system and replaced Smart Update with the Add-ons Update Checker
@@ -401,6 +404,21 @@ function gfApplicationBits($aTargetApplications, $isAssoc = true) {
   return $applicationBits;
 }
 
+/**********************************************************************************************************************
+* 404 or Error
+*
+* @param $aErrorMessage   Error message if debug
+***********************************************************************************************************************/
+function gfErrorOr404($aErrorMessage) {
+  global $gaRuntime;
+
+  if ($gaRuntime['debugMode'] ?? null) {
+    gfError($aErrorMessage);
+  }
+
+  gfHeader(404);
+}
+
 // ====================================================================================================================
 
 // == | Main | ========================================================================================================
@@ -408,23 +426,29 @@ function gfApplicationBits($aTargetApplications, $isAssoc = true) {
 // Define an array that will hold the current application state
 $gaRuntime = array(
   'currentApplication'  => null,
+  'orginalApplication'  => null,
+  'unifiedMode'         => null,
+  'unifiedApps'         => null,
   'currentPath'         => null,
   'currentDomain'       => null,
   'currentSubDomain'    => null,
   'currentScheme'       => gfSuperVar('server', 'SCHEME') ?? (gfSuperVar('server', 'HTTPS') ? 'https' : 'http'),
-  'debugMode'           => null,
+  'debugMode'           => gfSuperVar('server', 'SERVER_NAME') == DEVELOPER_DOMAIN && !gfSuperVar('get', 'debugOverride'),
+  'offlineMode'         => file_exists(ROOT_PATH . '/.offline') && !gfSuperVar('get', 'overrideOffline'),
   'phpServerName'       => gfSuperVar('server', 'SERVER_NAME'),
   'phpRequestURI'       => gfSuperVar('server', 'REQUEST_URI'),
   'remoteAddr'          => gfSuperVar('server', 'HTTP_X_FORWARDED_FOR') ?? gfSuperVar('server', 'REMOTE_ADDR'),
   'qComponent'          => gfSuperVar('get', 'component'),
   'qPath'               => gfSuperVar('get', 'path'),
+  'qApplication'        => gfSuperVar('get', 'appOverride'),
 );
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// Offline check
-if (file_exists(ROOT_PATH . SLASH . '.offline')) {
-  gfError('Site Offline');
+// Root (/) won't set a component or path
+if (!$gaRuntime['qComponent'] && !$gaRuntime['qPath']) {
+  $gaRuntime['qComponent'] = 'site';
+  $gaRuntime['qPath'] = SLASH;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -433,12 +457,126 @@ if (file_exists(ROOT_PATH . SLASH . '.offline')) {
 $gaRuntime['currentDomain'] = gfSuperVar('check', gfGetDomain($gaRuntime['phpServerName']));
 $gaRuntime['currentSubDomain'] = gfSuperVar('check', gfGetDomain($gaRuntime['phpServerName'], true));
 
-// Root (/) won't set a component or path
-if (!$gaRuntime['qComponent'] && !$gaRuntime['qPath']) {
-  $gaRuntime['qComponent'] = 'site';
-  $gaRuntime['qPath'] = SLASH;
+// --------------------------------------------------------------------------------------------------------------------
+
+// Decide which application by domain that the software will be serving
+$gaRuntime['currentApplication'] = APPLICATION_DOMAINS[$gaRuntime['currentDomain']] ?? null;
+
+if (!$gaRuntime['currentApplication']) {
+  if ($gaRuntime['debugMode']) {
+    gfError('Invalid domain/application');
+  }
+
+  // We want to be able to give blank responses to any invalid domain/application
+  // when not in debug mode
+  $gaRuntime['offlineMode'] = true;
 }
 
+// See if this is a unified add-ons site
+if (is_array($gaRuntime['currentApplication'])) {
+  $gaRuntime['unifiedMode'] = true;
+  $gaRuntime['unifiedApps'] = $gaRuntime['currentApplication'];
+  $gaRuntime['currentApplication'] = true;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// Site Offline
+if ($gaRuntime['offlineMode']) {
+  $gvOfflineMessage = 'This site is currently unavailable. Please try again later.';
+
+  // Development offline message
+  if (str_contains(SOFTWARE_VERSION, 'a') || str_contains(SOFTWARE_VERSION, 'b') ||
+      str_contains(SOFTWARE_VERSION, 'pre') || $gaRuntime['debugMode']) {
+    $gvOfflineMessage = 'This in-development version of'. SPACE . SOFTWARE_NAME . SPACE . 'is not for public consumption.';
+  }
+
+  switch ($gaRuntime['qComponent']) {
+    case 'aus':
+      gfHeader('xml');
+      print('<?xml version="1.0" encoding="UTF-8"?><RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#" />');
+      exit();
+      break;
+    case 'integration':
+      $gaRuntime['requestAPIScope'] = gfSuperVar('get', 'type');
+      $gaRuntime['requestAPIFunction'] = gfSuperVar('get', 'request');
+      if ($gaRuntime['requestAPIScope'] != 'internal') {
+        gfHeader(404);
+      }
+      switch ($gaRuntime['requestAPIFunction']) {
+        case 'search':
+          gfHeader('xml');
+          print('<?xml version="1.0" encoding="utf-8" ?><searchresults total_results="0" />');
+          exit();
+          break;      
+        case 'get':
+        case 'recommended':
+          gfHeader('xml');
+          print('<?xml version="1.0" encoding="utf-8" ?><addons />');
+          exit();
+          break;
+        default:
+          gfHeader(404);
+      }
+      break;
+    case 'discover':
+      gfHeader(404);
+    default:
+      gfError($gvOfflineMessage);
+  }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// Items that get changed depending on debug mode
+if ($gaRuntime['debugMode']) {
+  // In debug mode we need to test other applications
+  if ($gaRuntime['qApplication']) {
+    // We can't test an application that doesn't exist
+    if (!array_key_exists($gaRuntime['qApplication'], TARGET_APPLICATION)) {
+      gfError('Invalid override application');
+    }
+
+    // Stupidity check
+    if ($gaRuntime['qApplication'] == $gaRuntime['currentApplication']) {
+      gfError('It makes no sense to override to the same application');
+    }
+
+    // Set the application
+    $gaRuntime['orginalApplication'] = $gaRuntime['currentApplication'];
+    $gaRuntime['currentApplication'] = $gaRuntime['qApplication'];
+
+    // If this is a unified add-ons site then we need to try and figure out the domain
+    if (in_array('unified', TARGET_APPLICATION[$gaRuntime['currentApplication']]['features'])) {
+      // Switch unified mode on
+      $gaRuntime['unifiedMode'] = true;
+
+      // Loop through the domains
+      foreach (APPLICATION_DOMAINS as $_key => $_value) {
+        // Skip any value that isn't an array
+        if (!is_array($_value)) {
+          continue;
+        }
+
+        // If we hit a domain with the requested application then set unifiedApps
+        if (in_array($gaRuntime['currentApplication'], $_value)) {
+          $gaRuntime['unifiedApps'] = $_value;
+          $gaRuntime['currentApplication'] = true;
+          break;
+        }
+      }
+
+      // Final check to make sure we have a unified domain figured out
+      if (!$gaRuntime['unifiedApps']) {
+        gfError('Unable to switch to unified mode');
+      }
+    }
+  }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// If we have a path then explode it and check for component pretty-paths
 if ($gaRuntime['qPath']) {
   // Explode the path if it exists
   $gaRuntime['currentPath'] = gfExplodePath($gaRuntime['qPath']);
@@ -454,28 +592,18 @@ if ($gaRuntime['qPath']) {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// Handle Debug Mode
-if (DEBUG_MODE && $gaRuntime['phpServerName'] == DEVELOPER_DOMAIN) {
-  $gaRuntime['debugMode'] = true;
-}
-
-// --------------------------------------------------------------------------------------------------------------------
-
 // Load component based on qComponent
 if ($gaRuntime['qComponent'] && array_key_exists($gaRuntime['qComponent'], COMPONENTS)) {
-  try {
-    require_once(COMPONENTS[$gaRuntime['qComponent']]);
-  }
-  catch($e) {
-    gfError('Unable to load valid component:' . SPACE . $gaRuntime['qComponent'])
-  }
-}
-else {
-  if (!$gaRuntime['debugMode']) {
-    gfHeader(404);
+  $gvComponentFile = COMPONENTS[$gaRuntime['qComponent']];
+
+  if (!file_exists($gvComponentFile)) {
+    gfErrorOr404('Cannot load component.');
   }
 
-  gfError('Invalid component');
+  require_once($gvComponentFile);
+}
+else {
+  gfErrorOr404('Invalid component.');
 }
 
 // ====================================================================================================================

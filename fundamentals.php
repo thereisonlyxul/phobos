@@ -349,10 +349,10 @@ function gfHeader($aHeader) {
   $debugMode = DEBUG_MODE;
   $isErrorPage = in_array($aHeader, [404, 501]);
 
-  if (array_key_exists('gaRuntime', $GLOBALS)) {
-    if (array_key_exists('debugMode', $GLOBALS['gaRuntime'])) {
-      $debugMode = $GLOBALS['gaRuntime']['debugMode'];
-    }
+  global $gaRuntime;
+
+  if ($gaRuntime && $GLOBALS['gaRuntime']['debugMode']) {
+    $debugMode = $GLOBALS['gaRuntime']['debugMode'];
   }
 
   if (!array_key_exists($aHeader, HTTP_HEADERS)) {
