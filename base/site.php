@@ -89,9 +89,9 @@ if ($gaRuntime['unifiedMode']) {
   }
 
   // Set the skin to match the unified domain
-    $gaRuntime['currentSkin'] = preg_replace('/(\.com|\.net|\.org)/i',
-                                             EMPTY_STRING,
-                                             array_search($gaRuntime['unifiedApps'], APPLICATION_DOMAINS));
+  $gaRuntime['currentSkin'] = preg_replace('/(\.com|\.net|\.org)/i',
+                                           EMPTY_STRING,
+                                           array_search($gaRuntime['unifiedApps'], APPLICATION_DOMAINS));
 
   // Check to see if we have a valid unified application if not then use the current skin
   if (is_bool($gaRuntime['currentApplication'])) {
@@ -103,7 +103,6 @@ if ($gaRuntime['unifiedMode']) {
 // --------------------------------------------------------------------------------------------------------------------
 
 // Add enabled features to the site menu
-// Set the menu
 $gaRuntime['siteMenu'] = [SLASH => 'Root'];
 $gvMenuItems = ['extensions', 'themes', 'personas', 'language-packs', 'dictionaries',
                 'search-plugins', 'user-scripts', 'user-styles'];
@@ -123,12 +122,11 @@ foreach ($gvMenuItems as $_value) {
 // --------------------------------------------------------------------------------------------------------------------
 
 // In unified mode the exploded path array may be empty so it will fall through to the default case
-// where it will either be the Add-ons Site Root or 404
+// where it will either be the Add-ons Site Root, a Unified Application Root,or 404
 $gvSection = $gaRuntime['currentPath'][0] ?? null;
 
 switch ($gvSection) {
   case 'addon':
-    // Longer than three uri parts is not sane
     gfCheckPathCount(3);
 
     // Get the Add-on Slug
@@ -157,14 +155,9 @@ switch ($gvSection) {
 
     gfHeader(404);
     break;
-  case 'license':
-  case 'releases':
-    // Send Phoebus 2.0 links to the correct place
-    $gvLegacySlug = $gaRuntime['currentPath'][1] ?? null;
-    if ($gvLegacySlug) {
-      gfLegacyRedirect($gvLegacySlug, $gvSection);
-    }
-    gfHeader(404);
+  case 'search':
+    gfCheckPathCount(1);
+    gfHeader(501);
     break;
   case 'extensions':
     // Send Phoebus <= 1.0 links to the correct place
@@ -235,9 +228,14 @@ switch ($gvSection) {
                'menu' => $gaRuntime['siteMenu']];
     gfGenContent($gvPage);
     break;
-  case 'search':
-    gfCheckPathCount(1);
-    gfHeader(501);
+  case 'license':
+  case 'releases':
+    // Send Phoebus 2.0 links to the correct place
+    $gvLegacySlug = $gaRuntime['currentPath'][1] ?? null;
+    if ($gvLegacySlug) {
+      gfLegacyRedirect($gvLegacySlug, $gvSection);
+    }
+    gfHeader(404);
     break;
   default:
     if ($gaRuntime['qPath'] == SLASH) {

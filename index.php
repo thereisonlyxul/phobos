@@ -236,7 +236,7 @@ const USER_GROUPS = array(
   'banned'  => ['level' => 0, 'name' => 'EX-TER-MIN-ATED'],
   'user'    => ['level' => 1, 'name' => 'Developer'],
   'mod'     => ['level' => 2, 'name' => 'Add-ons Team'],
-  'admin'   => ['level' => 3, 'name' => SOFTWARE_NAME . SPACE . 'Administrator'],
+  'admin'   => ['level' => 3, 'name' => 'Phobos Overlord'],
 );
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -569,6 +569,7 @@ $gaRuntime = array(
   'currentDomain'       => null,
   'currentSubDomain'    => null,
   'currentScheme'       => gfSuperVar('server', 'SCHEME') ?? (gfSuperVar('server', 'HTTPS') ? 'https' : 'http'),
+  'currentSkin'         => 'default',
   'debugMode'           => gfSuperVar('server', 'SERVER_NAME') == DEVELOPER_DOMAIN && !gfSuperVar('get', 'debugOverride'),
   'offlineMode'         => file_exists(ROOT_PATH . '/.offline') && !gfSuperVar('get', 'overrideOffline'),
   'phpServerName'       => gfSuperVar('server', 'SERVER_NAME'),
