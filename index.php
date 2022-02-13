@@ -106,9 +106,9 @@ const TARGET_APPLICATION = array(
                         'search-plugins', 'user-scripts', 'user-styles']
   ),
   'borealis' => array(
-    'id'            => '{a3210b97-8e8a-4737-9aa0-aa0e607640b9}',
+    'id'            => '{86c18b42-e466-4580-8b97-957ad5f8ea47}',
     'bit'           => 4,
-    'oldVersion'    => '0.9.0a1',
+    'oldVersion'    => '8.4.*',
     'name'          => 'Borealis Navigator',
     'shortName'     => 'Borealis',
     'commonType'    => 'navigator',
