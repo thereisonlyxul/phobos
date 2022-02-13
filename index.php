@@ -96,7 +96,7 @@ const TARGET_APPLICATION = array(
   'palemoon' => array(
     'id'            => '{ec8030f7-c20a-464f-9b0e-13a3a9e97384}',
     'bit'           => 2,
-    'oldVersion'    => '29.3.*',
+    'oldVersion'    => '29.*',
     'name'          => 'Pale Moon',
     'shortName'     => 'Pale Moon',
     'commonType'    => 'browser',
@@ -720,6 +720,27 @@ gfImportModules('vc');
 // Set valid client
 $gaRuntime['validClient'] = gfValidClientVersion();
 $gaRuntime['validVersion'] = gfValidClientVersion(true);
+
+// Determin if we should redirect Pale Moon clients back to addons-legacy
+$gaRuntime['phoebusRedirect'] = ($gaRuntime['currentApplication'] == 'palemoon' &&
+                                 $gaRuntime['validClient'] && !$gaRuntime['validVersion']);
+
+if ($gaRuntime['phoebusRedirect']) {
+  switch ($gaRuntime['qComponent']) {
+    case 'aus':
+    case 'integration':
+    case 'discover':
+      gfRedirect('https://addons-legacy.palemoon.org/?' . gfSuperVar('server', 'QUERY_STRING'));
+      break;
+    case 'site':
+    case 'special':
+    case 'panel':
+      gfRedirect('https://addons-legacy.palemoon.org' . $gaRuntime['qPath']);
+      break;
+    default:
+      gfErrorOr404('Invalid component.');
+  }
+}
 
 // --------------------------------------------------------------------------------------------------------------------
 
