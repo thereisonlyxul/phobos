@@ -4,20 +4,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 class classMozillaRDF {
+  const XML_NS = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
   const EM_NS = 'http://www.mozilla.org/2004/em-rdf#';
-  const INSTALL_MANIFEST_RESOURCE = 'urn:mozilla:install-manifest';
+  const MF_RES = 'urn:mozilla:install-manifest';
   const ANON_PREFIX = '#genid';
-
-  private $rdfParser;
-
-  /********************************************************************************************************************
-  * Class constructor that sets initial state of things
-  ********************************************************************************************************************/
-  function __construct() {
-    // Include the Rdf_parser
-    require_once(LIBRARIES['rdfParser']);
-    $this->rdfParser = new Rdf_parser();
-  }
+  const MULTI_PROPS = ['contributor', 'developer', 'translator', 'targetPlatform', 'targetApplication'];
 
   /********************************************************************************************************************
   * Parses install.rdf using Rdf_parser class
@@ -26,15 +17,18 @@ class classMozillaRDF {
   * @return array     $data["manifest"]
   ********************************************************************************************************************/
   public function parseInstallManifest($aManifestData) {
+    require_once(LIBRARIES['rdfParser']);
+    $rdf = new Rdf_parser();
+
     $data = array();
 
-    $this->rdfParser->rdf_parser_create(null);
-    $this->rdfParser->rdf_set_user_data($data);
-    $this->rdfParser->rdf_set_statement_handler(array('classMozillaRDF', 'installManifestStatementHandler'));
-    $this->rdfParser->rdf_set_base('');
+    $rdf->rdf_parser_create(null);
+    $rdf->rdf_set_user_data($data);
+    $rdf->rdf_set_statement_handler(array('classMozillaRDF', 'installManifestStatementHandler'));
+    $rdf->rdf_set_base(EMPTY_STRING);
 
-    if (!$this->rdfParser->rdf_parse($aManifestData, strlen($aManifestData), true)) {
-      return xml_error_string(xml_get_error_code($this->rdfParser->rdf_parser['xml_parser']));
+    if (!$rdf->rdf_parse($aManifestData, strlen($aManifestData), true)) {
+      return xml_error_string(xml_get_error_code($rdf->rdf_parser['xml_parser']));
     }
 
     // Set the targetApplication data
@@ -47,15 +41,15 @@ class classMozillaRDF {
           gfError('em:targetApplication description tags/attributes em:id, em:minVersion, and em:maxVersion MUST have a value');
         }
 
-        $id = $data[$targetApp][self::EM_NS."id"];
-        $targetArray[$id]['minVersion'] = $data[$targetApp][self::EM_NS.'minVersion'];
-        $targetArray[$id]['maxVersion'] = $data[$targetApp][self::EM_NS.'maxVersion'];
+        $id = $data[$targetApp][self::EM_NS . "id"];
+        $targetArray[$id]['minVersion'] = $data[$targetApp][self::EM_NS . 'minVersion'];
+        $targetArray[$id]['maxVersion'] = $data[$targetApp][self::EM_NS . 'maxVersion'];
       }
     }
 
     $data['manifest']['targetApplication'] = $targetArray;
 
-    $this->rdfParser->rdf_parser_free();
+    $rdf->rdf_parser_free();
 
     return $data['manifest'];
   }
@@ -99,7 +93,7 @@ class classMozillaRDF {
     // It would then use em:file and old style contents.rdf to generate a chrome manifest but I cannot find
     // any existing code to facilitate this at our level. AND NO I am not gonna add it back despite pining for
     // true XPInstall.
-    $multiProps = ['contributor', 'developer', 'translator', 'targetPlatform', 'targetApplication'];
+    $multiProps = self::MULTI_PROPS;
     
     // localizable properties
     // The documentation states that creator, homepageURL, and additional multiprops
@@ -109,7 +103,7 @@ class classMozillaRDF {
     $localeProps = ['name', 'description'];
 
     //Look for properties on the install manifest itself
-    if ($subject == self::INSTALL_MANIFEST_RESOURCE) {
+    if ($subject == self::MF_RES) {
       //we're only really interested in EM properties
       $length = strlen(self::EM_NS);
       if (strncmp($predicate, self::EM_NS, $length) == 0) {
@@ -136,5 +130,114 @@ class classMozillaRDF {
     
     return $data;
   }
+
+  /********************************************************************************************************************
+  * Parses manifest array into install.rdf
+  ********************************************************************************************************************/
+  public function createInstallManifest($aManifest, $aFormatAttrs = null, $aDirectOutput = null) {
+    // The Root Element of an install manifest
+    $installManifest = array(
+      '@element' => 'RDF',
+      '@attributes' => array(
+        'xmlns' => self::XML_NS,
+        'xmlns:em' => self::EM_NS,
+      )
+    );
+
+    // The main description of an install manifest
+    $mainDescription = array(
+      '@element' => 'Description',
+      '@attributes' => array(
+        'about' => self::MF_RES,
+      )
+    );
+
+    // Fix up em:name
+    if (is_array($aManifest['name'])) {
+      $aManifest['name'] = $aManifest['name']['en-US'];
+    }
+
+    // Fix up em:description
+    if (is_array($aManifest['description'])) {
+      $aManifest['description'] = $aManifest['description']['en-US'];
+    }
+
+    // Add single props as attributes to the main description
+    foreach ($aManifest as $_key => $_value) {
+      if (in_array($_key, ['contributor', 'developer', 'translator', 'targetPlatform', 'targetApplication'])) {
+        continue;
+      }
+
+      $mainDescription['@attributes']['em:' . $_key] = $_value;
+    }
+
+    // em:developer seems redundant with the preferred em:contributor prop
+    if (array_key_exists('developer', $aManifest)) {
+      if (array_key_exists('contributor', $aManifest)) {
+        $aManifest['contributor'] = array_unique(array_merge($aManifest['contributor'], $aManifest['developer']));
+      }
+      else {
+        $aManifest['contributor'] = $aManifest['developer'];
+      }
+
+      unset($aManifest['developer']);
+    }
+
+    // Add multiprops as elements
+    foreach (['em:contributor'    => $aManifest['contributor'] ?? null,
+              'em:developer'      => $aManifest['developer'] ?? null,
+              'em:translator'     => $aManifest['translator'] ?? null,
+              'em:targetPlatform' => $aManifest['targetPlatform'] ?? null] as $_key => $_value) {
+      if (!$_value) {
+        continue;
+      }
+
+      foreach ($_value as $_value2) {
+        $mainDescription[] = ['@element' => $_key, '@content' => $_value2];
+      }
+    }
+
+    // Add targetApplications as elements with attrs of the targetApplication description
+    foreach ($aManifest['targetApplication'] as $_key => $_value) {
+      $mainDescription[] = array(
+        '@element' => 'em:targetApplication',
+        array(
+          '@element' => 'Description',
+          '@attributes' => array(
+            'em:id' => $_key,
+            'em:minVersion' => $_value['minVersion'],
+            'em:maxVersion' => $_value['maxVersion'],
+          )
+        )
+      );
+    }
+
+    // Attach the main description to the root element
+    $installManifest[] = $mainDescription;
+
+    // Generate XML (or RDF in this case)
+    $installManifest = gfGenerateXML($installManifest);
+    
+    // This is a hack to format the attrs of the main description so they aren't just one long line
+    if ($aFormatAttrs) {
+      $substs = array(
+        ' em:'                                              => NEW_LINE . '               em:',
+        '<Description' . NEW_LINE . '               em:id'  => '<Description em:id',
+        NEW_LINE . '               em:minVersion'           => SPACE . 'em:minVersion',
+        NEW_LINE . '               em:maxVersion'           => SPACE . 'em:maxVersion'
+      );
+
+      $installManifest = gfSubst('string', $substs, $installManifest);
+    }
+
+    if ($aDirectOutput) {
+      gfHeader('xml');
+      print($installManifest);
+      exit();
+    }
+
+    return $installManifest;
+  }
 }
+
 ?>
