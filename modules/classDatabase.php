@@ -8,27 +8,28 @@ class classDatabase {
   private $sql;
   
   /********************************************************************************************************************
-  * Class constructor that sets inital state of things
+  * Class constructor that sets initial state of things
   ********************************************************************************************************************/
   function __construct() {
+    $ePrefix = __CLASS__ . '::' . __FUNCTION__ . DASH_SEPARATOR;
     global $gaRuntime;
 
-    $include = @include(ROOT_PATH . DATASTORE_RELPATH . '.phoebus/sql');
+    $creds = gfReadFile(gfBuildPath(ROOT_PATH, DATASTORE_RELPATH, '.config', 'sql' . JSON_EXTENSION));
 
-    if (!$include) {
-      gfError(__CLASS__ . '::' . __FUNCTION__ . ' - Could not read aql file');
+    if (!$creds) {
+      gfError($ePrefix . 'Could not read sql configuration');
     }
 
-    $arrayCreds['currentDB'] = $arrayCreds['liveDB'];
+    $gaRuntime['currentDatabase'] = $creds['liveDB'];
 
     if ($gaRuntime['debugMode'] || $gaRuntime['debugMode'] === false) {
-      $arrayCreds['currentDB'] = $arrayCreds['devDB'];;
+      $gaRuntime['currentDatabase'] = $creds['devDB'];
     }
 
-    $this->connection = mysqli_connect('localhost', $arrayCreds['username'], $arrayCreds['password'], $arrayCreds['currentDB']);
+    $this->connection = mysqli_connect('localhost', $creds['username'], $creds['password'], $gaRuntime['currentDatabase']);
 
     if (mysqli_connect_errno()) {
-      gfError('SQL Connection Error: ' . mysqli_connect_errno($this->connection));
+      gfError($ePrefix . 'SQL Connection Error: ' . mysqli_connect_errno($this->connection));
     }
 
     mysqli_set_charset($this->connection, 'utf8');
@@ -36,8 +37,6 @@ class classDatabase {
     require_once(LIBRARIES['safeMySQL']);
 
     $this->sql = new SafeMysql(['mysqli' => $this->connection]);
-
-    $gaRuntime['currentDatabase'] = $arrayCreds['currentDB'];
   }
 
   /********************************************************************************************************************
@@ -57,6 +56,7 @@ class classDatabase {
   * Force a specific database
   ********************************************************************************************************************/
   public function changeDB($aDatabase) {
+    $ePrefix = __CLASS__ . '::' . __FUNCTION__ . DASH_SEPARATOR;
     global $gaRuntime;
 
     $dbChange = mysqli_select_db($this->connection, $aDatabase);
@@ -66,7 +66,7 @@ class classDatabase {
       return $dbChange;
     }
 
-    gfError(__FUNCTION__ . ': failed to change database to ' . $aDatabase);
+    gfError($ePrefix . ': failed to change database to ' . $aDatabase);
   }
 
   /********************************************************************************************************************
@@ -102,6 +102,8 @@ class classDatabase {
   * @return   array with result or null
   ********************************************************************************************************************/
   public function get($aQueryType, ...$aArgs) {
+    $ePrefix = __CLASS__ . '::' . __FUNCTION__ . DASH_SEPARATOR;
+
     switch ($aQueryType) {
       case 'col':
         $result = $this->sql->getCol(...$aArgs);
@@ -113,7 +115,7 @@ class classDatabase {
         $result = $this->sql->getAll(...$aArgs);
         break;
       default:
-        gfError(__CLASS__ . '::' . __FUNCTION__ . ' - Unknown get type');
+        gfError($ePrefix . ' - Unknown get type');
     }
 
     return gfSuperVar('var', $result);
