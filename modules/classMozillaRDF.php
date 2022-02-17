@@ -4,7 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 class classMozillaRDF {
-  const XML_NS = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+  const RDF_NS = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
   const EM_NS = 'http://www.mozilla.org/2004/em-rdf#';
   const MF_RES = 'urn:mozilla:install-manifest';
   const ANON_PREFIX = '#genid';
@@ -139,7 +139,7 @@ class classMozillaRDF {
     $installManifest = array(
       '@element' => 'RDF',
       '@attributes' => array(
-        'xmlns' => self::XML_NS,
+        'xmlns' => self::RDF_NS,
         'xmlns:em' => self::EM_NS,
       )
     );
