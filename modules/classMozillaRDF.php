@@ -11,7 +11,7 @@ class classMozillaRDF {
   private $rdfParser;
 
   /********************************************************************************************************************
-  * Class constructor that sets inital state of things
+  * Class constructor that sets initial state of things
   ********************************************************************************************************************/
   function __construct() {
     // Include the Rdf_parser
@@ -22,10 +22,10 @@ class classMozillaRDF {
   /********************************************************************************************************************
   * Parses install.rdf using Rdf_parser class
   *
-  * @param string     $manifestData
+  * @param string     $aManifestData
   * @return array     $data["manifest"]
   ********************************************************************************************************************/
-  public function parseInstallManifest($manifestData) {
+  public function parseInstallManifest($aManifestData) {
     $data = array();
 
     $this->rdfParser->rdf_parser_create(null);
@@ -33,7 +33,7 @@ class classMozillaRDF {
     $this->rdfParser->rdf_set_statement_handler(array('classMozillaRDF', 'installManifestStatementHandler'));
     $this->rdfParser->rdf_set_base('');
 
-    if (!$this->rdfParser->rdf_parse($manifestData, strlen($manifestData), true)) {
+    if (!$this->rdfParser->rdf_parse($aManifestData, strlen($aManifestData), true)) {
       return xml_error_string(xml_get_error_code($this->rdfParser->rdf_parser['xml_parser']));
     }
 
@@ -41,9 +41,9 @@ class classMozillaRDF {
     $targetArray = array();
     if (!empty($data['manifest']['targetApplication']) && is_array($data['manifest']['targetApplication'])) {
       foreach ($data['manifest']['targetApplication'] as $targetApp) {
-        if (str_starts_with($data[$targetApp][self::EM_NS."id"], self::ANON_PREFIX) ||
-            str_starts_with($data[$targetApp][self::EM_NS.'minVersion'], self::ANON_PREFIX) ||
-            str_starts_with($data[$targetApp][self::EM_NS.'maxVersion'], self::ANON_PREFIX)) {
+        if (str_starts_with($data[$targetApp][self::EM_NS . "id"], self::ANON_PREFIX) ||
+            str_starts_with($data[$targetApp][self::EM_NS . 'minVersion'], self::ANON_PREFIX) ||
+            str_starts_with($data[$targetApp][self::EM_NS . 'maxVersion'], self::ANON_PREFIX)) {
           gfError('em:targetApplication description tags/attributes em:id, em:minVersion, and em:maxVersion MUST have a value');
         }
 
@@ -82,15 +82,30 @@ class classMozillaRDF {
                                                   $objectType,
                                                   $object,
                                                   $xmlLang) {
-    //single properties - ignoring: optionsURL, aboutURL, and anything not listed
+    // Single properties
     $singleProps = ['id', 'type', 'version', 'creator', 'homepageURL', 'updateURL', 'updateKey', 'bootstrap',
-                    'hasEmbeddedWebExtension', 'multiprocessCompatible', 'skinnable', 'strictCompatibility',
-                    'license', 'iconURL', 'icon64URL'];
+                    'skinnable', 'strictCompatibility', 'iconURL', 'icon64URL', 'optionsURL', 'optionsType',
+                    'aboutURL', 'iconURL', 'unpack'];
 
-    //multiple properties - ignoring: File
-    $multiProps = ['contributor', 'developer', 'translator', 'targetApplication'];
+    // These props are pretty much invalid but it would be wise to parse them so we can check against them.
+    $singleProps[] = 'multiprocessCompatible';
+    $singleProps[] = 'hasEmbeddedWebExtension';
+
+    // We support an em:license but the Add-ons Manager doesn't. Still, keep it separate from "real" props.
+    $singleProps[] = 'license';
+
+    // Multiple properties
+    // According to documentation, em:file is supposed to be used as a fallback when no chrome.manifest exists.
+    // It would then use em:file and old style contents.rdf to generate a chrome manifest but I cannot find
+    // any existing code to facilitate this at our level. AND NO I am not gonna add it back despite pining for
+    // true XPInstall.
+    $multiProps = ['contributor', 'developer', 'translator', 'targetPlatform', 'targetApplication'];
     
-    //localizable properties   
+    // localizable properties
+    // The documentation states that creator, homepageURL, and additional multiprops
+    // contributor, developer, and translator are localizable though this makes no god damned sense
+    // and will be dropped once we are install.json.. So don't even honor it.
+    // NAMES specifically should never be localized and credit should be due regardless of the fe language.
     $localeProps = ['name', 'description'];
 
     //Look for properties on the install manifest itself
@@ -115,7 +130,7 @@ class classMozillaRDF {
       }
     }
     else {
-      //save it anyway
+      // Save it anyway
       $data[$subject][$predicate] = $object;
     }
     
