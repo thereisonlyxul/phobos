@@ -22,4 +22,4 @@ base/tests/*
 
 # Ignore misc files that need not be in the repo
 /robots.txt
-
+/.config.json
