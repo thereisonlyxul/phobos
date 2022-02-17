@@ -35,7 +35,9 @@ const COMPONENTS = array(
 
 // Define modules
 const MODULES = array(
+  'database'        => ROOT_PATH . MODULES_RELPATH . 'classDatabase.php',
   'generateContent' => ROOT_PATH . MODULES_RELPATH . 'classGenerateContent.php',
+  'mozillaRDF'      => ROOT_PATH . MODULES_RELPATH . 'classMozillaRDF.php',
   'vc'              => ROOT_PATH . MODULES_RELPATH . 'nsIVersionComparator.php',
 );
 
@@ -306,7 +308,7 @@ function gfGenContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aLi
     '{$SOFTWARE_VERSION}' => SOFTWARE_VERSION,
   );
 
-  if ($aLegacyContent) {
+  if (is_string($aMetadata)) {
     if (is_array($aMetadata)) {
       gfError($ePrefix . 'aMetadata may not be an array in legacy mode.');
     }
@@ -443,10 +445,10 @@ function gfValidClientVersion($aCheckVersion = null, $aVersion = null) {
     $oldAndInsecureHackJobs = array(
       'nt 5',
       'nt 6.0',
-      'macintosh',
+      'bsd',
       'intel',
       'ppc',
-      'mac os',
+      'mac',
       'iphone',
       'ipad',
       'ipod',
@@ -455,7 +457,7 @@ function gfValidClientVersion($aCheckVersion = null, $aVersion = null) {
       'goanna/4.0',
       'rv:3.5',
       'rv:52.9',
-      'basilisk/52.9.0',
+      'basilisk/',
       '55.0',
       'mypal/',
       'centaury/',
@@ -632,7 +634,7 @@ if ($gaRuntime['offlineMode']) {
   switch ($gaRuntime['qComponent']) {
     case 'aus':
       gfHeader('xml');
-      print('<?xml version="1.0" encoding="UTF-8"?><RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#" />');
+      print(XML_TAG . RDF_AUS_BLANK);
       exit();
       break;
     case 'integration':
@@ -644,13 +646,13 @@ if ($gaRuntime['offlineMode']) {
       switch ($gaRuntime['qAPIFunction']) {
         case 'search':
           gfHeader('xml');
-          print('<?xml version="1.0" encoding="utf-8" ?><searchresults total_results="0" />');
+          print(XML_TAG . XML_API_SEARCH_BLANK);
           exit();
           break;      
         case 'get':
         case 'recommended':
           gfHeader('xml');
-          print('<?xml version="1.0" encoding="utf-8" ?><addons />');
+          print(XML_TAG . XML_API_LIST_BLANK);
           exit();
           break;
         default:
@@ -721,7 +723,7 @@ gfImportModules('vc');
 $gaRuntime['validClient'] = gfValidClientVersion();
 $gaRuntime['validVersion'] = gfValidClientVersion(true);
 
-// Determin if we should redirect Pale Moon clients back to addons-legacy
+// Determine if we should redirect Pale Moon clients back to addons-legacy
 $gaRuntime['phoebusRedirect'] = ($gaRuntime['currentApplication'] == 'palemoon' &&
                                  $gaRuntime['validClient'] && !$gaRuntime['validVersion']);
 
