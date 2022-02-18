@@ -164,7 +164,7 @@ class classMozillaRDF {
 
     // Add single props as attributes to the main description
     foreach ($aManifest as $_key => $_value) {
-      if (in_array($_key, ['contributor', 'developer', 'translator', 'targetPlatform', 'targetApplication'])) {
+      if (in_array($_key, self::MULTI_PROPS)) {
         continue;
       }
 
