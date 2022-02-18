@@ -1,11 +1,11 @@
 <?php
 // ##################################################################################
 // Title                     : Class Rdf_parser
-// Version                   : 1.0
+// Version                   : 1.5.0
 // Author                    : Jason Diammond -repat RDF parser-
 //                           : Luis Argerich -PHP version of repat- (lrargerich@yahoo.com)
-//                           : Matt A. Tobin -Compat with PHP 7.x- (email@mattatobin.com)
-// Last modification date    : 06-13-2002
+//                           : Matt A. Tobin -Continued PHP Compat- (email@mattatobin.com)
+// Last modification date    : See history below..
 // Description               : A port to PHP of the Repat an RDF parser.
 //                             This parser based on expat parses RDF files producing events
 //                             proper of RDF documents.
@@ -16,64 +16,73 @@
 // 08-16-2006                : Allowed for user callback function to be in a class
 //                             (Justin Scott)
 // 10-05-2017                : Fixed issues with PHP 7 namely the ereg() polyfill
-// 12-21-2018                : Fix rdf parser lib for outdated usage of call_user_func 
+// 12-21-2018                : Fix rdf parser lib for outdated usage of call_user_func
+// 02-26-2020                : PHP 7.4 Compat
+// ??-??-2021                : PHP 8.x Compat
+// 02-17-2022                : Use constants for common chars
 // ##################################################################################
 // To-Dos:
-//
+//   Keep it working..
 // ##################################################################################
 // How to use it:
 // Read the documentation in rdf_parser.html
 // ##################################################################################
 
 class Rdf_parser {
-  const XML_NAMESPACE_URI = 'http://www.w3.org/XML/1998/namespace';
-  const XML_LANG = 'lang';
-  const RDF_NAMESPACE_URI = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
-  const RDF_RDF = 'RDF';
-  const RDF_DESCRIPTION = 'Description';
-  const RDF_ID = 'ID';
-  const RDF_ABOUT = 'about';
-  const RDF_ABOUT_EACH = 'aboutEach';
-  const RDF_ABOUT_EACH_PREFIX = 'aboutEachPrefix';
-  const RDF_BAG_ID = 'bagID';
-  const RDF_RESOURCE = 'resource';
-  const RDF_VALUE = 'value';
-  const RDF_PARSE_TYPE = 'parseType';
-  const RDF_PARSE_TYPE_LITERAL = 'Literal';
-  const RDF_PARSE_TYPE_RESOURCE = 'Resource';
-  const RDF_TYPE = 'type';
-  const RDF_BAG = 'Bag';
-  const RDF_SEQ = 'Seq';
-  const RDF_ALT = 'Alt';
-  const RDF_LI = 'li';
-  const RDF_STATEMENT = 'Statement';
-  const RDF_SUBJECT = 'subject';
-  const RDF_PREDICATE = 'predicate';
-  const RDF_OBJECT = 'object';
+  const EMPTY_STRING                    = '';
+  const DOT                             = '.';
+  const DASH                            = '-';
+  const UNDERSCORE                      = '_';
+  const COLON                           = ':';
 
-  const NAMESPACE_SEPARATOR_CHAR = '^';
-  const NAMESPACE_SEPARATOR_STRING = '^';
+  const XML_NAMESPACE_URI               = 'http://www.w3.org/XML/1998/namespace';
+  const XML_LANG                        = 'lang';
+  const RDF_NAMESPACE_URI               = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+  const RDF_RDF                         = 'RDF';
+  const RDF_DESCRIPTION                 = 'Description';
+  const RDF_ID                          = 'ID';
+  const RDF_ABOUT                       = 'about';
+  const RDF_ABOUT_EACH                  = 'aboutEach';
+  const RDF_ABOUT_EACH_PREFIX           = 'aboutEachPrefix';
+  const RDF_BAG_ID                      = 'bagID';
+  const RDF_RESOURCE                    = 'resource';
+  const RDF_VALUE                       = 'value';
+  const RDF_PARSE_TYPE                  = 'parseType';
+  const RDF_PARSE_TYPE_LITERAL          = 'Literal';
+  const RDF_PARSE_TYPE_RESOURCE         = 'Resource';
+  const RDF_TYPE                        = 'type';
+  const RDF_BAG                         = 'Bag';
+  const RDF_SEQ                         = 'Seq';
+  const RDF_ALT                         = 'Alt';
+  const RDF_LI                          = 'li';
+  const RDF_STATEMENT                   = 'Statement';
+  const RDF_SUBJECT                     = 'subject';
+  const RDF_PREDICATE                   = 'predicate';
+  const RDF_OBJECT                      = 'object';
 
-  const IN_TOP_LEVEL = 0;
-  const IN_RDF = 1;
-  const IN_DESCRIPTION = 2;
-  const IN_PROPERTY_UNKNOWN_OBJECT = 3;
-  const IN_PROPERTY_RESOURCE = 4;
-  const IN_PROPERTY_EMPTY_RESOURCE = 5;
-  const IN_PROPERTY_LITERAL = 6;
-  const IN_PROPERTY_PARSE_TYPE_LITERAL = 7;
+  const NAMESPACE_SEPARATOR_CHAR        = '^';
+  const NAMESPACE_SEPARATOR_STRING      = '^';
+
+  const IN_TOP_LEVEL                    = 0;
+  const IN_RDF                          = 1;
+  const IN_DESCRIPTION                  = 2;
+  const IN_PROPERTY_UNKNOWN_OBJECT      = 3;
+  const IN_PROPERTY_RESOURCE            = 4;
+  const IN_PROPERTY_EMPTY_RESOURCE      = 5;
+  const IN_PROPERTY_LITERAL             = 6;
+  const IN_PROPERTY_PARSE_TYPE_LITERAL  = 7;
   const IN_PROPERTY_PARSE_TYPE_RESOURCE = 8;
-  const IN_XML = 9;
-  const IN_UNKNOWN = 10;
+  const IN_XML                          = 9;
+  const IN_UNKNOWN                      = 10;
 
-  const RDF_SUBJECT_TYPE_URI = 0;
-  const RDF_SUBJECT_TYPE_DISTRIBUTED = 1;
-  const RDF_SUBJECT_TYPE_PREFIX = 2;
-  const RDF_SUBJECT_TYPE_ANONYMOUS = 3;
+  const RDF_SUBJECT_TYPE_URI            = 0;
+  const RDF_SUBJECT_TYPE_DISTRIBUTED    = 1;
+  const RDF_SUBJECT_TYPE_PREFIX         = 2;
+  const RDF_SUBJECT_TYPE_ANONYMOUS      = 3;
 
-  const RDF_OBJECT_TYPE_RESOURCE = 0;
-  const RDF_OBJECT_TYPE_LITERAL = 1;
-  const RDF_OBJECT_TYPE_XML = 2;
+  const RDF_OBJECT_TYPE_RESOURCE        = 0;
+  const RDF_OBJECT_TYPE_LITERAL         = 1;
+  const RDF_OBJECT_TYPE_XML             = 2;
 
   public $rdf_parser;
 
@@ -94,7 +103,7 @@ class Rdf_parser {
   public function rdf_parser_free() {
     $z = 3;
     //    xml_parser_free( $this->rdf_parser["xml_parser"] );
-    $this->rdf_parser["base_uri"] = '';
+    $this->rdf_parser["base_uri"] = self::EMPTY_STRING;
 
     $this->_delete_elements($this->rdf_parser);
 
@@ -163,15 +172,15 @@ class Rdf_parser {
     $e["has_property_atributes"] = 0;
     $e["has_member_attributes"] = 0;
     $e["subject_type"] = 0;
-    $e["subject"] = '';
-    $e["predicate"] = '';
+    $e["subject"] = self::EMPTY_STRING;
+    $e["predicate"] = self::EMPTY_STRING;
     $e["ordinal"] = 0;
     $e["members"] = 0;
-    $e["data"] = '';
-    $e["xml_lang"] = '';
-    $e["bag_id"] = '';
+    $e["data"] = self::EMPTY_STRING;
+    $e["xml_lang"] = self::EMPTY_STRING;
+    $e["bag_id"] = self::EMPTY_STRING;
     $e["statements"] = 0;
-    $e["statement_id"] = '';
+    $e["statement_id"] = self::EMPTY_STRING;
 
     return $e;
   }
@@ -185,24 +194,24 @@ class Rdf_parser {
   }
 
   private function _clear_element(&$e) {
-    $e["subject"] = '';
-    $e["predicate"] = '';
-    $e["data"] = '';
-    $e["bag_id"] = '';
-    $e["statement_id"] = '';
+    $e["subject"] = self::EMPTY_STRING;
+    $e["predicate"] = self::EMPTY_STRING;
+    $e["data"] = self::EMPTY_STRING;
+    $e["bag_id"] = self::EMPTY_STRING;
+    $e["statement_id"] = self::EMPTY_STRING;
 
     if (isset($e["parent"])) {
       if ($e["parent"]) {
         if ($e["parent"]["xml_lang"] != $e["xml_lang"]) {
-          $e["xml_lang"] = '';
+          $e["xml_lang"] = self::EMPTY_STRING;
         }
       }
       else {
-        $e["xml_lang"] = '';
+        $e["xml_lang"] = self::EMPTY_STRING;
       }
     }
     else {
-      $e["xml_lang"] = '';
+      $e["xml_lang"] = self::EMPTY_STRING;
     }
 
     //memset( e, 0, strlen( _rdf_element ) );
@@ -211,15 +220,15 @@ class Rdf_parser {
     $e["has_property_attributes"] = 0;
     $e["has_member_attributes"] = 0;
     $e["subject_type"] = 0;
-    $e["subject"] = '';
-    $e["predicate"] = '';
+    $e["subject"] = self::EMPTY_STRING;
+    $e["predicate"] = self::EMPTY_STRING;
     $e["ordinal"] = 0;
     $e["members"] = 0;
-    $e["data"] = '';
-    $e["xml_lang"] = '';
-    $e["bag_id"] = '';
+    $e["data"] = self::EMPTY_STRING;
+    $e["xml_lang"] = self::EMPTY_STRING;
+    $e["bag_id"] = self::EMPTY_STRING;
     $e["statements"] = 0;
-    $e["statement_id"] = '';
+    $e["statement_id"] = self::EMPTY_STRING;
 
   }
 
@@ -270,7 +279,7 @@ class Rdf_parser {
   private function _is_rdf_ordinal($local_name) {
     $ordinal = - 1;
 
-    if ($local_name[0] == '_') {
+    if ($local_name[0] == self::UNDERSCORE) {
       $ordinal = substr($local_name, 1) + 1;
     }
 
@@ -285,7 +294,7 @@ class Rdf_parser {
     return
       ($local_name == self::RDF_TYPE) || ($local_name == self::RDF_SUBJECT) || ($local_name == self::RDF_PREDICATE) ||
       ($local_name == self::RDF_OBJECT) || ($local_name == self::RDF_VALUE) || ($local_name == self::RDF_LI) ||
-      ($local_name[0] == '_');
+      ($local_name[0] == self::UNDERSCORE);
   }
 
   private function _istalnum($val) {
@@ -302,11 +311,11 @@ class Rdf_parser {
     if ($uri && $this->_istalpha($uri[$uri_p])) {
       ++$uri_p;
 
-    while (($uri_p < strlen($uri)) && ($this->_istalnum($uri[$uri_p]) || ($uri[$uri_p] == '+') || ($uri[$uri_p] == '-') || ($uri[$uri_p] == '.'))) {
+    while (($uri_p < strlen($uri)) && ($this->_istalnum($uri[$uri_p]) || ($uri[$uri_p] == '+') || ($uri[$uri_p] == self::DASH) || ($uri[$uri_p] == self::DOT))) {
         ++$uri_p;
       }
 
-      $result = ($uri[$uri_p] == ':');
+      $result = ($uri[$uri_p] == self::COLON);
     }
     return $result;
   }
@@ -329,63 +338,63 @@ class Rdf_parser {
       $scheme = $parsed["scheme"];
     }
     else {
-      $scheme = '';
+      $scheme = self::EMPTY_STRING;
     }
 
     if (isset($parsed["host"])) {
       $host = $parsed["host"];
     }
     else {
-      $host = '';
+      $host = self::EMPTY_STRING;
     }
 
     if (isset($parsed["host"])) {
       $authority = $parsed["host"];
     }
     else {
-      $authority = '';
+      $authority = self::EMPTY_STRING;
     }
 
     if (isset($parsed["path"])) {
       $path = $parsed["path"];
     }
     else {
-      $path = '';
+      $path = self::EMPTY_STRING;
     }
 
     if (isset($parsed["query"])) {
       $query = $parsed["query"];
     }
     else {
-      $query = '';
+      $query = self::EMPTY_STRING;
     }
 
     if (isset($parsed["fragment"])) {
       $fragment = $parsed["fragment"];
     }
     else {
-      $fragment = '';
+      $fragment = self::EMPTY_STRING;
     }
   }
 
   private function _resolve_uri_reference($base_uri, $reference_uri, &$buffer, $length) {
-    $base_buffer = '';
-    $reference_buffer = '';
-    $path_buffer = '';
+    $base_buffer = self::EMPTY_STRING;
+    $reference_buffer = self::EMPTY_STRING;
+    $path_buffer = self::EMPTY_STRING;
 
-    $buffer = '';
+    $buffer = self::EMPTY_STRING;
 
     $this->_parse_uri($reference_uri, $reference_buffer, strlen($reference_buffer) , $reference_scheme, $reference_authority, $reference_path, $reference_query, $reference_fragment);
 
-    if ($reference_scheme == '' && $reference_authority == '' && $reference_path == '' && $reference_query == '') {
+    if ($reference_scheme == self::EMPTY_STRING && $reference_authority == self::EMPTY_STRING && $reference_path == self::EMPTY_STRING && $reference_query == self::EMPTY_STRING) {
       $buffer = $base_uri;
 
-      if ($reference_fragment != '') {
+      if ($reference_fragment != self::EMPTY_STRING) {
         $buffer .= "#";
         $buffer .= $reference_fragment;
       }
     }
-    elseif ($reference_scheme != '') {
+    elseif ($reference_scheme != self::EMPTY_STRING) {
       $buffer = $reference_uri;
     }
     else {
@@ -393,21 +402,21 @@ class Rdf_parser {
 
       $result_scheme = $base_scheme;
 
-      if ($reference_authority != '') {
+      if ($reference_authority != self::EMPTY_STRING) {
         $result_authority = $reference_authority;
       }
       else {
         $result_authority = $base_authority;
 
-        if ($reference_path != '' && (($reference_path[0] == '/') || ($reference_path[0] == '\\'))) {
+        if ($reference_path != self::EMPTY_STRING && (($reference_path[0] == '/') || ($reference_path[0] == '\\'))) {
           $result_path = $reference_path;
         }
         else {
-          $p = '';
+          $p = self::EMPTY_STRING;
 
           $result_path = $path_buffer;
 
-          $path_buffer = '';
+          $path_buffer = self::EMPTY_STRING;
 
           $p = strstr($base_path, '/');
 
@@ -427,7 +436,7 @@ class Rdf_parser {
             
           }
 
-          if ($reference_path != '') {
+          if ($reference_path != self::EMPTY_STRING) {
             $path_buffer .= $reference_path;
           }
 
@@ -447,27 +456,27 @@ class Rdf_parser {
 
       // This replaces the C pointer assignament
       $result_path = $path_buffer;
-      if ($result_scheme != '') {
+      if ($result_scheme != self::EMPTY_STRING) {
         $buffer = $result_scheme;
         $buffer .= ":";
       }
 
-      if ($result_authority != '') {
+      if ($result_authority != self::EMPTY_STRING) {
         $buffer .= "//";
         $buffer .= $result_authority;
       }
 
-      if ($result_path != '') {
+      if ($result_path != self::EMPTY_STRING) {
 
         $buffer .= $result_path;
       }
 
-      if ($reference_query != '') {
+      if ($reference_query != self::EMPTY_STRING) {
         $buffer .= "?";
         $buffer .= $reference_query;
       }
 
-      if ($reference_fragment != '') {
+      if ($reference_fragment != self::EMPTY_STRING) {
         $buffer .= "#";
         $buffer .= $reference_fragment;
       }
@@ -479,12 +488,12 @@ class Rdf_parser {
     $p = $id;
     $p_p = 0;
 
-    if ($id != '') {
-      if ($this->_istalpha($p) || $p[0] == '_' || $p[0] == ':') {
+    if ($id != self::EMPTY_STRING) {
+      if ($this->_istalpha($p) || $p[0] == self::UNDERSCORE || $p[0] == self::COLON) {
         $result = true;
 
         while ($result != false && ($p[++$p_p] != 0)) {
-          if (!($this->_istalnum($p[$p_p]) || $p[$p_p] == '.' || $p[$p_p] == '-' || $p[$p_p] == '_' || $p[$p_p] == ':')) {
+          if (!($this->_istalnum($p[$p_p]) || $p[$p_p] == self::DOT || $p[$p_p] == self::DASH || $p[$p_p] == self::UNDERSCORE || $p[$p_p] == self::COLON)) {
             $result = false;
           }
         }
@@ -495,7 +504,7 @@ class Rdf_parser {
   }
 
   private function _resolve_id($id, &$buffer, $length) {
-    $id_buffer = '';
+    $id_buffer = self::EMPTY_STRING;
 
     if ($this->is_valid_id($id) == true) {
       $id_buffer = "#$id";
@@ -518,12 +527,12 @@ class Rdf_parser {
       $local_name = $cosas[1];
     }
     else {
-      if (($buffer[0] == 'x') && ($buffer[1] == 'm') && ($buffer[2] == 'l') && ($buffer[3] == ':')) {
+      if (($buffer[0] == 'x') && ($buffer[1] == 'm') && ($buffer[2] == 'l') && ($buffer[3] == self::COLON)) {
         $namespace_uri = self::XML_NAMESPACE_URI;
         $local_name = substr($buffer, 4);
       }
       else {
-        $namespace_uri = '';
+        $namespace_uri = self::EMPTY_STRING;
         $local_name = $buffer;
       }
     }
@@ -531,7 +540,7 @@ class Rdf_parser {
   }
 
   private function _generate_anonymous_uri(&$buf, $len) {
-    $id = '';
+    $id = self::EMPTY_STRING;
     if (!isset($this->rdf_parser["anonymous_id"])) {
       $this->rdf_parser["anonymous_id"] = 0;
     }
@@ -544,15 +553,15 @@ class Rdf_parser {
 
   private function _report_statement($subject_type, $subject, $predicate, $ordinal, $object_type, $object, $xml_lang, $bag_id, $statements, $statement_id) {
     $statement_id_type = self::RDF_SUBJECT_TYPE_URI;
-    $statement_id_buffer = '';
-    $predicate_buffer = '';
+    $statement_id_buffer = self::EMPTY_STRING;
+    $predicate_buffer = self::EMPTY_STRING;
 
     if ($this->rdf_parser["statement_handler"]) {
       $this->rdf_parser["user_data"] = call_user_func_array($this->rdf_parser["statement_handler"], array(&$this->rdf_parser["user_data"], $subject_type, $subject, $predicate, $ordinal, $object_type, $object, $xml_lang));
       // $this->rdf_parser["statement_handler"]($this->rdf_parser["user_data"],$subject_type,$subject,$predicate,$ordinal,$object_type,$object,$xml_lang )
       if ($bag_id) {
-        if ($statements == '') {
-          $this->_report_statement(self::RDF_SUBJECT_TYPE_URI, $bag_id, self::RDF_NAMESPACE_URI . self::RDF_TYPE, 0, self::RDF_OBJECT_TYPE_RESOURCE, self::RDF_NAMESPACE_URI . self::RDF_BAG, '', '', '', '');
+        if ($statements == self::EMPTY_STRING) {
+          $this->_report_statement(self::RDF_SUBJECT_TYPE_URI, $bag_id, self::RDF_NAMESPACE_URI . self::RDF_TYPE, 0, self::RDF_OBJECT_TYPE_RESOURCE, self::RDF_NAMESPACE_URI . self::RDF_BAG, self::EMPTY_STRING, self::EMPTY_STRING, self::EMPTY_STRING, self::EMPTY_STRING);
         }
 
         if (!$statement_id) {
@@ -563,7 +572,7 @@ class Rdf_parser {
         $statements++;
         $predicate_buffer = "self::RDF_NAMESPACE_URI_" . $statements;
 
-        $this->_report_statement(self::RDF_SUBJECT_TYPE_URI, $bag_id, $predicate_buffer, $statements, self::RDF_OBJECT_TYPE_RESOURCE, $statement_id, '', '', '', '');
+        $this->_report_statement(self::RDF_SUBJECT_TYPE_URI, $bag_id, $predicate_buffer, $statements, self::RDF_OBJECT_TYPE_RESOURCE, $statement_id, self::EMPTY_STRING, self::EMPTY_STRING, self::EMPTY_STRING, self::EMPTY_STRING);
       }
 
       if ($statement_id) {
@@ -575,7 +584,7 @@ class Rdf_parser {
           0,
           self::RDF_OBJECT_TYPE_RESOURCE,
           self::RDF_NAMESPACE_URI . self::RDF_STATEMENT,
-          '', '', '', ''
+          self::EMPTY_STRING, self::EMPTY_STRING, self::EMPTY_STRING, self::EMPTY_STRING
         );
 
         // rdf:subject
@@ -586,7 +595,7 @@ class Rdf_parser {
           0,
           self::RDF_OBJECT_TYPE_RESOURCE,
           $subject,
-          '', '', '', ''
+          self::EMPTY_STRING, self::EMPTY_STRING, self::EMPTY_STRING, self::EMPTY_STRING
         );
 
         // rdf:predicate
@@ -597,7 +606,7 @@ class Rdf_parser {
           0,
           self::RDF_OBJECT_TYPE_RESOURCE,
           $predicate,
-          '', '', '', ''
+          self::EMPTY_STRING, self::EMPTY_STRING, self::EMPTY_STRING, self::EMPTY_STRING
         );
 
         // rdf:object
@@ -608,7 +617,7 @@ class Rdf_parser {
           0,
           $object_type,
           $object,
-          '', '', '', ''
+          self::EMPTY_STRING, self::EMPTY_STRING, self::EMPTY_STRING, self::EMPTY_STRING
         );
       }
     }
@@ -629,12 +638,12 @@ class Rdf_parser {
   private function _handle_property_attributes($subject_type, $subject, $attributes, $xml_lang, $bag_id, $statements) {
     $i = 0;
 
-    $attribute = '';
-    $predicate = '';
+    $attribute = self::EMPTY_STRING;
+    $predicate = self::EMPTY_STRING;
 
-    $attribute_namespace_uri = '';
-    $attribute_local_name = '';
-    $attribute_value = '';
+    $attribute_namespace_uri = self::EMPTY_STRING;
+    $attribute_local_name = self::EMPTY_STRING;
+    $attribute_value = self::EMPTY_STRING;
 
     $ordinal = 0;
 
@@ -648,13 +657,13 @@ class Rdf_parser {
 
       if (self::RDF_NAMESPACE_URI == $attribute_namespace_uri) {
         if ($this->_is_rdf_property_attribute_literal($attribute_local_name)) {
-          $this->_report_statement($subject_type, $subject, $predicate, 0, self::RDF_OBJECT_TYPE_LITERAL, $attribute_value, $xml_lang, $bag_id, $statements, '');
+          $this->_report_statement($subject_type, $subject, $predicate, 0, self::RDF_OBJECT_TYPE_LITERAL, $attribute_value, $xml_lang, $bag_id, $statements, self::EMPTY_STRING);
         }
         elseif ($this->_is_rdf_property_attribute_resource($attribute_local_name)) {
-          $this->_report_statement($subject_type, $subject, $predicate, 0, self::RDF_OBJECT_TYPE_RESOURCE, $attribute_value, '', $bag_id, $statements, '');
+          $this->_report_statement($subject_type, $subject, $predicate, 0, self::RDF_OBJECT_TYPE_RESOURCE, $attribute_value, self::EMPTY_STRING, $bag_id, $statements, self::EMPTY_STRING);
         }
         elseif (($ordinal = $this->_is_rdf_ordinal($attribute_local_name)) != 0) {
-          $this->_report_statement($subject_type, $subject, $predicate, $ordinal, self::RDF_OBJECT_TYPE_LITERAL, $attribute_value, $xml_lang, $bag_id, $statements, '');
+          $this->_report_statement($subject_type, $subject, $predicate, $ordinal, self::RDF_OBJECT_TYPE_LITERAL, $attribute_value, $xml_lang, $bag_id, $statements, self::EMPTY_STRING);
         }
       }
       elseif (self::XML_NAMESPACE_URI == $attribute_namespace_uri) {
@@ -662,7 +671,7 @@ class Rdf_parser {
       }
       elseif ($attribute_namespace_uri) {
         // is it required that property attributes be in an explicit namespace?
-        $this->_report_statement($subject_type, $subject, $predicate, 0, self::RDF_OBJECT_TYPE_LITERAL, $attribute_value, $xml_lang, $bag_id, $statements, '');
+        $this->_report_statement($subject_type, $subject, $predicate, 0, self::RDF_OBJECT_TYPE_LITERAL, $attribute_value, $xml_lang, $bag_id, $statements, self::EMPTY_STRING);
       }
     }
   }
@@ -703,24 +712,24 @@ class Rdf_parser {
     }
 
     $attributes = $aux2;
-    $id = '';
-    $about = '';
-    $about_each = '';
-    $about_each_prefix = '';
+    $id = self::EMPTY_STRING;
+    $about = self::EMPTY_STRING;
+    $about_each = self::EMPTY_STRING;
+    $about_each_prefix = self::EMPTY_STRING;
 
-    $bag_id = '';
+    $bag_id = self::EMPTY_STRING;
 
     $i = 0;
 
-    $attribute = '';
+    $attribute = self::EMPTY_STRING;
 
-    $attribute_namespace_uri = '';
-    $attribute_local_name = '';
-    $attribute_value = '';
+    $attribute_namespace_uri = self::EMPTY_STRING;
+    $attribute_local_name = self::EMPTY_STRING;
+    $attribute_value = self::EMPTY_STRING;
 
-    $id_buffer = '';
+    $id_buffer = self::EMPTY_STRING;
 
-    $type = '';
+    $type = self::EMPTY_STRING;
 
     $this->rdf_parser["top"]["has_property_attributes"] = false;
     $this->rdf_parser["top"]["has_member_attributes"] = false;
@@ -733,7 +742,7 @@ class Rdf_parser {
 
       // if the attribute is not in any namespace
       //   or the attribute is in the RDF namespace
-      if (($attribute_namespace_uri == '') || ($attribute_namespace_uri == self::RDF_NAMESPACE_URI)) {
+      if (($attribute_namespace_uri == self::EMPTY_STRING) || ($attribute_namespace_uri == self::RDF_NAMESPACE_URI)) {
         if ($attribute_local_name == self::RDF_ID) {
           $id = $attribute_value;
           ++$subjects_found;
@@ -804,7 +813,7 @@ class Rdf_parser {
     }
 
     // if the subject is empty, assign it the document uri
-    if ($this->rdf_parser["top"]["subject"] == '') {
+    if ($this->rdf_parser["top"]["subject"] == self::EMPTY_STRING) {
       $len = 0;
 
       $this->rdf_parser["top"]["subject"] = $this->rdf_parser["base_uri"];
@@ -830,10 +839,10 @@ class Rdf_parser {
         0,
         self::RDF_OBJECT_TYPE_RESOURCE,
         $type,
-        '',
+        self::EMPTY_STRING,
         $this->rdf_parser["top"]["bag_id"],
         $this->rdf_parser["top"]["statements"],
-        ''
+        self::EMPTY_STRING
       );
 
     }
@@ -848,7 +857,7 @@ class Rdf_parser {
         $parent["ordinal"],
         self::RDF_OBJECT_TYPE_RESOURCE,
         $this->rdf_parser["top"]["subject"],
-        '',
+        self::EMPTY_STRING,
         $parent["parent"]["bag_id"],
         $parent["parent"]["statements"],
         $parent["statement_id"]
@@ -868,7 +877,7 @@ class Rdf_parser {
   }
 
   private function _handle_property_element(&$namespace_uri, &$local_name, &$attributes) {
-    $buffer = '';
+    $buffer = self::EMPTY_STRING;
 
     $i = 0;
 
@@ -882,14 +891,14 @@ class Rdf_parser {
 
     $attributes = $aux2;
 
-    $attribute_namespace_uri = '';
-    $attribute_local_name = '';
-    $attribute_value = '';
+    $attribute_namespace_uri = self::EMPTY_STRING;
+    $attribute_local_name = self::EMPTY_STRING;
+    $attribute_value = self::EMPTY_STRING;
 
-    $resource = '';
-    $statement_id = '';
-    $bag_id = '';
-    $parse_type = '';
+    $resource = self::EMPTY_STRING;
+    $statement_id = self::EMPTY_STRING;
+    $bag_id = self::EMPTY_STRING;
+    $parse_type = self::EMPTY_STRING;
 
     $this->rdf_parser["top"]["ordinal"] = 0;
 
@@ -908,13 +917,13 @@ class Rdf_parser {
     $buffer = $namespace_uri;
 
     if (($namespace_uri == self::RDF_NAMESPACE_URI) && ($local_name == self::RDF_LI)) {
-      //$ordinal='';
+      //$ordinal=self::EMPTY_STRING;
       $this->rdf_parser["top"]["parent"]["members"]++;
       $this->rdf_parser["top"]["ordinal"] = $this->rdf_parser["top"]["parent"]["members"];
 
       $this->rdf_parser["top"]["ordinal"] = $this->rdf_parser["top"]["ordinal"];
-      //$ordinal{ 0 } =  '_' ;
-      $buffer .= '_' . $this->rdf_parser["top"]["ordinal"];
+      //$ordinal{ 0 } =  self::UNDERSCORE ;
+      $buffer .= self::UNDERSCORE . $this->rdf_parser["top"]["ordinal"];
     }
     else {
       $buffer .= $local_name;
@@ -932,7 +941,7 @@ class Rdf_parser {
 
       // if the attribute is not in any namespace
       //   or the attribute is in the RDF namespace
-      if (($attribute_namespace_uri == '') || ($attribute_namespace_uri == self::RDF_NAMESPACE_URI)) {
+      if (($attribute_namespace_uri == self::EMPTY_STRING) || ($attribute_namespace_uri == self::RDF_NAMESPACE_URI)) {
         if (($attribute_local_name == self::RDF_ID)) {
           $statement_id = $attribute_value;
         }
@@ -1001,7 +1010,7 @@ class Rdf_parser {
           0,
           self::RDF_OBJECT_TYPE_RESOURCE,
           $buffer,
-          '',
+          self::EMPTY_STRING,
           $this->rdf_parser["top"]["parent"]["bag_id"],
           $this->rdf_parser["top"]["parent"]["statements"],
           $statement_id
@@ -1012,7 +1021,7 @@ class Rdf_parser {
         $this->rdf_parser["top"]["state"] = self::IN_PROPERTY_PARSE_TYPE_RESOURCE;
         $this->rdf_parser["top"]["subject_type"] = self::RDF_SUBJECT_TYPE_ANONYMOUS;
         $this->rdf_parser["top"]["subject"] = $buffer;
-        $this->rdf_parser["top"]["bag_id"] = '';
+        $this->rdf_parser["top"]["bag_id"] = self::EMPTY_STRING;
       }
       else {
         $this->_report_statement(
@@ -1021,8 +1030,8 @@ class Rdf_parser {
           $this->rdf_parser["top"]["predicate"],
           0,
           self::RDF_OBJECT_TYPE_XML,
-          '',
-          '',
+          self::EMPTY_STRING,
+          self::EMPTY_STRING,
           $this->rdf_parser["top"]["parent"]["bag_id"],
           $this->rdf_parser["top"]["parent"]["statements"],
           $statement_id
@@ -1033,7 +1042,7 @@ class Rdf_parser {
       }
     }
     elseif ($resource || $bag_id || $this->rdf_parser["top"]["has_property_attributes"]) {
-      if ($resource != '') {
+      if ($resource != self::EMPTY_STRING) {
         $subject_type = self::RDF_SUBJECT_TYPE_URI;
         $this->_resolve_uri_reference($this->rdf_parser["base_uri"], $resource, $buffer, strlen($buffer));
       }
@@ -1052,10 +1061,10 @@ class Rdf_parser {
         $this->rdf_parser["top"]["ordinal"],
         self::RDF_OBJECT_TYPE_RESOURCE,
         $buffer,
-        '',
+        self::EMPTY_STRING,
         $this->rdf_parser["top"]["parent"]["bag_id"],
         $this->rdf_parser["top"]["parent"]["statements"],
-        ''
+        self::EMPTY_STRING
       ); // should we allow IDs?
 
       if ($bag_id) {
@@ -1077,10 +1086,10 @@ class Rdf_parser {
   }
 
   private function _start_element_handler($parser, $name, $attributes) {
-    $buffer = '';
+    $buffer = self::EMPTY_STRING;
 
-    $namespace_uri = '';
-    $local_name = '';
+    $namespace_uri = self::EMPTY_STRING;
+    $local_name = self::EMPTY_STRING;
 
     $this->_push_element();
 
@@ -1097,7 +1106,7 @@ class Rdf_parser {
       break;
       case self::IN_RDF:
         $this->rdf_parser["top"]["state"] = self::IN_DESCRIPTION;
-        $this->_handle_resource_element($namespace_uri, $local_name, $attributes, '');
+        $this->_handle_resource_element($namespace_uri, $local_name, $attributes, self::EMPTY_STRING);
       break;
       case self::IN_DESCRIPTION:
       case self::IN_PROPERTY_PARSE_TYPE_RESOURCE:
@@ -1107,7 +1116,7 @@ class Rdf_parser {
       case self::IN_PROPERTY_UNKNOWN_OBJECT:
         /* if we're in a property with an unknown object type and we encounter
          an element, the object must be a resource, */
-        $this->rdf_parser["top"]["data"] = '';
+        $this->rdf_parser["top"]["data"] = self::EMPTY_STRING;
         $this->rdf_parser["top"]["parent"]["state"] = self::IN_PROPERTY_RESOURCE;
         $this->rdf_parser["top"]["state"] = self::IN_DESCRIPTION;
         $this->_handle_resource_element(
@@ -1154,7 +1163,7 @@ class Rdf_parser {
   */
 
   private function _end_empty_resource_property() {
-    $buffer = '';
+    $buffer = self::EMPTY_STRING;
 
     $this->_generate_anonymous_uri($buffer, strlen($buffer));
 
@@ -1179,22 +1188,22 @@ class Rdf_parser {
   */
   private function _end_literal_property() {
     if (!isset($this->rdf_parser["top"]["statement_id"])) {
-      $this->rdf_parser["top"]["statement_id"] = '';
+      $this->rdf_parser["top"]["statement_id"] = self::EMPTY_STRING;
     }
     if (!isset($this->rdf_parser["top"]["parent"]["subject_type"])) {
-      $this->rdf_parser["top"]["parent"]["subject_type"] = '';
+      $this->rdf_parser["top"]["parent"]["subject_type"] = self::EMPTY_STRING;
     }
     if (!isset($this->rdf_parser["top"]["parent"]["subject"])) {
-      $this->rdf_parser["top"]["parent"]["subject"] = '';
+      $this->rdf_parser["top"]["parent"]["subject"] = self::EMPTY_STRING;
     }
     if (!isset($this->rdf_parser["top"]["parent"]["bag_id"])) {
-      $this->rdf_parser["top"]["parent"]["bag_id"] = '';
+      $this->rdf_parser["top"]["parent"]["bag_id"] = self::EMPTY_STRING;
     }
     if (!isset($this->rdf_parser["top"]["parent"]["statements"])) {
       $this->rdf_parser["top"]["parent"]["statements"] = 0;
     }
     if (!isset($this->rdf_parser["top"]["predicate"])) {
-      $this->rdf_parser["top"]["predicate"] = '';
+      $this->rdf_parser["top"]["predicate"] = self::EMPTY_STRING;
     }
     if (!isset($this->rdf_parser["top"]["ordinal"])) {
       $this->rdf_parser["top"]["ordinal"] = 0;
