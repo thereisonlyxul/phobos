@@ -162,6 +162,13 @@ class classMozillaRDF {
       $aManifest['description'] = $aManifest['description']['en-US'];
     }
 
+    // aboutURL is the add-on's about box NOT website
+    if (array_key_exists('aboutURL', $aManifest)) {
+      if (!str_starts_with($aManifest['aboutURL'], 'chrome://')) {
+        unset($aManifest['aboutURL']);
+      }
+    }
+
     // Add single props as attributes to the main description
     foreach ($aManifest as $_key => $_value) {
       if (in_array($_key, self::MULTI_PROPS)) {
