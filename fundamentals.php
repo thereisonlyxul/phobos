@@ -88,7 +88,12 @@ const XPINSTALL_EXTENSION   = DOT . 'xpi';
 const WINSTALLER_EXTENSION  = DOT . 'installer' . DOT .'exe';
 const WINPORTABLE_EXTENSION = DOT . 'portable' . DOT .'exe';
 const SEVENZIP_EXTENSION    = DOT . '7z';
+const TARGZ_EXTENSION       = DOT . 'tar' . DOT . 'gz';
+const TGZ_EXTENSION         = DOT . 'tgz';
+const TARBZ2_EXTENSION      = DOT . 'tar' . DOT . 'bz2';
+const TBZ_EXTENSION         = DOT . 'tbz';
 const TARXZ_EXTENSION       = DOT . 'tar' . DOT . 'xz';
+const TXZ_EXTENSION         = DOT . 'txz';
 const MAR_EXTENSION         = DOT . 'mar';
 const TEMP_EXTENSION        = DOT . 'temp';
 
@@ -620,12 +625,12 @@ function gfReadFileFromArchive($aArchive, $aFile) {
 * @param $aFile     File to write
 * @returns          true else return error string
 **********************************************************************************************************************/
-function gfWriteFile($aData, $aFile, $aRenameFile = null) {
+function gfWriteFile($aData, $aFile, $aRenameFile = null, $aOverwrite = null) {
   if (!gfSuperVar('var', $aData)) {
     return 'No useful data to write';
   }
 
-  if (file_exists($aFile)) {
+  if ($aOverwrite && $file_exists($aFile)) {
     return 'File already exists';
   }
 
@@ -633,9 +638,11 @@ function gfWriteFile($aData, $aFile, $aRenameFile = null) {
     $aData = json_encode($aData, JSON_ENCODE_FLAGS);
   }
 
-  $file = fopen($aFile, FILE_WRITE_FLAGS);
-  fwrite($file, $aData);
-  fclose($file);
+  $file = @file_put_contents($aFile, $aData);
+
+  if ($file === false) {
+    return 'Could not write file';
+  }
 
   if ($aRenameFile) {
     rename($aFile, $aRenameFile);
