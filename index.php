@@ -67,14 +67,30 @@ const RDF_AUS_BLANK         = '<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-
 /* Known Application IDs
  * Application IDs are normally in the form of a {GUID} or user@host ID.
  *
- * Firefox:          {ec8030f7-c20a-464f-9b0e-13a3a9e97384}
- * Thunderbird:      {3550f703-e582-4d05-9a08-453d09bdfdc6}
- * SeaMonkey:        {92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
- * Fennec (Android): {aa3c5121-dab2-40e2-81ca-7ea25febc110}
- * Fennec (XUL):     {a23983c0-fd0e-11dc-95ff-0800200c9a66}
- * Sunbird:          {718e30fb-e89b-41dd-9da7-e25a45638b28}
- * Instantbird:      {33cb9019-c295-46dd-be21-8c4936574bee}
- * Adblock Browser:  {55aba3ac-94d3-41a8-9e25-5c21fe874539} */
+ * Mozilla Suite:     {86c18b42-e466-45a9-ae7a-9b95ba6f5640}
+ * Firefox:           {ec8030f7-c20a-464f-9b0e-13a3a9e97384}
+ * Thunderbird:       {3550f703-e582-4d05-9a08-453d09bdfdc6}
+ * SeaMonkey:         {92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
+ * Fennec (Android):  {aa3c5121-dab2-40e2-81ca-7ea25febc110}
+ * Fennec (XUL):      {a23983c0-fd0e-11dc-95ff-0800200c9a66}
+ * Sunbird:           {718e30fb-e89b-41dd-9da7-e25a45638b28}
+ * Instantbird:       {33cb9019-c295-46dd-be21-8c4936574bee}
+ * Netscape Browser:  {3db10fab-e461-4c80-8b97-957ad5f8ea47}
+ *
+ * Nvu:               {136c295a-4a5a-41cf-bf24-5cee526720d5}
+ * Flock:             {a463f10c-3994-11da-9945-000d60ca027b}
+ * Kompozer:          {20aa4150-b5f4-11de-8a39-0800200c9a66}
+ * BlueGriffon:       bluegriffon@bluegriffon.com
+ * Adblock Browser:   {55aba3ac-94d3-41a8-9e25-5c21fe874539}
+ * Postbox:           postbox@postbox-inc.com
+ *
+ * Pale Moon 25-29:   {8de7fcbb-c55c-4fbe-bfc5-fc555c87dbc4}
+ * Borealis 0.9:      {a3210b97-8e8a-4737-9aa0-aa0e607640b9}
+ * XUL Example:       example@uxp.app
+ *
+ * IceDove-UXP:       {3aa07e56-beb0-47a0-b0cb-c735edd25419}
+ * IceApe-UXP:        {9184b6fe-4a5c-484d-8b4b-efbfccbfb514}
+ */
 
 const TOOLKIT_ID    = 'toolkit@mozilla.org';
 const TOOLKIT_BIT   = 1;
@@ -94,6 +110,9 @@ const APPLICATION_DOMAINS = array(
 // --------------------------------------------------------------------------------------------------------------------
 
 // Define application metadata
+// Features are as follows:
+/* ['extensions', 'extensions-cat', 'themes', 'personas', 'language-packs', 'dictionaries', 'search-plugins',
+    'user-scripts', 'user-styles'] */
 const TARGET_APPLICATION = array(
   'palemoon' => array(
     'id'            => '{ec8030f7-c20a-464f-9b0e-13a3a9e97384}',
@@ -735,7 +754,7 @@ if ($gaRuntime['phoebusRedirect']) {
       gfRedirect('https://addons-legacy.palemoon.org/?' . gfSuperVar('server', 'QUERY_STRING'));
       break;
     case 'site':
-    case 'special':
+  //case 'special':
     case 'panel':
       gfRedirect('https://addons-legacy.palemoon.org' . $gaRuntime['qPath']);
       break;
