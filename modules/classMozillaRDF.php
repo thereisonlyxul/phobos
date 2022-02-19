@@ -171,6 +171,20 @@ class classMozillaRDF {
       }
     }
 
+    // multiprocessCompatible means nothing to us
+    if (array_key_exists('multiprocessCompatible', $aManifest)) {
+      unset($aManifest['multiprocessCompatible']);
+    }
+
+    // We tend to mangle homepageURL to repositoryURL when it is a known forge
+    // However, we should mangle back unless both are used.
+    if (!array_key_exists('homepageURL', $aManifest) {
+      if (array_key_exists('repositoryURL', $aManifest) {
+        $aManifest['homepageURL'] = $aManifest['repositoryURL'];
+        unset($aManifest['repositoryURL']);
+      }
+    }
+
     // Add single props as attributes to the main description
     foreach ($aManifest as $_key => $_value) {
       if (in_array($_key, self::MULTI_PROPS)) {
