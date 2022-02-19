@@ -85,8 +85,10 @@ class classMozillaRDF {
     $singleProps[] = 'multiprocessCompatible';
     $singleProps[] = 'hasEmbeddedWebExtension';
 
-    // We support an em:license but the Add-ons Manager doesn't. Still, keep it separate from "real" props.
+    // We support additional em:properties but the Add-ons Manager doesn't. Still, keep it separate from "real" props.
     $singleProps[] = 'license';
+    $singleProps[] = 'supportURL';
+    $singleProps[] = 'repositoryURL';
 
     // Multiple properties
     // According to documentation, em:file is supposed to be used as a fallback when no chrome.manifest exists.
