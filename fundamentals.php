@@ -878,8 +878,9 @@ function gfArrayToDOM($aDom, $aData) {
 * Create an XML Document 
 ***********************************************************************************************************************/
 function gfGenerateXML($aData, $aDirectOutput = null) {
-  $doc = new DOMDocument();
+  $doc = new DOMDocument('1.0');
   $child = gfArrayToDOM($doc, $aData);
+  $xml = null;
 
   if ($child) {
     $doc->appendChild($child);
@@ -887,11 +888,18 @@ function gfGenerateXML($aData, $aDirectOutput = null) {
 
   $doc->formatOutput = true;
 
-  $xml = $doc->saveXML();
+  // We don't want utf8 multi-byte unicode being converted into entities so we save the documentElement.
+  // If this does become desirable in the future then we can check for 'RDF' in $aData['@element'].
+  // For now we don't want this period.
+  $xml = $doc->saveXML($doc->documentElement);
 
   if (!$xml) {
-    gfError('Could not get final xml');
+    gfError('Could not generate xml/rdf.');
   }
+
+  // Because we saved the documentElement instead of the entire thing we need to
+  // prepend the XML tag.
+  $xml = XML_TAG . NEW_LINE . $xml;
 
   if ($aDirectOutput) {
     gfHeader('xml');
