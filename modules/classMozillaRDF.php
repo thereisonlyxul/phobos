@@ -255,6 +255,68 @@ class classMozillaRDF {
 
     return $installManifest;
   }
-}
 
+  /********************************************************************************************************************
+  * Parses manifest array into update.rdf
+  ********************************************************************************************************************/
+  public function createUpdateManifest($aManifest, $aDirectOutput = null) {
+    // XXXTobin: This is for testing only
+    if (!array_key_exists('updateLink', $aManifest)) {
+      $aManifest['updateLink'] = 'about:blank';
+      $aManifest['updateHash'] = 'null';
+    }
+
+    $aManifest['type'] = AUS_XPI_TYPES[$aManifest['type']] ?? 'item';
+
+    // Construct the Update Manifest
+    $updateManifest = array(
+      '@element' => 'RDF:RDF',
+      '@attributes' => array(
+        'xmlns:RDF' => self::RDF_NS,
+        'xmlns:em' => self::EM_NS,
+      ),
+      array(
+        '@element' => 'em:updates',
+        array(
+          '@element' => 'Description',
+          '@attributes' => array(
+            'about' => 'urn:mozilla:' . $aManifest['type'] . COLON . $aManifest['id']
+          ),
+          array(
+            '@element' => 'RDF:Seq',
+            array(
+              '@element' => 'RDF:li',
+              array(
+                '@element' => 'Description',
+                '@attributes' => array(
+                  'em:version' => $aManifest['version']
+                ),
+              )
+            )
+          )
+        )
+      )
+    );
+
+    // Add targetApplications as elements with attrs of the targetApplication description
+    foreach ($aManifest['targetApplication'] as $_key => $_value) {
+       // RDF:RDF -> em:updates -> Description -> RDF:Seq -> RDF:li -> Description
+       $updateManifest[0][0][0][0][0][] = array(
+        '@element' => 'em:targetApplication',
+        array(
+          '@element' => 'Description',
+          '@attributes' => array(
+            'em:id' => $_key,
+            'em:minVersion' => $_value['minVersion'],
+            'em:maxVersion' => $_value['maxVersion'],
+            'em:updateLink' => '<![CDATA[' . $aManifest['updateLink'] . ']]>',
+            'em:updateHash' => 'sha256:' . $aManifest['updateHash'],
+          )
+        )
+      );
+    }    
+
+    return gfGenerateXML($updateManifest, $aDirectOutput);
+  }
+}
 ?>

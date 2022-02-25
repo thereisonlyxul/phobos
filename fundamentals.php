@@ -70,6 +70,7 @@ const DASH                  = "-";
 const UNDERSCORE            = "_";
 const PIPE                  = "|";
 const DOLLAR                = "\$";
+const COLON                 = ":";
 const DOTDOT                = DOT . DOT;
 
 // --------------------------------------------------------------------------------------------------------------------
