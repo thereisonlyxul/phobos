@@ -4,9 +4,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 class classMozillaRDF {
-  const RDF_NS = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
-  const EM_NS = 'http://www.mozilla.org/2004/em-rdf#';
-  const MF_RES = 'urn:mozilla:install-manifest';
+  const RDF_NS      = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+  const EM_NS       = 'http://www.mozilla.org/2004/em-rdf#';
+  const MF_RES      = 'urn:mozilla:install-manifest';
   const ANON_PREFIX = '#genid';
   const MULTI_PROPS = ['contributor', 'developer', 'translator', 'targetPlatform', 'targetApplication'];
 
@@ -24,7 +24,7 @@ class classMozillaRDF {
 
     $rdf->rdf_parser_create(null);
     $rdf->rdf_set_user_data($data);
-    $rdf->rdf_set_statement_handler(array('classMozillaRDF', 'installManifestStatementHandler'));
+    $rdf->rdf_set_statement_handler(array('classMozillaRDF', 'mfStatementHandler'));
     $rdf->rdf_set_base(EMPTY_STRING);
 
     if (!$rdf->rdf_parse($aManifestData, strlen($aManifestData), true)) {
@@ -58,24 +58,17 @@ class classMozillaRDF {
   /********************************************************************************************************************
   * Parses install.rdf for our desired properties
   *
-  * @param string     $manifestData
-  * @param array      &$data
-  * @param string     $subjectType
-  * @param string     $subject
-  * @param string     $predicate
-  * @param int        $ordinal
-  * @param string     $objectType
-  * @param string     $object
-  * @param string     $xmlLang
+  * @param array      &$aData
+  * @param string     $aSubjectType
+  * @param string     $aSubject
+  * @param string     $aPredicate
+  * @param int        $aOrdinal
+  * @param string     $aObjectType
+  * @param string     $aObject
+  * @param string     $aXmlLang
   ********************************************************************************************************************/
-  static function installManifestStatementHandler(&$data,
-                                                  $subjectType,
-                                                  $subject,
-                                                  $predicate,
-                                                  $ordinal,
-                                                  $objectType,
-                                                  $object,
-                                                  $xmlLang) {
+  static function mfStatementHandler(&$aData, $aSubjectType, $aSubject, $aPredicate,
+                                     $aOrdinal, $aObjectType, $aObject, $aXmlLang) {
     // Single properties
     $singleProps = ['id', 'type', 'version', 'creator', 'homepageURL', 'updateURL', 'updateKey', 'bootstrap',
                     'skinnable', 'strictCompatibility', 'iconURL', 'icon64URL', 'optionsURL', 'optionsType',
@@ -88,9 +81,10 @@ class classMozillaRDF {
     // We support additional em:properties but the Add-ons Manager doesn't. Still, keep it separate from "real" props.
     $singleProps[] = 'license';
     $singleProps[] = 'supportURL';
+    $singleProps[] = 'supportEmail';
     $singleProps[] = 'repositoryURL';
 
-    // Multiple properties
+    // Multiple properties (because this is shared with other methods we use a class constant)
     // According to documentation, em:file is supposed to be used as a fallback when no chrome.manifest exists.
     // It would then use em:file and old style contents.rdf to generate a chrome manifest but I cannot find
     // any existing code to facilitate this at our level. AND NO I am not gonna add it back despite pining for
@@ -105,32 +99,32 @@ class classMozillaRDF {
     $localeProps = ['name', 'description'];
 
     //Look for properties on the install manifest itself
-    if ($subject == self::MF_RES) {
+    if ($aSubject == self::MF_RES) {
       //we're only really interested in EM properties
       $length = strlen(self::EM_NS);
-      if (strncmp($predicate, self::EM_NS, $length) == 0) {
-        $prop = substr($predicate, $length, strlen($predicate)-$length);
+      if (strncmp($aPredicate, self::EM_NS, $length) == 0) {
+        $prop = substr($aPredicate, $length, strlen($aPredicate)-$length);
 
         if (in_array($prop, $singleProps) &&
-            !str_starts_with($object, self::ANON_PREFIX) &&
-            $object != 'false') {
-          $data['manifest'][$prop] = $object;
+            !str_starts_with($aObject, self::ANON_PREFIX) &&
+            $aObject != 'false') {
+          $aData['manifest'][$prop] = $aObject;
         }
         elseif (in_array($prop, $multiProps)) {
-          $data['manifest'][$prop][] = $object;
+          $aData['manifest'][$prop][] = $aObject;
         }
         elseif (in_array($prop, $localeProps)) {
-          $lang = ($xmlLang) ? $xmlLang : 'en-US';
-          $data['manifest'][$prop][$lang] = $object;
+          $lang = ($aXmlLang) ? $aXmlLang : 'en-US';
+          $aData['manifest'][$prop][$lang] = $aObject;
         }
       }
     }
     else {
       // Save it anyway
-      $data[$subject][$predicate] = $object;
+      $aData[$aSubject][$aPredicate] = $aObject;
     }
     
-    return $data;
+    return $aData;
   }
 
   /********************************************************************************************************************
@@ -178,8 +172,8 @@ class classMozillaRDF {
 
     // We tend to mangle homepageURL to repositoryURL when it is a known forge
     // However, we should mangle back unless both are used.
-    if (!array_key_exists('homepageURL', $aManifest) {
-      if (array_key_exists('repositoryURL', $aManifest) {
+    if (!array_key_exists('homepageURL', $aManifest)) {
+      if (array_key_exists('repositoryURL', $aManifest)) {
         $aManifest['homepageURL'] = $aManifest['repositoryURL'];
         unset($aManifest['repositoryURL']);
       }
