@@ -110,10 +110,8 @@ const TARGET_APPLICATION = array(
 // --------------------------------------------------------------------------------------------------------------------
 
 const USER_GROUPS = array(
-  'banned'  => ['level' => 0, 'name' => 'EX-TER-MIN-ATED'],
-  'user'    => ['level' => 1, 'name' => 'Developer'],
-  'mod'     => ['level' => 2, 'name' => 'Add-ons Team'],
-  'admin'   => ['level' => 3, 'name' => 'Phobos Overlord'],
+  'type'        => ['banned', 'user', 'moderator', 'administrator'],
+  'displayName' => ['EX-TER-MIN-ATED', 'Add-on Developer', 'Add-ons Team', 'Phobos Overlord']
 );
 
 // --------------------------------------------------------------------------------------------------------------------
