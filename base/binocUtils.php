@@ -911,6 +911,46 @@ function gfGenerateXML($aData, $aDirectOutput = null) {
   return $xml;
 }
 
+/**********************************************************************************************************************
+* Show dates in different forms from epoch (or any value that date() accepts.. 
+***********************************************************************************************************************/
+function gfDate($aTypeOrFormat, $aDateStamp, $aReturnTime = null) {
+  if ($aTypeOrFormat == 'buildNumber') {
+    return date_diff(date_create(date('Y-m-D', $aDateStamp)), date_create('2000-01-01'))->format('%a');
+  }
+
+  $format = EMPTY_STRING;
+
+  switch ($aTypeOrFormat) {
+    case 'standard':
+      $format = $aReturnTime ? 'Y-m-D, H:i' : 'Y-m-D';
+      break;
+    case 'longUS':
+      $format = $aReturnTime ? 'F j, Y, H:i' : 'F j, Y';
+      break;
+    case 'shortUS':
+      $format = $aReturnTime ? 'm-d-Y, H:i' : 'm-d-Y';
+      break;
+    case 'eDate':
+      $format = 'YmD.Hi';
+      break;
+    case 'buildDate':
+      $format = 'YmDHi';
+      break;
+    default:
+      $format = $aTypeOrFormat;
+  }
+
+  $rv = date($format, $aDateStamp);
+
+  if (!$rv) {
+    return $aDateStamp;
+  }
+
+  return $rv;
+}
+
+
 // ====================================================================================================================
 
 ?>
