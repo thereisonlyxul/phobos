@@ -178,7 +178,6 @@ const RESTRICTED_IDS  = array(
 // --------------------------------------------------------------------------------------------------------------------
 
 const SECTIONS = array(
-  'unlisted'        => ['type' => 0, 'name' => 'Unlisted', 'description' => null],
   'extensions'      => array('type'        => XPINSTALL_TYPES['extension'],
                              'name'        => 'Extensions',
                              'description' =>
@@ -223,6 +222,7 @@ const SECTIONS = array(
 // --------------------------------------------------------------------------------------------------------------------
 
 const CATEGORIES = array(
+  'unlisted'                  => ['bit' => 0,         'name' => 'Unlisted', 'type' => 0],
   'alerts-and-updates'        => ['bit' => 1,         'name' => 'Alerts &amp; Updates',
                                   'type' => XPINSTALL_TYPES['extension']],
   'appearance'                => ['bit' => 2,         'name' => 'Appearance',
