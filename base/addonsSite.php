@@ -1,5 +1,9 @@
 <?php
 
+// == | Setup | =======================================================================================================
+
+// ====================================================================================================================
+
 // == | Functions | ===================================================================================================
 
 function gfCheckPathCount($aExpectedCount) {
@@ -104,8 +108,8 @@ if ($gaRuntime['unifiedMode']) {
 
 // Add enabled features to the site menu
 $gaRuntime['siteMenu'] = [SLASH => 'Root'];
-$gvMenuItems = ['extensions', 'themes', 'personas', 'language-packs', 'dictionaries',
-                'search-plugins', 'user-scripts', 'user-styles'];
+$gvMenuItems = array_keys(SECTIONS);
+
 foreach ($gvMenuItems as $_value) {
   if ($gaRuntime['unifiedMode'] && $gvUnifiedPrePage) {
     break;
@@ -171,10 +175,10 @@ switch ($gvSection) {
     $gaRuntime['qAllExtensions'] = gfSuperVar('get', 'all');
     $gvCategory = $gaRuntime['currentPath'][1] ?? null;
 
-    if (gfCheckFeature('categories', true) && !$gaRuntime['qAllExtensions']) {
+    if (gfCheckFeature('e-cat', true) && !$gaRuntime['qAllExtensions']) {
       gfCheckPathCount(2);
 
-      $gvCategories = gfGetCategoriesForType(XPINSTALL_TYPES['extension']);
+      $gvCategories = gfGetCatByType(XPINSTALL_TYPES['extension']);
 
       if ($gvCategory) {
         if (!array_key_exists($gvCategory, $gvCategories)) {

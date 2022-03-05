@@ -2,19 +2,6 @@
 
 // == | Setup | =======================================================================================================
 
-const SOFTWARE_REPO       = 'about:blank';
-const DATASTORE_RELPATH   = '/datastore/';
-const OBJ_RELPATH         = '/.obj/';
-
-// --------------------------------------------------------------------------------------------------------------------
-
-const XML_API_SEARCH_BLANK  = '<searchresults total_results="0" />';
-const XML_API_LIST_BLANK    = '<addons />';
-const XML_API_ADDON_ERROR   = '<error>Add-on not found!</error>';
-const RDF_AUS_BLANK         = '<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#" />';
-
-// --------------------------------------------------------------------------------------------------------------------
-
 /* Known Application IDs
  * Application IDs are normally in the form of a {GUID} or user@host ID.
  *
@@ -42,15 +29,20 @@ const RDF_AUS_BLANK         = '<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-
  * IceDove-UXP:       {3aa07e56-beb0-47a0-b0cb-c735edd25419}
  * IceApe-UXP:        {9184b6fe-4a5c-484d-8b4b-efbfccbfb514}
  */
+// --------------------------------------------------------------------------------------------------------------------
 
-const TOOLKIT_ID    = 'toolkit@mozilla.org';
-const TOOLKIT_BIT   = 1;
-const TOOLKIT_ALTID = 'toolkit@palemoon.org';
+const SOFTWARE_REPO       = 'about:blank';
+const DATASTORE_RELPATH   = '/datastore/';
+const OBJ_RELPATH         = '/.obj/';
+
+const XML_API_SEARCH_BLANK  = '<searchresults total_results="0" />';
+const XML_API_LIST_BLANK    = '<addons />';
+const XML_API_ADDON_ERROR   = '<error>Add-on not found!</error>';
+const RDF_AUS_BLANK         = '<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#" />';
+
 const OLD_PM_ID     = '{8de7fcbb-c55c-4fbe-bfc5-fc555c87dbc4}';
 
 // --------------------------------------------------------------------------------------------------------------------
-
-const DEVELOPER_DOMAIN = 'addons-dev.palemoon.org';
 
 // Define Domains for Applications
 const APPLICATION_DOMAINS = array(
@@ -58,16 +50,28 @@ const APPLICATION_DOMAINS = array(
   'binaryoutcast.com'      => ['borealis', 'interlink'],
 );
 
+const DEVELOPER_DOMAIN = 'addons-dev.palemoon.org';
+
 // --------------------------------------------------------------------------------------------------------------------
 
 // Define application metadata
-
 /* Features are as follows:
- * 'categories', 'unified', 'disable-xpinstall',
+ * 'e-cat', 't-cat', 'p-cat', 'unified', 'disable-xpinstall',
  * 'extensions', 'themes', 'language-packs', 'dictionaries',
  * 'search-plugins', 'personas', 'user-scripts', 'user-styles'
 */
 const TARGET_APPLICATION = array(
+  'toolkit' => array(
+    'id'            => 'toolkit@mozilla.org',
+    'bit'           => 1,
+    'minVersion'    => '4.*',
+    'name'          => 'Goanna Runtime Environment',
+    'shortName'     => 'GRE',
+    'commonType'    => 'platform',
+    'vendor'        => 'GRE Alliance',
+    'siteTitle'     => EMPTY_STRING,
+    'features'      => EMPTY_ARRAY
+  ),
   'palemoon' => array(
     'id'            => '{ec8030f7-c20a-464f-9b0e-13a3a9e97384}',
     'bit'           => 2,
@@ -77,7 +81,7 @@ const TARGET_APPLICATION = array(
     'commonType'    => 'browser',
     'vendor'        => 'Moonchild Productions',
     'siteTitle'     => 'Pale Moon - Add-ons',
-    'features'      => ['categories', 'extensions', 'themes', 'language-packs', 'dictionaries', 'search-plugins']
+    'features'      => ['e-cat', 'extensions', 'themes', 'language-packs', 'dictionaries', 'search-plugins']
   ),
   'borealis' => array(
     'id'            => '{86c18b42-e466-4580-8b97-957ad5f8ea47}',
@@ -105,14 +109,14 @@ const TARGET_APPLICATION = array(
 
 // --------------------------------------------------------------------------------------------------------------------
 
-const MANIFEST_FILES = array(
-  'xpinstall'         => 'install.js',
-  'chrome'            => 'chrome.manifest',
-  'bootstrap'         => 'bootstrap.js',
-  'npmJetpack'        => 'package.json',
-  'cfxJetpack'        => 'harness-options.json',
-  'webex'             => 'manifest.json',
+const USER_GROUPS = array(
+  'banned'  => ['level' => 0, 'name' => 'EX-TER-MIN-ATED'],
+  'user'    => ['level' => 1, 'name' => 'Developer'],
+  'mod'     => ['level' => 2, 'name' => 'Add-ons Team'],
+  'admin'   => ['level' => 3, 'name' => 'Phobos Overlord'],
 );
+
+// --------------------------------------------------------------------------------------------------------------------
 
 const XPINSTALL_TYPES = array(
   'app'               => 1,     // No longer applicable
@@ -132,32 +136,45 @@ const XPINSTALL_TYPES = array(
 );
 
 // These are the supported "real" XPInstall types
-const VALID_XPI_TYPES       = 2 | 4 | 8 | 64;
+const VALID_XPI_TYPES       = XPINSTALL_TYPES['extension'] | XPINSTALL_TYPES['theme'] |
+                              XPINSTALL_TYPES['locale'] | XPINSTALL_TYPES['dictionary'];
 
-// These are types that only have a meaning in Phobos (save External (512))
-const PHOBOS_XPI_TYPES     = 1024 | 2048 | 4096 | 8192;
+// These are unsupported "real" XPInstall types (plus external because it is completely virtual)
+const INVALID_XPI_TYPES     = XPINSTALL_TYPES['app'] | XPINSTALL_TYPES['plugin'] | XPINSTALL_TYPES['multipackage'] |
+                              XPINSTALL_TYPES['experiment'] | XPINSTALL_TYPES['apiextension'] | XPINSTALL_TYPES['external'];
 
-// These are deprecated or unsupported "real" XPInstall types
-// NOTE: External (512) is a completely virtual Phobos type so never allow it in an install manifest
-const INVALID_XPI_TYPES     = 1 | 16 | 32 | 128 | 256 | 512;
+// These are add-on types only Phobos understands. They are NOT installable in the application directly
+// We will treat them as any other xpi but deliver them to the client in different ways
+const EXTRA_XPI_TYPES       = XPINSTALL_TYPES['persona'] | XPINSTALL_TYPES['search-plugin'] |
+                              XPINSTALL_TYPES['user-script'] | XPINSTALL_TYPES['user-style'];
 
 // For some reason, when Mozilla killed the full XPInstall system and replaced Smart Update with the Add-ons Update Checker
 // they used "item" for locales and dictionaries as the type in update.rdf
-const AUS_XPI_TYPES         = [2 => 'extension', 4 => 'theme', 8 => 'item', 64 => 'item'];
+const AUS_XPI_TYPES         = [XPINSTALL_TYPES['extension'] => 'extension', XPINSTALL_TYPES['theme'] => 'theme',
+                               XPINSTALL_TYPES['locale'] => 'item', XPINSTALL_TYPES['dictionary'] => 'item'];
 
 // Add-ons Manager Search completely ignored the established bitwise types so we need to have a way to remap them to what
 // the Add-ons Manager search results xml expects
-const SEARCH_XPI_TYPES      = [2 => 1 /* extension */, 4 => 2 /* theme */,  8 => 6 /* locale */, 64 => 3 /* dictionary */];
+const SEARCH_XPI_TYPES      = [XPINSTALL_TYPES['extension'] => 1, XPINSTALL_TYPES['theme'] => 2,
+                               XPINSTALL_TYPES['locale'] => 6, XPINSTALL_TYPES['dictionary'] => XPINSTALL_TYPES['dictionary']];
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// Define the specific technology that Extensions can have
-const EXTENSION_TECHNOLOGY = array(
-  'overlay'           => 1,
-  'xpcom'             => 2,
-  'bootstrap'         => 4,
-  'jetpack'           => 8,
+const MANIFEST_FILES = array(
+  'xpinstall'         => 'install.js',
+  'rdfinstall'        => RDF_INSTALL_MANIFEST,
+  'jsoninstall'       => JSON_INSTALL_MANIFEST,
+  'chrome'            => 'chrome.manifest',
+  'bootstrap'         => 'bootstrap.js',
+  'cfxJetpack'        => 'harness-options.json',
+  'npmJetpack'        => 'package.json',
+  'webex'             => 'manifest.json',
 );
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// Define the specific technology that Add-ons can have
+const ADDON_TECHNOLOGY = ['overlay' => 1, 'xpcom' => 2, 'bootstrap' => 4, 'jetpack' => 8];
 
 // These ID fragments are NOT allowed anywhere in an Add-on ID unless you are a member of the Add-ons Team or higher
 const RESTRICTED_IDS  = array(
@@ -172,7 +189,8 @@ const RESTRICTED_IDS  = array(
   'thereisonlyxul',
   'mozilla.org',
   'lootyhoof',          // Ryan
-  'srazzano'            // BANNED FOR LIFE
+  'srazzano',           // BANNED FOR LIFE
+  'justoff',            // BANNED FOR LIFE
 );
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -271,15 +289,6 @@ const CATEGORIES = array(
                                   'type' => XPINSTALL_TYPES['persona']],
   'other'                     => ['bit' => 16777216,  'name' => 'Other',
                                   'type' => XPINSTALL_TYPES['extension'] | XPINSTALL_TYPES['theme'] | XPINSTALL_TYPES['persona']],
-);
-
-// --------------------------------------------------------------------------------------------------------------------
-
-const USER_GROUPS = array(
-  'banned'  => ['level' => 0, 'name' => 'EX-TER-MIN-ATED'],
-  'user'    => ['level' => 1, 'name' => 'Developer'],
-  'mod'     => ['level' => 2, 'name' => 'Add-ons Team'],
-  'admin'   => ['level' => 3, 'name' => 'Phobos Overlord'],
 );
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -424,7 +433,7 @@ function gfGenContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aLi
   }
 
   // Send an html header
-  header('Content-Type: text/html', false);
+  gfHeader('html');
 
   // write out the everything
   print($template);
@@ -485,7 +494,7 @@ function gfValidClientVersion($aCheckVersion = null, $aVersion = null) {
   if (!$aCheckVersion) {
     $oldAndInsecureHackJobs = ['nt 5', 'nt 6.0', 'bsd', 'intel', 'ppc', 'mac', 'iphone', 'ipad', 'ipod', 'android',
                                'goanna/3.5', 'goanna/4.0', 'rv:3.5', 'rv:52.9', 'basilisk/', '55.0', 'mypal/',
-                               'centaury/', 'bnavigator/',];
+                               'centaury/', 'bnavigator/'];
 
     // Check for old and insecure Windows versions and enemy hackjobs
     foreach ($oldAndInsecureHackJobs as $_value) {
@@ -554,16 +563,16 @@ function gfValidClientVersion($aCheckVersion = null, $aVersion = null) {
 * @param $aTargetApplications   list of targetApplication ids
 * @returns                      bitwise int value representing applications
 ***********************************************************************************************************************/
-function gfApplicationBits($aTargetApplications, $isAssoc = true) {
+function gfGetClientBits($aTargetApplications) {
   if (!is_array($aTargetApplications)) {
     gfError(__FUNCTION__ . ': You must supply an array of ids');
   }
 
-  $aTargetApplications = array_keys($aTargetApplications);
+  if (!array_is_list($aTargetApplications)) {
+    $aTargetApplications = array_keys($aTargetApplications);
+  }
 
   $applications = array_combine(array_column(TARGET_APPLICATION, 'id'), array_column(TARGET_APPLICATION, 'bit'));
-  $applications = array_merge([TOOLKIT_ID => TOOLKIT_BIT, TOOLKIT_ALTID => TOOLKIT_BIT], $applications);
-
   $applicationBits = 0;
 
   foreach ($applications as $_key => $_value) {
@@ -578,7 +587,7 @@ function gfApplicationBits($aTargetApplications, $isAssoc = true) {
 /**********************************************************************************************************************
 * Get categories for a specific XPINSTALL type
 ***********************************************************************************************************************/
-function gfGetCategoriesForType($aType) {
+function gfGetCatByType($aType) {
   return gfSuperVar('check', array_filter(CATEGORIES,
                                           function($aCat) use($aType) {
                                             return $aCat['type'] &= $aType;

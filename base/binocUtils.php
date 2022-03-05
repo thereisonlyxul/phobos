@@ -357,7 +357,7 @@ function gfSuperVar($aVarType, $aVarValue, $aFalsy = null) {
 * @dep gfError()
 * @param $aHeader    Short name of header
 **********************************************************************************************************************/
-function gfHeader($aHeader) { 
+function gfHeader($aHeader, $aReplace = true) { 
   $ePrefix = __FUNCTION__ . DASH_SEPARATOR;
   $debugMode = DEBUG_MODE;
   $isErrorPage = in_array($aHeader, [404, 501]);
@@ -377,7 +377,7 @@ function gfHeader($aHeader) {
   }
 
   if (!headers_sent()) { 
-    header(HTTP_HEADERS[$aHeader]);
+    header(HTTP_HEADERS[$aHeader], $aReplace);
 
     if ($isErrorPage) {
       exit();
