@@ -38,18 +38,13 @@ const OBJ_RELPATH         = '/.obj/';
 const XML_API_SEARCH_BLANK  = '<searchresults total_results="0" />';
 const XML_API_LIST_BLANK    = '<addons />';
 const XML_API_ADDON_ERROR   = '<error>Add-on not found!</error>';
-const RDF_AUS_BLANK         = '<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#" />';
-
-const OLD_PM_ID     = '{8de7fcbb-c55c-4fbe-bfc5-fc555c87dbc4}';
+const RDF_AUS_BLANK         = '<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#"' . SPACE .
+                              'xmlns:em="http://www.mozilla.org/2004/em-rdf#" />';
 
 // --------------------------------------------------------------------------------------------------------------------
 
 // Define Domains for Applications
-const APPLICATION_DOMAINS = array(
-  'palemoon.org'           => 'palemoon',
-  'binaryoutcast.com'      => ['borealis', 'interlink'],
-);
-
+const APPLICATION_DOMAINS = ['palemoon.org' => 'palemoon', 'binaryoutcast.com' => ['borealis', 'interlink']]
 const DEVELOPER_DOMAIN = 'addons-dev.palemoon.org';
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -107,10 +102,12 @@ const TARGET_APPLICATION = array(
   ),
 );
 
+const OLD_PM_ID     = '{8de7fcbb-c55c-4fbe-bfc5-fc555c87dbc4}';
+
 // --------------------------------------------------------------------------------------------------------------------
 
 const USER_GROUPS = array(
-  'type'        => ['banned', 'user', 'moderator', 'administrator'],
+  'type'        => ['banned', 'user', 'mod', 'admin'],
   'displayName' => ['EX-TER-MIN-ATED', 'Add-on Developer', 'Add-ons Team', 'Phobos Overlord']
 );
 
@@ -134,27 +131,27 @@ const XPINSTALL_TYPES = array(
 );
 
 // These are the supported "real" XPInstall types
-const VALID_XPI_TYPES       = XPINSTALL_TYPES['extension'] | XPINSTALL_TYPES['theme'] |
-                              XPINSTALL_TYPES['locale'] | XPINSTALL_TYPES['dictionary'];
+const VALID_XPI_TYPES   = XPINSTALL_TYPES['extension'] | XPINSTALL_TYPES['theme'] |
+                          XPINSTALL_TYPES['locale'] | XPINSTALL_TYPES['dictionary'];
 
 // These are unsupported "real" XPInstall types (plus external because it is completely virtual)
-const INVALID_XPI_TYPES     = XPINSTALL_TYPES['app'] | XPINSTALL_TYPES['plugin'] | XPINSTALL_TYPES['multipackage'] |
-                              XPINSTALL_TYPES['experiment'] | XPINSTALL_TYPES['apiextension'] | XPINSTALL_TYPES['external'];
+const INVALID_XPI_TYPES = XPINSTALL_TYPES['app'] | XPINSTALL_TYPES['plugin'] | XPINSTALL_TYPES['multipackage'] |
+                          XPINSTALL_TYPES['experiment'] | XPINSTALL_TYPES['apiextension'] | XPINSTALL_TYPES['external'];
 
 // These are add-on types only Phobos understands. They are NOT installable in the application directly
 // We will treat them as any other xpi but deliver them to the client in different ways
-const EXTRA_XPI_TYPES       = XPINSTALL_TYPES['persona'] | XPINSTALL_TYPES['search-plugin'] |
-                              XPINSTALL_TYPES['user-script'] | XPINSTALL_TYPES['user-style'];
+const EXTRA_XPI_TYPES   = XPINSTALL_TYPES['persona'] | XPINSTALL_TYPES['search-plugin'] |
+                          XPINSTALL_TYPES['user-script'] | XPINSTALL_TYPES['user-style'];
 
 // For some reason, when Mozilla killed the full XPInstall system and replaced Smart Update with the Add-ons Update Checker
 // they used "item" for locales and dictionaries as the type in update.rdf
-const AUS_XPI_TYPES         = [XPINSTALL_TYPES['extension'] => 'extension', XPINSTALL_TYPES['theme'] => 'theme',
-                               XPINSTALL_TYPES['locale'] => 'item', XPINSTALL_TYPES['dictionary'] => 'item'];
+const AUS_XPI_TYPES     = [XPINSTALL_TYPES['extension'] => 'extension', XPINSTALL_TYPES['theme'] => 'theme',
+                           XPINSTALL_TYPES['locale'] => 'item', XPINSTALL_TYPES['dictionary'] => 'item'];
 
 // Add-ons Manager Search completely ignored the established bitwise types so we need to have a way to remap them to what
 // the Add-ons Manager search results xml expects
-const SEARCH_XPI_TYPES      = [XPINSTALL_TYPES['extension'] => 1, XPINSTALL_TYPES['theme'] => 2,
-                               XPINSTALL_TYPES['locale'] => 6, XPINSTALL_TYPES['dictionary'] => XPINSTALL_TYPES['dictionary']];
+const SEARCH_XPI_TYPES  = [XPINSTALL_TYPES['extension'] => 1, XPINSTALL_TYPES['theme'] => 2,
+                           XPINSTALL_TYPES['locale'] => 6, XPINSTALL_TYPES['dictionary'] => XPINSTALL_TYPES['dictionary']];
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -586,10 +583,7 @@ function gfGetClientBits($aTargetApplications) {
 * Get categories for a specific XPINSTALL type
 ***********************************************************************************************************************/
 function gfGetCatByType($aType) {
-  return gfSuperVar('check', array_filter(CATEGORIES,
-                                          function($aCat) use($aType) {
-                                            return $aCat['type'] &= $aType;
-                                          }));
+  return gfSuperVar('check', array_filter(CATEGORIES, function($aCat) use($aType) { return $aCat['type'] &= $aType; }));
 }
 
 // ====================================================================================================================

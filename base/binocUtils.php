@@ -932,10 +932,10 @@ function gfDate($aTypeOrFormat, $aDateStamp, $aReturnTime = null) {
       $format = $aReturnTime ? 'm-d-Y, H:i' : 'm-d-Y';
       break;
     case 'eDate':
-      $format = 'YmD.Hi';
+      $format = 'Ymd.Hi';
       break;
     case 'buildDate':
-      $format = 'YmDHi';
+      $format = 'YmdHi';
       break;
     default:
       $format = $aTypeOrFormat;
