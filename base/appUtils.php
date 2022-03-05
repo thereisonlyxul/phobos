@@ -257,7 +257,7 @@ const CATEGORIES = array(
                                   'type' => XPINSTALL_TYPES['theme']],
   'music'                     => ['bit' => 131072,    'name' => 'Music',
                                   'type' => XPINSTALL_TYPES['persona']],
-  'nature'                    => ['bit' => 262144,    'name' => 'Music',
+  'nature'                    => ['bit' => 262144,    'name' => 'nature',
                                   'type' => XPINSTALL_TYPES['persona']],
   'other-web-clients'         => ['bit' => 524288,    'name' => 'Browsers, Explorers, &amp; Navigators',
                                   'type' => XPINSTALL_TYPES['theme']],
