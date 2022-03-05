@@ -115,7 +115,7 @@ foreach ($gvMenuItems as $_value) {
     $_link = $gaRuntime['unifiedMode'] ?
              SLASH . $gaRuntime['currentApplication'] . SLASH . $_value . SLASH :
              SLASH . $_value . SLASH;
-    $gaRuntime['siteMenu'][$_link] = CATEGORIES[$_value]['name'] ?? EXTENSION_CATEGORY['name'];
+    $gaRuntime['siteMenu'][$_link] = SECTIONS[$_value]['name'];
   }
 }
 
@@ -171,13 +171,10 @@ switch ($gvSection) {
     $gaRuntime['qAllExtensions'] = gfSuperVar('get', 'all');
     $gvCategory = $gaRuntime['currentPath'][1] ?? null;
 
-    if (gfCheckFeature('extensions-cat', true) && !$gaRuntime['qAllExtensions']) {
+    if (gfCheckFeature('categories', true) && !$gaRuntime['qAllExtensions']) {
       gfCheckPathCount(2);
 
-      $gvCategories = array_filter(CATEGORIES,
-                                   function($aCat) {
-                                     return $aCat['type'] == XPINSTALL_TYPES['extension'];
-                                   });
+      $gvCategories = gfGetCategoriesForType(XPINSTALL_TYPES['extension']);
 
       if ($gvCategory) {
         if (!array_key_exists($gvCategory, $gvCategories)) {
@@ -220,8 +217,8 @@ switch ($gvSection) {
     gfCheckFeature($gvSection);
     gfCheckPathCount(1);
 
-    $gvCategoryName = CATEGORIES[$gvSection]['name'];
-    $gvAddonType = CATEGORIES[$gvSection]['type'];
+    $gvCategoryName = SECTIONS[$gvSection]['name'];
+    $gvAddonType = SECTIONS[$gvSection]['type'];
 
     $gvPage = ['title' => ucfirst($gaRuntime['currentApplication']) . SPACE . $gvCategoryName . SPACE . $gvAddonType,
                'content' => $gaRuntime,

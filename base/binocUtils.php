@@ -8,17 +8,17 @@
 // Check if the basic defines have been defined in the including script
 foreach (['ROOT_PATH', 'DEBUG_MODE',  'SOFTWARE_NAME', 'SOFTWARE_VERSION'] as $_value) {
   if (!defined($_value)) {
-    die('Binary Outcast Metropolis Fundamentals: ' . $_value . ' must be defined before including this script.');
+    die('Binary Outcast Metropolis Fundamental Utilities: ' . $_value . ' must be defined before including this script.');
   }
 }
 
 // Do not allow this to be included more than once...
-if (defined('BINOC_FUNCTIONS')) {
-  die('Binary Outcast Metropolis Fundamentals: You may not include this more than once.');
+if (defined('BINOC_UTILS')) {
+  die('Binary Outcast Metropolis Fundamental Utilities: You may not include this more than once.');
 }
 
 // Define that this is a thing.
-define('BINOC_FUNCTIONS', 1);
+define('BINOC_UTILS', 1);
 
 // ====================================================================================================================
 
