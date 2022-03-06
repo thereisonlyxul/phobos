@@ -4,12 +4,36 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 class classMozillaRDF {
-  const RDF_NS      = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
-  const EM_NS       = 'http://www.mozilla.org/2004/em-rdf#';
-  const MF_RES      = 'urn:mozilla:install-manifest';
-  const ANON_PREFIX = '#genid';
-  const MULTI_PROPS = ['contributor', 'developer', 'translator', 'additionalLicenses',
-                       'targetPlatform', 'targetApplication'];
+  // XML Stuff and Things
+  const RDF_NS        = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+  const EM_NS         = 'http://www.mozilla.org/2004/em-rdf#';
+  const MF_RES        = 'urn:mozilla:install-manifest';
+  const ANON_PREFIX   = '#genid';
+
+  // Single properties
+  // em:multiprocessCompatible' em:hasEmbeddedWebExtension are considered invalid for gregoriantojd
+  // The following props only currently matter to Phobos. We /may/ add these to the Add-ons Manager at some point.
+  // em:slug, em:category, em:license, em:repositoryURL, em:supportURL, and em:supportEmail
+  const SINGLE_PROPS  = ['id', 'type', 'version', 'creator', 'homepageURL', 'updateURL', 'updateKey', 'bootstrap',
+                         'skinnable', 'strictCompatibility', 'iconURL', 'icon64URL', 'optionsURL', 'optionsType',
+                         'aboutURL', 'iconURL', 'unpack', 'multiprocessCompatible', 'hasEmbeddedWebExtension',
+                         'slug', 'category', 'license', 'repositoryURL', 'supportURL', 'supportEmail'];
+
+  // Multiple properties (because this is shared with other methods we use a class constant)
+  // According to documentation, em:file is supposed to be used as a fallback when no chrome.manifest exists.
+  // It would then use em:file and old style contents.rdf to generate a chrome manifest but I cannot find
+  // any existing code to facilitate this at our level. AND NO I am not gonna add it back despite pining for
+  // true XPInstall.
+  // em:additionalLicenses likewise only currently matter to Phobos for future secondary license listings
+  const MULTI_PROPS   = ['contributor', 'developer', 'translator', 'additionalLicenses',
+                         'targetPlatform', 'targetApplication'];
+
+  // localizable properties
+  // The documentation states that creator, homepageURL, and additional multiprops
+  // contributor, developer, and translator are localizable though this makes no god damned sense
+  // and will be dropped once we are install.json.. So don't even honor it.
+  // NAMES specifically should never be localized and credit should be due regardless of the fe language.
+  const LOCALE_PROPS  = ['name', 'description'];
 
   /********************************************************************************************************************
   * Parses install.rdf using Rdf_parser class
@@ -36,12 +60,6 @@ class classMozillaRDF {
     $targetArray = array();
     if (!empty($data['manifest']['targetApplication']) && is_array($data['manifest']['targetApplication'])) {
       foreach ($data['manifest']['targetApplication'] as $targetApp) {
-        if (str_starts_with($data[$targetApp][self::EM_NS . "id"], self::ANON_PREFIX) ||
-            str_starts_with($data[$targetApp][self::EM_NS . 'minVersion'], self::ANON_PREFIX) ||
-            str_starts_with($data[$targetApp][self::EM_NS . 'maxVersion'], self::ANON_PREFIX)) {
-          gfError('em:targetApplication description tags/attributes em:id, em:minVersion, and em:maxVersion MUST have a value');
-        }
-
         $id = $data[$targetApp][self::EM_NS . "id"];
         $targetArray[$id]['minVersion'] = $data[$targetApp][self::EM_NS . 'minVersion'];
         $targetArray[$id]['maxVersion'] = $data[$targetApp][self::EM_NS . 'maxVersion'];
@@ -70,54 +88,22 @@ class classMozillaRDF {
   ********************************************************************************************************************/
   static function mfStatementHandler(&$aData, $aSubjectType, $aSubject, $aPredicate,
                                      $aOrdinal, $aObjectType, $aObject, $aXmlLang) {
-    // Single properties
-    $singleProps = ['id', 'type', 'version', 'creator', 'homepageURL', 'updateURL', 'updateKey', 'bootstrap',
-                    'skinnable', 'strictCompatibility', 'iconURL', 'icon64URL', 'optionsURL', 'optionsType',
-                    'aboutURL', 'iconURL', 'unpack'];
-
-    // These props are pretty much invalid but it would be wise to parse them so we can check against them.
-    $singleProps[] = 'multiprocessCompatible';
-    $singleProps[] = 'hasEmbeddedWebExtension';
-
-    // We support additional em:properties but the Add-ons Manager doesn't. Still, keep it separate from "real" props.
-    $singleProps[] = 'slug';
-    $singleProps[] = 'license';
-    $singleProps[] = 'supportURL';
-    $singleProps[] = 'supportEmail';
-    $singleProps[] = 'repositoryURL';
-
-    // Multiple properties (because this is shared with other methods we use a class constant)
-    // According to documentation, em:file is supposed to be used as a fallback when no chrome.manifest exists.
-    // It would then use em:file and old style contents.rdf to generate a chrome manifest but I cannot find
-    // any existing code to facilitate this at our level. AND NO I am not gonna add it back despite pining for
-    // true XPInstall.
-    $multiProps = self::MULTI_PROPS;
     
-    // localizable properties
-    // The documentation states that creator, homepageURL, and additional multiprops
-    // contributor, developer, and translator are localizable though this makes no god damned sense
-    // and will be dropped once we are install.json.. So don't even honor it.
-    // NAMES specifically should never be localized and credit should be due regardless of the fe language.
-    $localeProps = ['name', 'description'];
-
-    //Look for properties on the install manifest itself
-    if ($aSubject == self::MF_RES) {
-      //we're only really interested in EM properties
+    // Look for properties on the install manifest itself
+    if ($aSubject == self::MF_RES && !str_starts_with($aObject, self::ANON_PREFIX) && $aObject != 'false') {
+      // we're only really interested in EM properties
       $length = strlen(self::EM_NS);
       if (strncmp($aPredicate, self::EM_NS, $length) == 0) {
         $prop = substr($aPredicate, $length, strlen($aPredicate)-$length);
 
-        if (in_array($prop, $singleProps) &&
-            !str_starts_with($aObject, self::ANON_PREFIX) &&
-            $aObject != 'false') {
+        if (in_array($prop, self::SINGLE_PROPS)) {
           $aData['manifest'][$prop] = $aObject;
         }
-        elseif (in_array($prop, $multiProps)) {
+        elseif (in_array($prop, self::MULTI_PROPS)) {
           $aData['manifest'][$prop][] = $aObject;
         }
-        elseif (in_array($prop, $localeProps)) {
-          $lang = ($aXmlLang) ? $aXmlLang : 'en-US';
-          $aData['manifest'][$prop][$lang] = $aObject;
+        elseif (in_array($prop, self::LOCALE_PROPS)) {
+          $aData['manifest'][$prop][($aXmlLang ? $aXmlLang : 'en-US')] = $aObject;
         }
       }
     }
