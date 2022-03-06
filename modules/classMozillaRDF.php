@@ -8,7 +8,8 @@ class classMozillaRDF {
   const EM_NS       = 'http://www.mozilla.org/2004/em-rdf#';
   const MF_RES      = 'urn:mozilla:install-manifest';
   const ANON_PREFIX = '#genid';
-  const MULTI_PROPS = ['contributor', 'developer', 'translator', 'targetPlatform', 'targetApplication'];
+  const MULTI_PROPS = ['contributor', 'developer', 'translator', 'additionalLicenses',
+                       'targetPlatform', 'targetApplication'];
 
   /********************************************************************************************************************
   * Parses install.rdf using Rdf_parser class
@@ -79,6 +80,7 @@ class classMozillaRDF {
     $singleProps[] = 'hasEmbeddedWebExtension';
 
     // We support additional em:properties but the Add-ons Manager doesn't. Still, keep it separate from "real" props.
+    $singleProps[] = 'slug';
     $singleProps[] = 'license';
     $singleProps[] = 'supportURL';
     $singleProps[] = 'supportEmail';
@@ -191,7 +193,8 @@ class classMozillaRDF {
     // em:developer seems redundant with the preferred em:contributor prop
     if (array_key_exists('developer', $aManifest)) {
       if (array_key_exists('contributor', $aManifest)) {
-        $aManifest['contributor'] = array_unique(array_merge($aManifest['contributor'], $aManifest['developer']));
+        $aManifest['contributor'] = array_unique(array_merge($aManifest['contributor'],
+                                                             $aManifest['developer']));
       }
       else {
         $aManifest['contributor'] = $aManifest['developer'];
@@ -201,10 +204,12 @@ class classMozillaRDF {
     }
 
     // Add multiprops as elements
-    foreach (['em:contributor'    => $aManifest['contributor'] ?? null,
-              'em:developer'      => $aManifest['developer'] ?? null,
-              'em:translator'     => $aManifest['translator'] ?? null,
-              'em:targetPlatform' => $aManifest['targetPlatform'] ?? null] as $_key => $_value) {
+    foreach (['em:contributor'        => $aManifest['contributor'] ?? null,
+              'em:developer'          => $aManifest['developer'] ?? null,
+              'em:translator'         => $aManifest['translator'] ?? null,
+              'em:additionalLicenses' => $aManifest['additionalLicenses'] ?? null,
+              'em:targetPlatform'     => $aManifest['targetPlatform'] ?? null]
+             as $_key => $_value) {
       if (!$_value) {
         continue;
       }
