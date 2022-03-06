@@ -137,7 +137,7 @@ class classMozillaRDF {
 
         foreach (array_keys($mangledData) as $_value) {
           if (array_key_exists($_value, $data['manifest'])) {
-            $data['manifest'][$_value] = array_unique($data['manifest'][$_value]);
+            $data['manifest'][$_value] = array_values(array_unique($data['manifest'][$_value]));
           }
         }
       }        
@@ -148,8 +148,8 @@ class classMozillaRDF {
     // em:developer is no longer supported. Merge it with em:contributors
     if (array_key_exists('developer', $data['manifest'])) {
       if (array_key_exists('contributor', $data['manifest'])) {
-       $data['manifest']['contributor'] = array_unique(array_merge($data['manifest']['contributor'],
-                                                                   $data['manifest']['developer']));
+       $data['manifest']['contributor'] = array_values(array_unique(array_merge($data['manifest']['contributor'],
+                                                                                $data['manifest']['developer'])));
       }
       else {
         $data['manifest']['contributor'] = $data['manifest']['developer'];
