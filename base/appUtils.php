@@ -44,7 +44,7 @@ const RDF_AUS_BLANK         = '<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-
 // --------------------------------------------------------------------------------------------------------------------
 
 // Define Domains for Applications
-const APPLICATION_DOMAINS = ['palemoon.org' => 'palemoon', 'binaryoutcast.com' => ['borealis', 'interlink']]
+const APPLICATION_DOMAINS = ['palemoon.org' => 'palemoon', 'binaryoutcast.com' => ['borealis', 'interlink']];
 const DEVELOPER_DOMAIN = 'addons-dev.palemoon.org';
 
 // --------------------------------------------------------------------------------------------------------------------
