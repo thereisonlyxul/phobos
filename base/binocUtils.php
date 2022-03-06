@@ -71,6 +71,7 @@ const UNDERSCORE            = "_";
 const PIPE                  = "|";
 const DOLLAR                = "\$";
 const COLON                 = ":";
+const DBLCOLON              = COLON . COLON;
 const DOTDOT                = DOT . DOT;
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -950,6 +951,12 @@ function gfDate($aTypeOrFormat, $aDateStamp, $aReturnTime = null) {
   return $rv;
 }
 
+/**********************************************************************************************************************
+* Simple and almost certainly painless hack to convert an object into an array
+***********************************************************************************************************************/
+function gfObjectToArray($aObject) {
+  return json_decode(json_encode($aObject), true);
+}
 
 // ====================================================================================================================
 
