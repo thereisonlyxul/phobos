@@ -16,18 +16,18 @@ class classMozillaRDF {
   // em:multiprocessCompatible' em:hasEmbeddedWebExtension are considered invalid for gregoriantojd
   // The following props only currently matter to Phobos. We /may/ add these to the Add-ons Manager at some point.
   // em:slug, em:category, em:license, em:repositoryURL, em:supportURL, and em:supportEmail
-  const SINGLE_PROPS  = ['id', 'type', 'version', 'creator', 'homepageURL', 'updateURL', 'updateKey', 'bootstrap',
-                         'skinnable', 'strictCompatibility', 'iconURL', 'icon64URL', 'optionsURL', 'optionsType',
-                         'aboutURL', 'iconURL', 'unpack', 'multiprocessCompatible', 'hasEmbeddedWebExtension',
-                         'slug', 'category', 'license', 'repositoryURL', 'supportURL', 'supportEmail'];
+  const SINGLE_PROPS    = ['id', 'type', 'version', 'creator', 'homepageURL', 'updateURL', 'updateKey', 'bootstrap',
+                           'skinnable', 'strictCompatibility', 'iconURL', 'icon64URL', 'optionsURL', 'optionsType',
+                           'aboutURL', 'iconURL', 'unpack', 'multiprocessCompatible', 'hasEmbeddedWebExtension',
+                           'slug', 'category', 'license', 'repositoryURL', 'supportURL', 'supportEmail'];
 
   // Multiple properties (because this is shared with other methods we use a class constant)
   // According to documentation, em:file is supposed to be used as a fallback when no chrome.manifest exists.
   // It would then use em:file and old style contents.rdf to generate a chrome manifest but I cannot find
   // any existing code to facilitate this at our level.
   // em:additionalLicenses is a Phobos-only multi-prop
-  const MULTI_PROPS   = ['contributor', 'developer', 'translator', 'additionalLicenses',
-                         'targetPlatform', 'localized', 'targetApplication'];
+  const MULTI_PROPS     = ['contributor', 'developer', 'translator', 'otherLicenses',
+                           'targetPlatform', 'localized', 'targetApplication'];
 
   /********************************************************************************************************************
   * Parses install.rdf using Rdf_parser class
@@ -35,8 +35,7 @@ class classMozillaRDF {
   * @param string     $aManifestData
   * @return array     $data["manifest"]
   ********************************************************************************************************************/
-  public function parseInstallManifest($aManifestData, $aReturnAllData = null, $aMangleLocalized = null) {
-    $ePrefix = __CLASS__ . DBLCOLON . __FUNCTION__ . DASH_SEPARATOR;
+  public function parseInstallManifest($aManifestData) {
     $data = EMPTY_ARRAY;
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -49,98 +48,64 @@ class classMozillaRDF {
     $rdf->rdf_set_base(EMPTY_STRING);
 
     if (!$rdf->rdf_parse($aManifestData, strlen($aManifestData), true)) {
-      gfError('<strong>RDF Parsing Error' . COLON . '</strong>' . SPACE .
-              xml_error_string(xml_get_error_code($rdf->rdf_parser['xml_parser'])));
+      $parseError = 'RDF Parsing Error' . COLON . SPACE .
+                    xml_error_string(xml_get_error_code($rdf->rdf_parser['xml_parser'])) . NEW_LINE .
+                    'Line Number' . SPACE . 
+                    xml_get_current_line_number($rdf->rdf_parser['xml_parser']) . SPACE .
+                    ', Column' . SPACE . xml_get_current_column_number($rdf->rdf_parser['xml_parser']) . DOT;
+      return $parseError;
     }
 
     // ----------------------------------------------------------------------------------------------------------------
 
-    // Get em:name and em:description from em:localized
     if (array_key_exists('localized', $data['manifest']) &&
         is_array($data['manifest']['localized'])) {
+      $localized = ['name' => EMPTY_ARRAY, 'description' => EMPTY_ARRAY, 'contributor' => EMPTY_ARRAY,
+                    'developer' => EMPTY_ARRAY, 'translator'  => EMPTY_ARRAY];
+
       foreach ($data['manifest']['localized'] as $_value) {
-        $_locale = $data[$_value][self::EM_NS . 'locale'];
-
-        if (array_key_exists(self::EM_NS . 'name', $data[$_value])) {
-          if ($data['manifest']['name']['en-US'] != $data[$_value][self::EM_NS . 'name']) {
-            $data['manifest']['name'][$_locale] = $data[$_value][self::EM_NS . 'name'];
-          }
+        if (!array_key_exists(self::EM_NS . 'locale', $data[$_value])) {
+          continue;
         }
 
-        if (array_key_exists(self::EM_NS . 'description', $data[$_value])) {
-          if ($data['manifest']['description']['en-US'] != $data[$_value][self::EM_NS . 'description']) {
-            $data['manifest']['description'][$_locale] = $data[$_value][self::EM_NS . 'description'];
-          }
+        if ($data[$_value][self::EM_NS . 'locale'] == 'en-US') {
+          continue;
         }
 
-        unset($data[$_value]);
+        foreach ($data[$_value] as $_key2 => $_value2) {
+          switch ($_key2) {
+            case self::EM_NS . 'name':
+            case self::EM_NS . 'description':
+              if ($_value2 != $data['manifest'][str_replace(self::EM_NS, EMPTY_STRING, $_key2)]['en-US']) {
+                $localized[str_replace(self::EM_NS, EMPTY_STRING, $_key2)]
+                          [$data[$_value][self::EM_NS . 'locale']] = $_value2;
+              }
+              break;
+            case self::EM_NS . 'contributor':
+            case self::EM_NS . 'developer':
+            case self::EM_NS . 'translator':
+              $localized[str_replace(self::EM_NS, EMPTY_STRING, $_key2)] =
+                array_merge($localized[str_replace(self::EM_NS, EMPTY_STRING, $_key2)], $_value2);
+              break;
+          }
+        }
       }
 
       unset($data['manifest']['localized']);
-    }
 
-    // XXXTobin: This is fuckin gross but it is a best effort hack to merge em:localized contributors,
-    // developers, and translators to their top level values
-    if ($aMangleLocalized) {
-      $mangledManifest = gfSubSt('string', ['RDF:' => 'RDF_', 'em:' => 'em_'], $aManifestData);
-      $mangledManifest = @simplexml_load_string($mangledManifest);
-      $mangledManifest = gfObjectToArray($mangledManifest);
-      $mangledManifest = $mangledManifest['Description']['em_localized'] ?? null;
-
-      if (gfSuperVar('check', $mangledManifest)) {
-        $mangledData = ['contributor' => EMPTY_ARRAY, 'developer' => EMPTY_ARRAY, 'translator' => EMPTY_ARRAY];
-        foreach ($mangledManifest as $_value) {
-          if (array_key_exists('em_contributor', $_value['Description'])) {
-            if (is_array($_value['Description']['em_contributor'])) {
-              $mangledData['contributor'] = array_merge($mangledData['contributor'],
-                                                        $_value['Description']['em_contributor'] ?? EMPTY_ARRAY);
-            }
-            else {
-              $mangledData['contributor'][] = $_value['Description']['em_contributor'];
-            }
-          }
-
-          if (array_key_exists('em_developer', $_value['Description'])) {
-            if (is_array($_value['Description']['em_developer'])) {
-            $mangledData['developer']   = array_merge($mangledData['developer'],
-                                                      $_value['Description']['em_developer'] ?? EMPTY_ARRAY);
-            }
-            else {
-              $mangledData['developer'][] = $_value['Description']['em_developer'];
-            }
-          }
-
-          if (array_key_exists('em_translator', $_value['Description'])) {
-            if (is_array($_value['Description']['em_translator'])) {
-            $mangledData['translator']  = array_merge($mangledData['translator'],
-                                                      $_value['Description']['em_translator'] ?? EMPTY_ARRAY);
-            }
-            else {
-              $mangledData['translator'][] = $_value['Description']['em_translator'];
-            }
-          }
+      foreach($localized as $_key => $_value) {
+        if ($_value == EMPTY_ARRAY) {
+          continue;
         }
 
-        foreach ($mangledData as $_key => $_value) {
-          if ($_value != EMPTY_ARRAY) {
+        $data['manifest'][$_key] = array_key_exists($_key, $data['manifest']) ? 
+                                                    array_merge($data['manifest'][$_key], $_value) :
+                                                    $_value;
 
-            if (array_key_exists($_key, $data['manifest'])) {
-              $data['manifest'][$_key] = array_merge($data['manifest'][$_key], $_value);
-            }
-            else {
-              $data['manifest'][$_key] = $_value;
-            }
-
-            unset($_value['@attributes']);
-          }
+        if (!in_array($_key, ['name', 'description'])) {
+          $data['manifest'][$_key] = array_values(array_unique($data['manifest'][$_key]));
         }
-
-        foreach (array_keys($mangledData) as $_value) {
-          if (array_key_exists($_value, $data['manifest'])) {
-            $data['manifest'][$_value] = array_values(array_unique($data['manifest'][$_value]));
-          }
-        }
-      }        
+      }
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -161,24 +126,25 @@ class classMozillaRDF {
     // ----------------------------------------------------------------------------------------------------------------
 
     // Set the targetApplication data
-    $targetApplication = EMPTY_ARRAY;
     if (array_key_exists('targetApplication', $data['manifest']) &&
         is_array($data['manifest']['targetApplication'])) {
+      $targetApplication = EMPTY_ARRAY;
+
       foreach ($data['manifest']['targetApplication'] as $_value) {
         $id = $data[$_value][self::EM_NS . "id"];
         $targetApplication[$id]['minVersion'] = $data[$_value][self::EM_NS . 'minVersion'];
         $targetApplication[$id]['maxVersion'] = $data[$_value][self::EM_NS . 'maxVersion'];
         unset($data[$_value]);
       }
-    }
 
-    unset($data['manifest']['targetApplication']);
-    $data['manifest']['targetApplication'] = $targetApplication;
+      unset($data['manifest']['targetApplication']);
+      $data['manifest']['targetApplication'] = $targetApplication;
+    }
 
     // ----------------------------------------------------------------------------------------------------------------
 
     $rdf->rdf_parser_free();
-    return $aReturnAllData ? $data : $data['manifest'];
+    return $data['manifest'];
   }
 
 
@@ -196,28 +162,31 @@ class classMozillaRDF {
   ********************************************************************************************************************/
   static function mfStatementHandler(&$aData, $aSubjectType, $aSubject, $aPredicate,
                                      $aOrdinal, $aObjectType, $aObject, $aXmlLang) {
-
     // Look for properties on the install manifest itself
     if ($aSubject == self::MF_RES && $aObject != 'false') {
       // we're only really interested in EM properties
-      $length = strlen(self::EM_NS);
-      if (strncmp($aPredicate, self::EM_NS, $length) == 0) {
-        $prop = substr($aPredicate, $length, strlen($aPredicate)-$length);
+      if (str_starts_with($aPredicate, self::EM_NS)) {
+        $emProp = str_replace(self::EM_NS, EMPTY_STRING, $aPredicate);
 
-        if (in_array($prop, self::SINGLE_PROPS)) {
-          $aData['manifest'][$prop] = $aObject;
+        if (in_array($emProp, self::SINGLE_PROPS)) {
+          $aData['manifest'][$emProp] = $aObject;
         }
-        elseif (in_array($prop, self::MULTI_PROPS)) {
-          $aData['manifest'][$prop][] = $aObject;
+        elseif (in_array($emProp, self::MULTI_PROPS)) {
+          $aData['manifest'][$emProp][] = $aObject;
         }
-        elseif (in_array($prop, ['name', 'description'])) {
-          $aData['manifest'][$prop][($aXmlLang ? $aXmlLang  : 'en-US')] = $aObject;
+        elseif (in_array($emProp, ['name', 'description'])) {
+          $aData['manifest'][$emProp][($aXmlLang ? $aXmlLang  : 'en-US')] = $aObject;
         }
       }
     }
     else {
-      // Save it anyway
-      $aData[$aSubject][$aPredicate] = $aObject;
+      if (in_array(str_replace(self::EM_NS, EMPTY_STRING, $aPredicate),
+                   ['contributor', 'developer', 'translator'])) {
+        $aData[$aSubject][$aPredicate][] = $aObject;
+      }
+      else {
+        $aData[$aSubject][$aPredicate] = $aObject;
+      }
     }
 
     return $aData;
@@ -285,11 +254,11 @@ class classMozillaRDF {
     }
 
     // Add multiprops as elements
-    foreach (['em:contributor'        => $aManifest['contributor'] ?? null,
-              'em:developer'          => $aManifest['developer'] ?? null,
-              'em:translator'         => $aManifest['translator'] ?? null,
-              'em:additionalLicenses' => $aManifest['additionalLicenses'] ?? null,
-              'em:targetPlatform'     => $aManifest['targetPlatform'] ?? null]
+    foreach (['em:contributor'      => $aManifest['contributor'] ?? null,
+              'em:developer'        => $aManifest['developer'] ?? null,
+              'em:translator'       => $aManifest['translator'] ?? null,
+              'em:other'            => $aManifest['other'] ?? null,
+              'em:targetPlatform'   => $aManifest['targetPlatform'] ?? null]
              as $_key => $_value) {
       if (!$_value) {
         continue;
