@@ -387,9 +387,24 @@ function gfHeader($aHeader, $aReplace = true) {
 }
 
 /**********************************************************************************************************************
+* 404 or Error
+*
+* @param $aErrorMessage   Error message if debug
+***********************************************************************************************************************/
+function gfErrorOr404($aErrorMessage) {
+  global $gaRuntime;
+
+  if ($gaRuntime['debugMode'] ?? null || DEBUG_MODE) {
+    gfError($aErrorMessage);
+  }
+
+  gfHeader(404);
+}
+
+/**********************************************************************************************************************
 * Sends HTTP Header to redirect the client to another URL
 *
-* @param $_strURL   URL to redirect to
+* @param $aURL   URL to redirect to
 **********************************************************************************************************************/
 // This function sends a redirect header
 function gfRedirect($aURL) {
@@ -888,20 +903,16 @@ function gfGenerateXML($aData, $aDirectOutput = null) {
     $doc->appendChild($child);
   }
 
+  $doc->encoding = "UTF-8";
   $doc->formatOutput = true;
 
-  // We don't want utf8 multi-byte unicode being converted into entities so we save the documentElement.
-  // If this does become desirable in the future then we can check for 'RDF' in $aData['@element'].
-  // For now we don't want this period.
-  $xml = $doc->saveXML($doc->documentElement);
+  $xml = $doc->saveXML();
 
   if (!$xml) {
     gfError('Could not generate xml/rdf.');
   }
 
-  // Because we saved the documentElement instead of the entire thing we need to
-  // prepend the XML tag.
-  $xml = XML_TAG . NEW_LINE . $xml;
+  $xml = html_entity_decode($xml, ENT_QUOTES | ENT_SUBSTITUTE | ENT_XML1, "UTF-8");
 
   if ($aDirectOutput) {
     gfHeader('xml');

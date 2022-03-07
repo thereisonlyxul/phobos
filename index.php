@@ -260,6 +260,9 @@ if ($gaRuntime['qPath']) {
   // Explode the path if it exists
   $gaRuntime['currentPath'] = gfExplodePath($gaRuntime['qPath']);
 
+  // Get a count of the exploded path
+  $gaRuntime['pathCount'] = count($gaRuntime['currentPath']);
+
   // These paths override the site component
   switch ($gaRuntime['currentPath'][0]) {
     case 'special':

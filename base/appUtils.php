@@ -329,7 +329,7 @@ function gfGenContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aLi
 
   // Anonymous functions
   $contentIsStringish = function($aContent) {
-    return (!is_string($aContent) && !is_int($aContent)); 
+    return (is_string($aContent) || is_int($aContent)); 
   };
 
   $textboxContent = function($aContent) {
@@ -353,7 +353,7 @@ function gfGenContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aLi
     '{$SOFTWARE_VERSION}' => SOFTWARE_VERSION,
   );
 
-  if (is_string($aMetadata)) {
+  if (is_string($aMetadata) || $aMetadata == null) {
     if (is_array($aMetadata)) {
       gfError($ePrefix . 'aMetadata may not be an array in legacy mode.');
     }
@@ -362,8 +362,13 @@ function gfGenContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aLi
       gfError($ePrefix . 'You cannot use both textbox and list');
     }
 
-    if ($contentIsStringish($aLegacyContent)) {
-      $aLegacyContent = var_export($aLegacyContent, true);
+    if (!$contentIsStringish($aLegacyContent) || in_array($aMetadata, ['jsonEncode', 'phpEncode'])) {
+      if ($aMetadata == 'phpEncode') {
+        $aLegacyContent = var_export($aLegacyContent, true);
+      }
+      else {
+        $aLegacyContent = json_encode($aLegacyContent, JSON_ENCODE_FLAGS);
+      }
       $aTextBox = true;
       $aList = false;
     }
@@ -399,9 +404,26 @@ function gfGenContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aLi
     }
 
     $pageSubsts['{$PAGE_TITLE}'] = $aMetadata['title'];
-    $pageSubsts['{$PAGE_CONTENT}'] = $contentIsStringish($aMetadata['content']) ?
-                                     $textboxContent(var_export($aMetadata['content'], true)) :
-                                     $aMetadata['content'];
+
+    if (!$contentIsStringish($aMetadata['content']) || in_array($aMetadata, ['jsonEncode', 'phpEncode'])) {
+      if ($aMetadata['phpEncode'] ?? null) {
+        $pageSubsts['{$PAGE_CONTENT}'] = $textboxContent(var_export($aMetadata['content'], true));
+      }
+      else {
+        $pageSubsts['{$PAGE_CONTENT}'] = $textboxContent(json_encode($aMetadata['content'], JSON_ENCODE_FLAGS));
+      }
+    }
+    else {
+      $pageSubsts['{$PAGE_CONTENT}'] = $aMetadata['content'];
+
+      if (!str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<p') &&
+          !str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<ul') &&
+          !str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<h1') &&
+          !str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<h2') &&
+          !str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<table')) {
+        $pageSubsts['{$PAGE_CONTENT}'] = '<p>' . $pageSubsts['{$PAGE_CONTENT}'] . '</p>';
+      }
+    }
 
     foreach ($aMetadata['menu'] ?? EMPTY_ARRAY as $_key => $_value) {
       $pageSubsts['{$SITE_MENU}'] .= '<li><a href="' . $_key . '">' . $_value . '</a></li>';
@@ -409,15 +431,7 @@ function gfGenContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aLi
   }
 
   if ($pageSubsts['{$SITE_MENU}'] == EMPTY_STRING) {
-    $pageSubsts['{$SITE_MENU}'] = '<li><a href="/">Root</a></li>';
-  }
-
-  if (!str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<p') &&
-      !str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<ul') &&
-      !str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<h1') &&
-      !str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<h2') &&
-      !str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<table')) {
-    $pageSubsts['{$PAGE_CONTENT}'] = '<p>' . $pageSubsts['{$PAGE_CONTENT}'] . '</p>';
+    $pageSubsts['{$SITE_MENU}'] = '<li><a href="/">Home</a></li>';
   }
 
   $template = gfSubst('string', $pageSubsts, $template);
@@ -435,21 +449,6 @@ function gfGenContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aLi
 
   // We're done here
   exit();
-}
-
-/**********************************************************************************************************************
-* 404 or Error
-*
-* @param $aErrorMessage   Error message if debug
-***********************************************************************************************************************/
-function gfErrorOr404($aErrorMessage) {
-  global $gaRuntime;
-
-  if ($gaRuntime['debugMode'] ?? null) {
-    gfError($aErrorMessage);
-  }
-
-  gfHeader(404);
 }
 
 /**********************************************************************************************************************
@@ -553,6 +552,39 @@ function gfValidClientVersion($aCheckVersion = null, $aVersion = null) {
 }
 
 /**********************************************************************************************************************
+* Check the path count
+***********************************************************************************************************************/
+function gfCheckPathCount($aExpectedCount) {
+  global $gaRuntime;
+
+  if (($gaRuntime['pathCount'] ?? 0) > $aExpectedCount) {
+    gfErrorOr404('Expected count was' . SPACE . $aExpectedCount . SPACE .
+                 'but was' . SPACE . $gaRuntime['pathCount']);
+  }
+}
+
+/**********************************************************************************************************************
+* Check if the application has the supplied feature
+***********************************************************************************************************************/
+function gfCheckFeature($aFeature, $aReturn = null) {
+  global $gaRuntime;
+
+  if (is_bool($gaRuntime['currentApplication'])) {
+    gfError(__FUNCTION__ . ': Unable to determine the application features.');
+  }
+  
+  if (!in_array($aFeature, TARGET_APPLICATION[$gaRuntime['currentApplication']]['features'])) {
+    if (!$aReturn) {
+      gfErrorOr404('Feature' . SPACE . $aFeature . SPACE . 'is not enabled for' . SPACE .
+                   $gaRuntime['currentApplication']);
+    }
+    return false;
+  }
+
+  return true;
+}
+
+/**********************************************************************************************************************
 * Get the bitwise value of valid applications from a list of application ids
 *
 * @param $aTargetApplications   list of targetApplication ids
@@ -582,7 +614,7 @@ function gfGetClientBits($aTargetApplications) {
 /**********************************************************************************************************************
 * Get categories for a specific XPINSTALL type
 ***********************************************************************************************************************/
-function gfGetCatByType($aType) {
+function gfGetCategoriesByType($aType) {
   return gfSuperVar('check', array_filter(CATEGORIES, function($aCat) use($aType) { return $aCat['type'] &= $aType; }));
 }
 

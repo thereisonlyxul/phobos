@@ -1,17 +1,5 @@
 <?php
 
-// == | Functions | ===================================================================================================
-
-/**********************************************************************************************************************
-* Checks the exploded count against the number of path parts in an exploded path and 404s it if it is greater
-***********************************************************************************************************************/
-function gfCheckPathCount($aExpectedCount) {
-  global $gaRuntime;
-  if (count($gaRuntime['currentPath']) > $aExpectedCount) {
-    gfHeader(404);
-  }
-}
-
 // == | Main | ========================================================================================================
 
 // The Special Component never has more than one level below it
@@ -25,7 +13,7 @@ else {
 }
 
 $gaRuntime['siteMenu'] = array(
-  '/'                         => 'Root',
+  '/'                         => 'Home',
   '/special/'                 => 'Special',
   '/special/test/'            => 'Test Cases',
   '/special/software-state/'  => 'Software State',
