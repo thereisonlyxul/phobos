@@ -195,7 +195,7 @@ class classMozillaRDF {
   /********************************************************************************************************************
   * Parses manifest array into install.rdf
   ********************************************************************************************************************/
-  public function createInstallManifest($aManifest, $aFormatAttrs = null, $aDirectOutput = null) {
+  public function createInstallManifest($aManifest, $aDirectOutput = null) {
     // The Root Element of an install manifest
     $installManifest = array(
       '@element' => 'RDF',
@@ -213,24 +213,16 @@ class classMozillaRDF {
       )
     );
 
-    // Fix up em:name
-    if (is_array($aManifest['name'])) {
-      $aManifest['name'] = $aManifest['name']['en-US'];
-    }
+    // ----------------------------------------------------------------------------------------------------------------
 
-    // Fix up em:description
-    if (is_array($aManifest['description'])) {
-      $aManifest['description'] = $aManifest['description']['en-US'];
-    }
-
-    // aboutURL is the add-on's about box NOT website
+    // XXXTobin: aboutURL is the add-on's about box NOT website
     if (array_key_exists('aboutURL', $aManifest)) {
       if (!str_starts_with($aManifest['aboutURL'], 'chrome://')) {
         unset($aManifest['aboutURL']);
       }
     }
 
-    // multiprocessCompatible means nothing to us
+    // XXXTobin: multiprocessCompatible means nothing to us
     if (array_key_exists('multiprocessCompatible', $aManifest)) {
       unset($aManifest['multiprocessCompatible']);
     }
@@ -243,6 +235,7 @@ class classMozillaRDF {
         unset($aManifest['repositoryURL']);
       }
     }
+    // ----------------------------------------------------------------------------------------------------------------
 
     // Add single props as attributes to the main description
     foreach ($aManifest as $_key => $_value) {
@@ -250,14 +243,21 @@ class classMozillaRDF {
         continue;
       }
 
+      if (in_array($_key, ['name', 'description'])) {
+        $mainDescription['@attributes']['em:' . $_key] = $_value['en-US'];
+        continue;
+      }
+
       $mainDescription['@attributes']['em:' . $_key] = $_value;
     }
+
+    // ----------------------------------------------------------------------------------------------------------------
 
     // Add multiprops as elements
     foreach (['em:contributor'      => $aManifest['contributor'] ?? null,
               'em:developer'        => $aManifest['developer'] ?? null,
               'em:translator'       => $aManifest['translator'] ?? null,
-              'em:other'            => $aManifest['other'] ?? null,
+              'em:otherLicenses'    => $aManifest['otherLicenses'] ?? null,
               'em:targetPlatform'   => $aManifest['targetPlatform'] ?? null]
              as $_key => $_value) {
       if (!$_value) {
@@ -268,6 +268,29 @@ class classMozillaRDF {
         $mainDescription[] = ['@element' => $_key, '@content' => $_value2];
       }
     }
+
+    // ----------------------------------------------------------------------------------------------------------------
+
+    $locales = array_unique(array_merge(array_keys($aManifest['name']), array_keys($aManifest['description'])));
+    sort($locales);
+
+    foreach ($locales as $_value) {
+      $_name = $aManifest['name'][$_value] ?? null;
+      $_desc = $aManifest['description'][$_value] ?? null;
+      $_attrs = ['em:locale' => $_value];
+
+      if ($_name) {
+        $_attrs['em:name'] = $_name;
+      }
+
+      if ($_desc) {
+        $_attrs['em:description'] = $_desc;
+      }
+
+      $mainDescription[] = ['@element' => 'em:localized', ['@element' => 'Description', '@attributes' => $_attrs]];
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
 
     // Add targetApplications as elements with attrs of the targetApplication description
     foreach ($aManifest['targetApplication'] as $_key => $_value) {
@@ -284,29 +307,15 @@ class classMozillaRDF {
       );
     }
 
+    // ----------------------------------------------------------------------------------------------------------------
+
     // Attach the main description to the root element
     $installManifest[] = $mainDescription;
 
     // Generate XML (or RDF in this case)
-    $installManifest = gfGenerateXML($installManifest);
-    
-    // This is a hack to format the attrs of the main description so they aren't just one long line
-    if ($aFormatAttrs) {
-      $substs = array(
-        ' em:'                                              => NEW_LINE . '               em:',
-        '<Description' . NEW_LINE . '               em:id'  => '<Description em:id',
-        NEW_LINE . '               em:minVersion'           => SPACE . 'em:minVersion',
-        NEW_LINE . '               em:maxVersion'           => SPACE . 'em:maxVersion'
-      );
+    $installManifest = gfGenerateXML($installManifest, $aDirectOutput);
 
-      $installManifest = gfSubst('string', $substs, $installManifest);
-    }
-
-    if ($aDirectOutput) {
-      gfHeader('xml');
-      print($installManifest);
-      exit();
-    }
+    // ----------------------------------------------------------------------------------------------------------------
 
     return $installManifest;
   }
@@ -318,10 +327,16 @@ class classMozillaRDF {
     // XXXTobin: This is for testing only
     if (!array_key_exists('updateLink', $aManifest)) {
       $aManifest['updateLink'] = 'about:blank';
-      $aManifest['updateHash'] = 'null';
+      $aManifest['updateHash'] = 'none';
     }
 
     $aManifest['type'] = AUS_XPI_TYPES[$aManifest['type']] ?? 'item';
+
+    if (!str_contains($aManifest['updateHash'], COLON)) {
+      $aManifest['updateHash'] = 'sha256:' . $aManifest['updateHash'];
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
 
     // Construct the Update Manifest
     $updateManifest = array(
@@ -353,6 +368,8 @@ class classMozillaRDF {
       )
     );
 
+    // ----------------------------------------------------------------------------------------------------------------
+
     // Add targetApplications as elements with attrs of the targetApplication description
     foreach ($aManifest['targetApplication'] as $_key => $_value) {
        // RDF:RDF -> em:updates -> Description -> RDF:Seq -> RDF:li -> Description
@@ -364,12 +381,20 @@ class classMozillaRDF {
             'em:id' => $_key,
             'em:minVersion' => $_value['minVersion'],
             'em:maxVersion' => $_value['maxVersion'],
-            'em:updateLink' => '<![CDATA[' . $aManifest['updateLink'] . ']]>',
-            'em:updateHash' => 'sha256:' . $aManifest['updateHash'],
+          ),
+          array(
+            '@element' => 'em:updateLink',
+            '@content' => '<![CDATA[' . $aManifest['updateLink'] . ']]>'
+          ),
+          array(
+            '@element' => 'em:updateHash',
+            '@content' => $aManifest['updateHash'],
           )
         )
       );
     }    
+
+    // ----------------------------------------------------------------------------------------------------------------
 
     return gfGenerateXML($updateManifest, $aDirectOutput);
   }
