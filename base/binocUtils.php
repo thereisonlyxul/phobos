@@ -896,15 +896,15 @@ function gfArrayToDOM($aDom, $aData) {
 ***********************************************************************************************************************/
 function gfGenerateXML($aData, $aDirectOutput = null) {
   $doc = new DOMDocument('1.0');
+  $doc->encoding = "UTF-8";
+  $doc->formatOutput = true;
+
   $child = gfArrayToDOM($doc, $aData);
   $xml = null;
 
   if ($child) {
     $doc->appendChild($child);
   }
-
-  $doc->encoding = "UTF-8";
-  $doc->formatOutput = true;
 
   $xml = $doc->saveXML();
 
