@@ -28,9 +28,9 @@ class classContent {
 
     switch ($aType) {
       case 'plugin':
-      case 'filter':
         $rv = $this->libSmarty->registerPlugin(...$aSmartyRegister);
         break;
+      case 'filter':
         $rv = $this->libSmarty->registerFilter(...$aSmartyRegister);
         break;
       case 'class':
