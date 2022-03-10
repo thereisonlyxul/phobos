@@ -226,7 +226,8 @@ if ($gaRuntime['debugMode']) {
 // --------------------------------------------------------------------------------------------------------------------
 
 // We need nsIVersionComparator from this point on
-gfImportModules('vc');
+gfImportModules('static:vc');
+gfError($gmVc);
 
 // Set valid client
 $gaRuntime['validClient'] = gfValidClientVersion();

@@ -8,13 +8,13 @@
 // Check if the basic defines have been defined in the including script
 foreach (['ROOT_PATH', 'DEBUG_MODE',  'SOFTWARE_NAME', 'SOFTWARE_VERSION'] as $_value) {
   if (!defined($_value)) {
-    die('Binary Outcast Metropolis Fundamental Utilities: ' . $_value . ' must be defined before including this script.');
+    die('Binary Outcast Utilities: ' . $_value . ' must be defined before including this script.');
   }
 }
 
 // Do not allow this to be included more than once...
 if (defined('BINOC_UTILS')) {
-  die('Binary Outcast Metropolis Fundamental Utilities: You may not include this more than once.');
+  die('Binary Outcast Utilities: You may not include this more than once.');
 }
 
 // Define that this is a thing.
@@ -146,9 +146,7 @@ if (!function_exists('str_starts_with')) {
   }
 
   // Compatibility with previously used polyfill function name
-  function startsWith(...$aArgs) {
-    return str_starts_with(...$aArgs);
-  }
+  function startsWith(...$aArgs) { return str_starts_with(...$aArgs); }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -164,9 +162,7 @@ if (!function_exists('str_ends_with')) {
   }
 
   // Compatibility with previously used polyfill function name
-  function endsWith(...$aArgs) {
-    return str_ends_with(...$aArgs);
-  }
+  function endsWith(...$aArgs) { return str_ends_with(...$aArgs); }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -182,9 +178,7 @@ if (!function_exists('str_contains')) {
   }
 
   // Compatibility with previously used polyfill function name
-  function contains(...$aArgs) {
-    return str_contains(...$aArgs);
-  }
+  function contains(...$aArgs) { return str_contains(...$aArgs); }
 }
 
 /**********************************************************************************************************************
@@ -201,11 +195,7 @@ if (!function_exists('str_contains')) {
 * @dep JSON_ENCODE_FLAGS
 **********************************************************************************************************************/
 function gfError($aValue, $aPHPError = false, $aExternalOutput = null) { 
-  $pageHeader = array(
-    'default' => 'Unable to Comply',
-    'php'     => 'PHP Error',
-    'output'  => 'Output'
-  );
+  $pageHeader = ['default' => 'Unable to Comply', 'php' => 'PHP Error', 'output' => 'Output'];
 
   $externalOutput = $aExternalOutput ?? function_exists('gfGenContent');
   $isCLI = (php_sapi_name() == "cli");
@@ -291,7 +281,7 @@ set_error_handler("gfErrorHandler");
 * @param $aFalsy          Optional - Allow falsey returns on var/direct
 * @returns                Value or null
 **********************************************************************************************************************/
-function gfSuperVar($aVarType, $aVarValue, $aFalsy = null) {
+function gfSuperVar($aVarType, $aVarValue) {
   // Set up the Error Message Prefix
   $ePrefix = __FUNCTION__ . DASH_SEPARATOR;
   $rv = null;
@@ -300,10 +290,10 @@ function gfSuperVar($aVarType, $aVarValue, $aFalsy = null) {
   $varType = UNDERSCORE . strtoupper($aVarType);
 
   // General variable absolute null check unless falsy is allowed
-  if ($varType == "_CHECK" || $varType == "_VAR" || $varType == "_DIRECT"){
+  if ($varType == "_CHECK" || $varType == "_VAR"){
     $rv = $aVarValue;
 
-    if (!$aFalsy && (empty($rv) || $rv === 'none' || $rv === 0)) {
+    if (empty($rv) || $rv === 'none' || $rv === 0) {
       return null;
     }
 
@@ -365,7 +355,7 @@ function gfHeader($aHeader, $aReplace = true) {
 
   global $gaRuntime;
 
-  if (is_array($gaRuntime) && $gaRuntime['debugMode']) {
+  if ($gaRuntime['debugMode'] ?? null || DEBUG_MODE) {
     $debugMode = $gaRuntime['debugMode'];
   }
 
@@ -415,6 +405,18 @@ function gfRedirect($aURL) {
 }
 
 /**********************************************************************************************************************
+* Simply prints output and sends header if not cli and exits
+**********************************************************************************************************************/
+function gfOutput($aContent, $aHeader = 'text') {
+  if (php_sapi_name() != "cli") {
+    gfHeader($aHeader);
+  }
+
+  print($aContent);
+  exit();
+}
+
+/**********************************************************************************************************************
 * Explodes a string to an array without empty elements if it starts or ends with the separator
 *
 * @dep DASH_SEPARATOR
@@ -448,10 +450,7 @@ function gfExplodeString($aSeparator, $aString) {
 * @returns        array of uri parts in order
 ***********************************************************************************************************************/
 function gfExplodePath($aPath) {
-  if ($aPath == SLASH) {
-    return ['root'];
-  }
-
+  if ($aPath == SLASH) { return ['root']; }
   return gfExplodeString(SLASH, $aPath);
 }
 
@@ -468,13 +467,13 @@ function gfBuildPath(...$aPathParts) {
   $path = implode(SLASH, $aPathParts);
   $filesystem = str_starts_with($path, ROOT_PATH);
   
-  // Add a prepending slash if this is not a filesystem path
+  // Add a pre-pending slash if this is not a file system path
   if (!$filesystem) {
     $path = SLASH . $path;
   }
 
   // Add a trailing slash if the last part does not contain a dot
-  // If it is a filesystem path then we will also add a trailing slash if the last part starts with a dot
+  // If it is a file system path then we will also add a trailing slash if the last part starts with a dot
   if (!str_contains(basename($path), DOT) || ($filesystem && str_starts_with(basename($path), DOT))) {
     $path .= SLASH;
   }
@@ -523,25 +522,40 @@ function gfImportModules(...$aModules) {
   }
 
   foreach ($aModules as $_value) {
-    if (!array_key_exists($_value, MODULES)) {
-      gfError('Unable to import unknown module ' . $_value);
+    if (is_array($_value)) {
+      if (str_starts_with($_value[0], 'static:')) {
+        gfError('Cannot initialize a static class with arguments.');
+      }
+
+      $include = str_replace('static:' , EMPTY_STRING, $_value[0]);
+      $className = 'class' . ucfirst($_value[0]);
+      $moduleName = 'gm' . ucfirst($_value[0]);
+      unset($_value[0]);
+      $args = array_values($_value);
     }
-
-    $className = 'class' . ucfirst($_value);
-    $moduleName = 'gm' . ucfirst($_value);
-
-    // Special case for nsIVersionComparator
-    if ($_value == 'vc') {
-      $className = 'ToolkitVersionComparator';
-      $moduleName = 'gm' . strtoupper($_value);
+    else {
+      $include = str_replace('static:' , EMPTY_STRING, $_value);
+      $className = str_starts_with($_value, 'static:') ? false : 'class' . ucfirst($include);
+      $moduleName = 'gm' . ucfirst($include);
+      $args = null;
     }
    
     if (array_key_exists($moduleName, $GLOBALS)) {
-      gfError('Module ' . $_value . ' has already been imported');
+      gfError('Module ' . $include . ' has already been imported.');
     }
 
-    require(MODULES[$_value]);
-    $GLOBALS[$moduleName] = new $className();
+    if (!array_key_exists($include, MODULES)) {
+      gfError('Unable to import unknown module ' . $include . DOT);
+    }
+
+    require(MODULES[$include]);
+
+    if ($args) {
+      $GLOBALS[$moduleName] = new $className(...$args);
+    }
+    else {
+      $GLOBALS[$moduleName] = ($className === false) ? true : new $className();
+    }
   }
 }
 
@@ -675,14 +689,7 @@ function gfWriteFile($aData, $aFile, $aRenameFile = null, $aOverwrite = null) {
 * @returns          Random hexadecimal string of desired length
 **********************************************************************************************************************/
 function gfHexString($aLength = 40) {
-  if ($aLength <= 1) {
-    $length = 1;
-  }
-  else {
-    $length = (int)($aLength / 2);
-  }
-
-  return bin2hex(random_bytes($length));
+  return bin2hex(random_bytes(($aLength <= 1) ? 1 : (int)($aLength / 2)));
 }
 
 /**********************************************************************************************************************
@@ -867,6 +874,19 @@ function gfArrayToDOM($aDom, $aData) {
 
   // Create the element
   $content = $aData['@content'] ?? EMPTY_STRING;
+
+  // CDATA any content that has chars that might have meaning to XML/RDF because we html_entity_decode() later.
+  // We aren't going to check attrs or element names cause that is just common sense and SHOULD error the parser out.
+  // Properly we should be using the DOMDocument methods to create CDATA nodes but why over-complicate matters.
+  if (str_contains($content, "<") ||
+      str_contains($content, ">") ||
+      str_contains($content, "?") ||
+      str_contains($content, "&") ||
+      str_contains($content, "'") ||
+      str_contains($content, '"')) {
+    $content = '<![CDATA[' . $content . ']]>';
+  }
+
   $element = $aDom->createElement($aData['@element'], $content);
  
   // Add any attributes
@@ -912,12 +932,11 @@ function gfGenerateXML($aData, $aDirectOutput = null) {
     gfError('Could not generate xml/rdf.');
   }
 
+  // We want to always use UTF8 encoding and NOT have that shit translated into entities because raisins 
   $xml = html_entity_decode($xml, ENT_QUOTES | ENT_SUBSTITUTE | ENT_XML1, "UTF-8");
 
   if ($aDirectOutput) {
-    gfHeader('xml');
-    print($xml);
-    exit();
+    gfOutput($xml, 'xml');
   }
 
   return $xml;
