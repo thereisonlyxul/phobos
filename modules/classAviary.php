@@ -326,7 +326,7 @@ class classAviary {
   public function createUpdateManifest($aManifest, $aDirectOutput = null) {
     // XXXTobin: This is for testing only
     if (!array_key_exists('updateLink', $aManifest)) {
-      $aManifest['updateLink'] = 'about:blank';
+      $aManifest['updateLink'] = 'about:blank?arg1=cabbage&arg2=celery';
       $aManifest['updateHash'] = 'sha256:none';
     }
 
@@ -380,7 +380,7 @@ class classAviary {
           ),
           array(
             '@element' => 'em:updateLink',
-            '@content' => '<![CDATA[' . $aManifest['updateLink'] . ']]>'
+            '@content' => $aManifest['updateLink'],
           ),
           array(
             '@element' => 'em:updateHash',

@@ -873,21 +873,20 @@ function gfArrayToDOM($aDom, $aData) {
   }
 
   // Create the element
-  $content = $aData['@content'] ?? EMPTY_STRING;
+  $element = $aDom->createElement($aData['@element']);
 
-  // CDATA any content that has chars that might have meaning to XML/RDF because we html_entity_decode() later.
-  // We aren't going to check attrs or element names cause that is just common sense and SHOULD error the parser out.
-  // Properly we should be using the DOMDocument methods to create CDATA nodes but why over-complicate matters.
-  if (str_contains($content, "<") ||
-      str_contains($content, ">") ||
-      str_contains($content, "?") ||
-      str_contains($content, "&") ||
-      str_contains($content, "'") ||
-      str_contains($content, '"')) {
-    $content = '<![CDATA[' . $content . ']]>';
+  // Properly handle content using XML and not try and be lazy.. It almost never works!
+  if (array_key_exists('@content', $aData) && is_string($aData['@content'])) {
+    if (str_contains($aData['@content'], "<") || str_contains($aData['@content'], ">") || str_contains($aData['@content'], "?") ||
+        str_contains($aData['@content'], "&") || str_contains($aData['@content'], "'") || str_contains($aData['@content'], '"')) {
+      $content = $aDom->createCDATASection($aData['@content'] ?? EMPTY_STRING);
+    }
+    else {
+      $content = $aDom->createTextNode($aData['@content'] ?? EMPTY_STRING);
+    }
+
+    $element->appendChild($content);
   }
-
-  $element = $aDom->createElement($aData['@element'], $content);
  
   // Add any attributes
   if (!empty($aData['@attributes']) && is_array($aData['@attributes'])) {
