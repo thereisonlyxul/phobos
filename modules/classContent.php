@@ -26,7 +26,7 @@ class classContent {
     require_once(LIBRARIES['smarty']);
 
     $gaRuntime['qSmartyDebug'] = gfSuperVar('get', 'smartyDebug');
-    $objdir = gfBuildPath(ROOT_PATH, OBJECT_RELPATH, 'smarty', $gaRuntime['currentSkin'], $gaRuntime['qComponent']);
+    $objdir = gfBuildPath(ROOT_PATH, OBJECT_RELPATH, 'smarty', $gaRuntime['qComponent'], $gaRuntime['currentSkin']);
 
     $this->libSmarty = new Smarty();
     $this->libSmarty->caching = 0;
@@ -47,12 +47,8 @@ class classContent {
     }
 
     switch ($aType) {
-      case 'plugin':
-        $rv = $this->libSmarty->registerPlugin(...$aSmartyRegister);
-        break;
-      case 'filter':
-        $rv = $this->libSmarty->registerFilter(...$aSmartyRegister);
-        break;
+      case 'plugin': $rv = $this->libSmarty->registerPlugin(...$aSmartyRegister); break;
+      case 'filter': $rv = $this->libSmarty->registerFilter(...$aSmartyRegister); break;
       case 'class':
       case 'object':
       case 'resource':
@@ -70,10 +66,8 @@ class classContent {
   * Get yaml header as an array and strip the content of the yaml header
   ********************************************************************************************************************/
   public function parseYaml($aContent) {
-    return array(
-      'data'    => gfSuperVar('check', @yaml_parse($aContent),
-      'content' => preg_replace(REGEX_YAML_FILTER, EMPTY_STRING, $aContent)
-    );
+    return ['data'    => gfSuperVar('check', @yaml_parse($aContent)),
+            'content' => preg_replace(REGEX_YAML_FILTER, EMPTY_STRING, $aContent)];
   }
 
   /********************************************************************************************************************
@@ -94,7 +88,7 @@ class classContent {
         // Replace new lines with <br />
         $aContent = nl2br($aContent, true);
 
-        $phoebusCodeSimpleTags = array(
+        $simpleTags = array(
           '[b]'         => '<strong>',
           '[/b]'        => '</strong>',
           '[i]'         => '<em>',
@@ -111,7 +105,7 @@ class classContent {
           '[/section]'  => '</h3><p><fixme />'
         );
 
-        $phoebusCodeRegexTags = array(
+        $regexTags = array(
           '\<(ul|\/ul|li|\/li|p|\/p)\><br \/>'  => '<$1>',
           '\[url=(.*)\](.*)\[\/url\]'           => '<a href="$1" target="_blank">$2</a>',
           '\[url\](.*)\[\/url\]'                => '<a href="$1" target="_blank">$1</a>',
@@ -119,13 +113,14 @@ class classContent {
         );
 
         // Process the substs
-        $aContent = gfSubst('simple', $phoebusCodeSimpleTags, $aContent);
-        $aContent = gfSubst('regex', $phoebusCodeRegexTags, $aContent);
+        $aContent = gfSubst('string', $simpleTags, $aContent);
+        $aContent = gfSubst('regex', $regexTags, $aContent);
 
         // Less hacky than what is in funcReadManifest
         // Remove linebreak special cases
-        $aContent = str_replace('<fixme /><br />', '', $aContent);
+        $aContent = str_replace('<fixme /><br />', EMPTY_STRING, $aContent);
         break;
+      case 'phobos':
       case 'selene':
         // This is a slight subset of the seleneCode used on DPMO
         $aContent = htmlentities($aContent, ENT_XHTML);

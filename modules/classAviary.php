@@ -3,7 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-class classMozillaRDF {
+class classAviary {
   // XML Stuff and Things
   const RDF_NS        = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
   const EM_NS         = 'http://www.mozilla.org/2004/em-rdf#';
@@ -44,7 +44,7 @@ class classMozillaRDF {
     $rdf = new Rdf_parser();
     $rdf->rdf_parser_create(null);
     $rdf->rdf_set_user_data($data);
-    $rdf->rdf_set_statement_handler(['classMozillaRDF', 'mfStatementHandler']);
+    $rdf->rdf_set_statement_handler(['classAviary', 'mfStatementHandler']);
     $rdf->rdf_set_base(EMPTY_STRING);
 
     if (!$rdf->rdf_parse($aManifestData, strlen($aManifestData), true)) {
@@ -227,7 +227,7 @@ class classMozillaRDF {
       unset($aManifest['multiprocessCompatible']);
     }
 
-    // We tend to mangle homepageURL to repositoryURL when it is a known forge
+    // XXXTobin: We tend to mangle homepageURL to repositoryURL when it is a known forge
     // However, we should mangle back unless both are used.
     if (!array_key_exists('homepageURL', $aManifest)) {
       if (array_key_exists('repositoryURL', $aManifest)) {
@@ -327,14 +327,10 @@ class classMozillaRDF {
     // XXXTobin: This is for testing only
     if (!array_key_exists('updateLink', $aManifest)) {
       $aManifest['updateLink'] = 'about:blank';
-      $aManifest['updateHash'] = 'none';
+      $aManifest['updateHash'] = 'sha256:none';
     }
 
     $aManifest['type'] = AUS_XPI_TYPES[$aManifest['type']] ?? 'item';
-
-    if (!str_contains($aManifest['updateHash'], COLON)) {
-      $aManifest['updateHash'] = 'sha256:' . $aManifest['updateHash'];
-    }
 
     // ----------------------------------------------------------------------------------------------------------------
 

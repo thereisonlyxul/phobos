@@ -37,11 +37,11 @@ const COMPONENTS = array(
 // Define modules
 const MODULES = array(
   'vc'              => ROOT_PATH . MODULES_RELPATH . 'nsIVersionComparator.php',
-  'mozillaRDF'      => ROOT_PATH . MODULES_RELPATH . 'classMozillaRDF.php',
+  'aviary'          => ROOT_PATH . MODULES_RELPATH . 'classAviary.php',
   'database'        => ROOT_PATH . MODULES_RELPATH . 'classDatabase.php',
   'account'         => ROOT_PATH . MODULES_RELPATH . 'classAccount.php',
   'addon'           => ROOT_PATH . MODULES_RELPATH . 'classAddon.php',
-  'generateContent' => ROOT_PATH . MODULES_RELPATH . 'classGenerateContent.php',
+  'content'         => ROOT_PATH . MODULES_RELPATH . 'classContent.php',
 
 );
 

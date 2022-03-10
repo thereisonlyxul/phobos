@@ -592,7 +592,7 @@ function gfEnsureModules($aClass, ...$aIncludes) {
 * @dep JSON_EXTENSION
 * @dep gfError()
 * @dep gfSuperVar()
-* @dep $gmMozillaRDF - Conditional
+* @dep $gmAviary - Conditional
 * @param $aFile     File to read
 * @returns          file contents or array if json
                     null if error, empty string, or empty array
@@ -606,9 +606,9 @@ function gfReadFile($aFile) {
   }
 
   // If it is a mozilla install manifest and the module has been included then parse it
-  if (str_ends_with($aFile, RDF_INSTALL_MANIFEST) && array_key_exists('gmMozillaRDF', $GLOBALS)) {
-    global $gmMozillaRDF;
-    $file = $gmMozillaRDF->parseInstallManifest($file);
+  if (str_ends_with($aFile, RDF_INSTALL_MANIFEST) && array_key_exists('gmAviary', $GLOBALS)) {
+    global $gmAviary;
+    $file = $gmAviary->parseInstallManifest($file);
 
     if (is_string($file)) {
       gfError('RDF Parsing Error: ' . $file);
