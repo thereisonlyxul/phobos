@@ -861,71 +861,64 @@ function gfPasswordVerify($aPassword, $aHash) {
 }
 
 /**********************************************************************************************************************
-* Create DOM Elements from a properly constructed array
-***********************************************************************************************************************/
-function gfArrayToDOM($aDom, $aData) {
-  if (!($aDom instanceof DOMDocument)) {
-    gfError('$aDom should be an instance of DOMDocument');
-  }
-
-  if (!($aData['@element'] ?? null)) {
-    return false;
-  }
-
-  // Create the element
-  $element = $aDom->createElement($aData['@element']);
-
-  // Properly handle content using XML and not try and be lazy.. It almost never works!
-  if (array_key_exists('@content', $aData) && is_string($aData['@content'])) {
-    if (str_contains($aData['@content'], "<") || str_contains($aData['@content'], ">") || str_contains($aData['@content'], "?") ||
-        str_contains($aData['@content'], "&") || str_contains($aData['@content'], "'") || str_contains($aData['@content'], '"')) {
-      $content = $aDom->createCDATASection($aData['@content'] ?? EMPTY_STRING);
-    }
-    else {
-      $content = $aDom->createTextNode($aData['@content'] ?? EMPTY_STRING);
-    }
-
-    $element->appendChild($content);
-  }
- 
-  // Add any attributes
-  if (!empty($aData['@attributes']) && is_array($aData['@attributes'])) {
-    foreach ($aData['@attributes'] as $_key => $_value) {
-      $element->setAttribute($_key, $_value);
-    }
-  }
- 
-  // Any other items in the data array should be child elements
-  foreach ($aData as $_key => $_value) {
-    if (!is_numeric($_key)) {
-      continue;
-    }
- 
-    $child = gfArrayToDOM($aDom, $_value);
-    if ($child) {
-      $element->appendChild($child);
-    }
-  }
- 
-  return $element;
-}
-
-/**********************************************************************************************************************
 * Create an XML Document 
 ***********************************************************************************************************************/
-function gfGenerateXML($aData, $aDirectOutput = null) {
-  $doc = new DOMDocument('1.0');
-  $doc->encoding = "UTF-8";
-  $doc->formatOutput = true;
+function gfCreateXML($aData, $aDirectOutput = null) {
+  $dom = new DOMDocument('1.0');
+  $dom->encoding = "UTF-8";
+  $dom->formatOutput = true;
 
-  $child = gfArrayToDOM($doc, $aData);
+  $processChildren = function($aData) use (&$dom, &$processChildren) {
+    if (!($aData['@element'] ?? null)) {
+      return false;
+    }
+
+    // Create the element
+    $element = $dom->createElement($aData['@element']);
+
+    // Properly handle content using XML and not try and be lazy.. It almost never works!
+    if (array_key_exists('@content', $aData) && is_string($aData['@content'])) {
+      if (str_contains($aData['@content'], "<") || str_contains($aData['@content'], ">") || str_contains($aData['@content'], "?") ||
+          str_contains($aData['@content'], "&") || str_contains($aData['@content'], "'") || str_contains($aData['@content'], '"')) {
+        $content = $dom->createCDATASection($aData['@content'] ?? EMPTY_STRING);
+      }
+      else {
+        $content = $dom->createTextNode($aData['@content'] ?? EMPTY_STRING);
+      }
+
+      $element->appendChild($content);
+    }
+   
+    // Add any attributes
+    if (!empty($aData['@attributes']) && is_array($aData['@attributes'])) {
+      foreach ($aData['@attributes'] as $_key => $_value) {
+        $element->setAttribute($_key, $_value);
+      }
+    }
+   
+    // Any other items in the data array should be child elements
+    foreach ($aData as $_key => $_value) {
+      if (!is_numeric($_key)) {
+        continue;
+      }
+   
+      $child = $processChildren($_value);
+      if ($child) {
+        $element->appendChild($child);
+      }
+    }
+   
+    return $element;
+  };
+
+  $child = $processChildren($aData);
   $xml = null;
 
   if ($child) {
-    $doc->appendChild($child);
+    $dom->appendChild($child);
   }
 
-  $xml = $doc->saveXML();
+  $xml = $dom->saveXML();
 
   if (!$xml) {
     gfError('Could not generate xml/rdf.');

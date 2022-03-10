@@ -313,7 +313,7 @@ class classAviary {
     $installManifest[] = $mainDescription;
 
     // Generate XML (or RDF in this case)
-    $installManifest = gfGenerateXML($installManifest, $aDirectOutput);
+    $installManifest = gfCreateXML($installManifest, $aDirectOutput);
 
     // ----------------------------------------------------------------------------------------------------------------
 
@@ -392,7 +392,7 @@ class classAviary {
 
     // ----------------------------------------------------------------------------------------------------------------
 
-    return gfGenerateXML($updateManifest, $aDirectOutput);
+    return gfCreateXML($updateManifest, $aDirectOutput);
   }
 }
 ?>
