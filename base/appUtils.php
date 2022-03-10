@@ -29,11 +29,62 @@
  * IceDove-UXP:       {3aa07e56-beb0-47a0-b0cb-c735edd25419}
  * IceApe-UXP:        {9184b6fe-4a5c-484d-8b4b-efbfccbfb514}
  */
+ 
+// --------------------------------------------------------------------------------------------------------------------
+
+// Do not allow this to be included more than once...
+if (defined('APP_UTILS')) {
+  die('Application Specific Utilities: You may not include this more than once.');
+}
+
+// Define that this is a thing.
+define('APP_UTILS', 1);
+
 // --------------------------------------------------------------------------------------------------------------------
 
 const SOFTWARE_REPO       = 'about:blank';
 const DATASTORE_RELPATH   = '/datastore/';
 const OBJ_RELPATH         = '/.obj/';
+const COMPONENTS_RELPATH  = '/components/';
+const MODULES_RELPATH     = '/modules/';
+const DATABASES_RELPATH   = '/db/';
+const LIB_RELPATH         = '/libs/';
+
+// Define components
+const COMPONENTS = array(
+  'special'         => ROOT_PATH . BASE_RELPATH       . 'special.php',
+  'site'            => ROOT_PATH . BASE_RELPATH       . 'addonsSite.php',
+  'download'        => ROOT_PATH . BASE_RELPATH       . 'addonsDownload.php',
+  'aus'             => ROOT_PATH . COMPONENTS_RELPATH . 'manager/amUpdate.php',
+  'discover'        => ROOT_PATH . COMPONENTS_RELPATH . 'manager/amDiscoverPane.php',
+  'integration'     => ROOT_PATH . COMPONENTS_RELPATH . 'manager/amIntegration.php',
+  'panel'           => ROOT_PATH . COMPONENTS_RELPATH . 'panel/addonsPanel.php',
+);
+
+// Define modules
+const MODULES = array(
+  'vc'              => ROOT_PATH . MODULES_RELPATH . 'nsIVersionComparator.php',
+  'aviary'          => ROOT_PATH . MODULES_RELPATH . 'classAviary.php',
+  'database'        => ROOT_PATH . MODULES_RELPATH . 'classDatabase.php',
+  'account'         => ROOT_PATH . MODULES_RELPATH . 'classAccount.php',
+  'addon'           => ROOT_PATH . MODULES_RELPATH . 'classAddon.php',
+  'content'         => ROOT_PATH . MODULES_RELPATH . 'classContent.php',
+
+);
+
+// Define databases
+const DATABASES = array(
+  'emailBlacklist'  => ROOT_PATH . DATABASES_RELPATH . 'emailBlacklist.php',
+);
+
+// Define libraries
+const LIBRARIES = array(
+  'rdfParser'       => ROOT_PATH . LIB_RELPATH . 'rdf_parser.php',
+  'safeMySQL'       => ROOT_PATH . LIB_RELPATH . 'safemysql.class.php',
+  'smarty'          => ROOT_PATH . LIB_RELPATH . 'smarty/Smarty.class.php',
+);
+
+// --------------------------------------------------------------------------------------------------------------------
 
 const XML_API_SEARCH_BLANK  = '<searchresults total_results="0" />';
 const XML_API_LIST_BLANK    = '<addons />';
@@ -106,10 +157,9 @@ const OLD_PM_ID     = '{8de7fcbb-c55c-4fbe-bfc5-fc555c87dbc4}';
 
 // --------------------------------------------------------------------------------------------------------------------
 
-const USER_GROUPS = array(
-  'type'        => ['banned', 'user', 'mod', 'admin'],
-  'displayName' => ['EX-TER-MIN-ATED', 'Add-on Developer', 'Add-ons Team', 'Phobos Overlord']
-);
+// User Levels are not bit-wise so they correspond with the following indexed array order
+const USER_LEVELS       = ['unregistered', 'banned', 'user', 'developer', 'moderator', 'administrator'];
+const USER_DISPLAYNAMES = ['Unknown', 'Non-entity', 'Regular User', 'Add-on Developer', 'Add-ons Team', 'Phobos Overlord'];
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -337,6 +387,16 @@ function gfContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aList 
            $aContent . '</textarea>';
   };
 
+  $maybePTagContent = function($aContent) {
+    if (!str_starts_with($aContent, '<p') && !str_starts_with($aContent, '<ul') &&
+        !str_starts_with($aContent, '<h1') && !str_starts_with($aContent, '<h2') &&
+        !str_starts_with($aContent, '<table')) {
+      $aContent = '<p>' . $aContent . '</p>';
+    }
+
+    return $aContent;
+  };
+
   $template = gfReadFile(DOT . $skinPath . SLASH . 'template.xhtml');
 
   if (!$template) {
@@ -369,6 +429,7 @@ function gfContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aList 
       else {
         $aLegacyContent = json_encode($aLegacyContent, JSON_ENCODE_FLAGS);
       }
+
       $aTextBox = true;
       $aList = false;
     }
@@ -380,6 +441,10 @@ function gfContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aList 
       // We are using an unordered list so put aLegacyContent in there
       $aLegacyContent = '<ul><li>' . $aLegacyContent . '</li><ul>';
     }
+    else {
+      $aLegacyContent = $maybePTagContent($aLegacyContent);
+    }
+    
 
     if (!$aError && ($GLOBALS['gaRuntime']['qTestCase'] ?? null)) {
       $pageSubsts['{$PAGE_TITLE}'] = 'Test Case' . DASH_SEPARATOR . $GLOBALS['gaRuntime']['qTestCase'];
@@ -414,15 +479,7 @@ function gfContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aList 
       }
     }
     else {
-      $pageSubsts['{$PAGE_CONTENT}'] = $aMetadata['content'];
-
-      if (!str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<p') &&
-          !str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<ul') &&
-          !str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<h1') &&
-          !str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<h2') &&
-          !str_starts_with($pageSubsts['{$PAGE_CONTENT}'], '<table')) {
-        $pageSubsts['{$PAGE_CONTENT}'] = '<p>' . $pageSubsts['{$PAGE_CONTENT}'] . '</p>';
-      }
+      $pageSubsts['{$PAGE_CONTENT}'] = $maybePTagContent($aMetadata['content']);
     }
 
     foreach ($aMetadata['menu'] ?? EMPTY_ARRAY as $_key => $_value) {
