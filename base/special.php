@@ -22,7 +22,7 @@ $gaRuntime['siteMenu'] = array(
 
 switch ($gvSpecialFunction) {
   case 'root':
-    gfGenContent(['title'   => 'Special Component',
+    gfContent(['title'   => 'Special Component',
                   'content' => '<h2>Welcome to the Special Component!</h2>' .
                                '<p>Please select a function from the command bar above.</p>',
                   'menu'    => $gaRuntime['siteMenu']]);
@@ -59,10 +59,10 @@ switch ($gvSpecialFunction) {
       $gvContent = '<h2>Please select a test case&hellip;</h2><ul>' . $gvContent . '</ul>';
     }
 
-    gfGenContent(['title' => 'Test Cases', 'content' => $gvContent, 'menu' => $gaRuntime['siteMenu']]);
+    gfContent(['title' => 'Test Cases', 'content' => $gvContent, 'menu' => $gaRuntime['siteMenu']]);
     break;
   case 'software-state':
-    gfGenContent(['title' => 'Software State', 'content' => $gaRuntime, 'menu' => $gaRuntime['siteMenu']]);
+    gfContent(['title' => 'Software State', 'content' => $gaRuntime, 'menu' => $gaRuntime['siteMenu']]);
     break;
   case 'phpinfo':
     gfHeader('html');

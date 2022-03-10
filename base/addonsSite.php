@@ -97,14 +97,14 @@ switch ($gvSection) {
         $gvPage = ['title' => $gvAddonSlug . SPACE . ucfirst($gvAddonSubPage),
                    'content' => $gaRuntime,
                    'menu' => $gaRuntime['siteMenu']];
-        gfGenContent($gvPage);
+        gfContent($gvPage);
       }
 
       // Generate Add-on Page
       $gvPage = ['title' => $gvAddonSlug . SPACE . 'Add-on Page',
                  'content' => $gaRuntime,
                  'menu' => $gaRuntime['siteMenu']];
-      gfGenContent($gvPage);
+      gfContent($gvPage);
     }
 
     gfRedirect(SLASH);
@@ -127,14 +127,14 @@ switch ($gvSection) {
         $gvPage = ['title' => $gvCategories[$gvCategory]['name'] . SPACE . 'Category',
                    'content' => $gaRuntime,
                    'menu' => $gaRuntime['siteMenu']];
-        gfGenContent($gvPage);
+        gfContent($gvPage);
       }
 
       // Generate Extension Page with List of Categories
       $gvPage = ['title' => 'Extensions',
                  'content' => $gvCategories,
                  'menu' => $gaRuntime['siteMenu']];
-      gfGenContent($gvPage);
+      gfContent($gvPage);
     }
 
     gfCheckPathCount(1);
@@ -143,7 +143,7 @@ switch ($gvSection) {
     $gvPage = ['title' => 'All Extensions',
                'content' => $gaRuntime,
                'menu' => $gaRuntime['siteMenu']];
-    gfGenContent($gvPage);
+    gfContent($gvPage);
     break;
   case 'themes':
   case 'personas':
@@ -162,7 +162,7 @@ switch ($gvSection) {
     $gvPage = ['title' => ucfirst($gaRuntime['currentApplication']) . SPACE . $gvCategoryName . SPACE . $gvAddonType,
                'content' => $gaRuntime,
                'menu' => $gaRuntime['siteMenu']];
-    gfGenContent($gvPage);
+    gfContent($gvPage);
     break;
   case 'search':
     gfCheckPathCount(1);
@@ -178,14 +178,14 @@ switch ($gvSection) {
         }
       }
       $gvPage = ['title' => 'Add-ons Site Root', 'content' => $gaRuntime, 'menu' => $gaRuntime['siteMenu']];
-      gfGenContent($gvPage);
+      gfContent($gvPage);
     }
     elseif ($gaRuntime['unifiedMode'] && $gaRuntime['pathCount'] == 0 &&
             in_array($gaRuntime['currentApplication'], $gaRuntime['unifiedApps']) ?? EMPTY_ARRAY) {
       $gvPage = ['title' => $gaRuntime['currentApplication'] . SPACE . 'Add-ons Application Root',
                  'content' => $gaRuntime,
                  'menu' => $gaRuntime['siteMenu']];
-      gfGenContent($gvPage);
+      gfContent($gvPage);
     }
     else {
       gfHeader(404);

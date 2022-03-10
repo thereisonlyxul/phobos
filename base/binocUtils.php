@@ -185,11 +185,11 @@ if (!function_exists('str_contains')) {
 * Error function that will display data (Error Message)
 *
 * This version of the function can emit the error as xml or text depending on the environment.
-* It also can use gfGenContent() if defined and has the same signature.
+* It also can use gfContent() if defined and has the same signature.
 * It also has its legacy ability for generic output if the error message is not a string as formatted json
 * regardless of the environment.
 *
-* @dep gfGenContent() - conditional
+* @dep gfContent() - conditional
 * @dep NEW_LINE
 * @dep XML_TAG
 * @dep JSON_ENCODE_FLAGS
@@ -197,7 +197,7 @@ if (!function_exists('str_contains')) {
 function gfError($aValue, $aPHPError = false, $aExternalOutput = null) { 
   $pageHeader = ['default' => 'Unable to Comply', 'php' => 'PHP Error', 'output' => 'Output'];
 
-  $externalOutput = $aExternalOutput ?? function_exists('gfGenContent');
+  $externalOutput = $aExternalOutput ?? function_exists('gfContent');
   $isCLI = (php_sapi_name() == "cli");
   $isOutput = false;
 
@@ -221,14 +221,14 @@ function gfError($aValue, $aPHPError = false, $aExternalOutput = null) {
 
   if ($externalOutput) {
     if ($aPHPError) {
-      gfGenContent($ePrefix, $eMessage, null, true, true);
+      gfContent($ePrefix, $eMessage, null, true, true);
     }
 
     if ($isOutput) {
-      gfGenContent($ePrefix, $eMessage, true, false, true);
+      gfContent($ePrefix, $eMessage, true, false, true);
     }
     
-    gfGenContent($ePrefix, $eMessage, null, null, true);
+    gfContent($ePrefix, $eMessage, null, null, true);
   }
   elseif ($isCLI) {
     print('========================================' . NEW_LINE .

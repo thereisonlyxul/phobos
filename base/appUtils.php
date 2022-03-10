@@ -323,7 +323,7 @@ const LICENSES = array(
 * @param $aList       Use list for content
 * @param $aError      Is an Error Page
 ***********************************************************************************************************************/
-function gfGenContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aList = null, $aError = null) {
+function gfContent($aMetadata, $aLegacyContent = null, $aTextBox = null, $aList = null, $aError = null) {
   $ePrefix = __FUNCTION__ . DASH_SEPARATOR;
   $skinPath = '/skin/default';
 
