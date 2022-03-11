@@ -109,7 +109,9 @@ const TARGET_APPLICATION = array(
   'toolkit' => array(
     'id'            => 'toolkit@mozilla.org',
     'bit'           => 1,
-    'minVersion'    => '4.*',
+    'minVersion'    => '5.0.0a1'
+    'maxVersion'    => '5.*',
+    'maxOldVersion' => '4.*',
     'name'          => 'Goanna Runtime Environment',
     'shortName'     => 'GRE',
     'commonType'    => 'platform',
@@ -120,7 +122,9 @@ const TARGET_APPLICATION = array(
   'palemoon' => array(
     'id'            => '{ec8030f7-c20a-464f-9b0e-13a3a9e97384}',
     'bit'           => 2,
-    'minVersion'    => '29.*',
+    'minVersion'    => '30.0.0a1'
+    'maxVersion'    => '30.*',
+    'maxOldVersion' => '29.*',
     'name'          => 'Pale Moon',
     'shortName'     => 'Pale Moon',
     'commonType'    => 'browser',
@@ -131,7 +135,9 @@ const TARGET_APPLICATION = array(
   'borealis' => array(
     'id'            => '{86c18b42-e466-4580-8b97-957ad5f8ea47}',
     'bit'           => 4,
-    'minVersion'    => '8.4.*',
+    'minVersion'    => '8.5.7900a1'
+    'maxVersion'    => '8.5.8400',
+    'maxOldVersion' => '8.4.*',
     'name'          => 'Borealis Navigator',
     'shortName'     => 'Borealis',
     'commonType'    => 'navigator',
@@ -142,7 +148,9 @@ const TARGET_APPLICATION = array(
   'interlink' => array(
     'id'            => '{3550f703-e582-4d05-9a08-453d09bdfdc6}',
     'bit'           => 8,
-    'minVersion'    => '52.9.0a1',
+    'minVersion'    => '52.9.7900a1'
+    'maxVersion'    => '52.9.8400',
+    'maxOldVersion' => '52.9.6914', /* Basically irrelevant for non-web clients */
     'name'          => 'Interlink Mail &amp; News',
     'shortName'     => 'Interlink',
     'commonType'    => 'client',
@@ -591,7 +599,7 @@ function gfValidClientVersion($aCheckVersion = null, $aVersion = null) {
   // ------------------------------------------------------------------------------------------------------------------
 
   // Set the old version to compare against 
-  $minVersion = TARGET_APPLICATION[$currentApplication]['minVersion'];
+  $maxOldVersion = TARGET_APPLICATION[$currentApplication]['maxOldVersion'];
 
   // If we are supplying the version number to check make sure it actually matches the UA.
   if ($aVersion && ($currentVersion != $uaVersion)) {
@@ -599,7 +607,7 @@ function gfValidClientVersion($aCheckVersion = null, $aVersion = null) {
   }
 
   // NOW we can compare it against the old version.. Finally.
-  if (ToolkitVersionComparator::compare($currentVersion, $minVersion) <= 0) {
+  if (ToolkitVersionComparator::compare($currentVersion, $maxOldVersion) <= 0) {
     return false;
   }
 
