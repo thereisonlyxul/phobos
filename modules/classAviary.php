@@ -147,7 +147,6 @@ class classAviary {
     return $data['manifest'];
   }
 
-
   /********************************************************************************************************************
   * Parses install.rdf for our desired properties
   *

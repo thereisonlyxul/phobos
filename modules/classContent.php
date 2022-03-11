@@ -8,10 +8,10 @@ class classContent {
   /********************************************************************************************************************
   * Class constructor that sets initial state of things
   ********************************************************************************************************************/
-  function __construct() {
+  function __construct($useSmarty = null) {
     global $gaRuntime;
 
-    if ($gaRuntime['useSmarty'] ?? null) {
+    if ($useSmarty) {
       $this->initSmarty();
     }
   }

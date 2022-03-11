@@ -465,6 +465,10 @@ function gfExplodePath($aPath) {
 ***********************************************************************************************************************/
 function gfBuildPath(...$aPathParts) {
   $path = implode(SLASH, $aPathParts);
+
+  // Remove any cases of multiple slashes
+  $path = preg_replace('#/+#', '/', $path);
+
   $filesystem = str_starts_with($path, ROOT_PATH);
   
   // Add a pre-pending slash if this is not a file system path
