@@ -608,18 +608,6 @@ function gfValidClientVersion($aCheckVersion = null, $aVersion = null) {
 }
 
 /**********************************************************************************************************************
-* Check the path count
-***********************************************************************************************************************/
-function gfCheckPathCount($aExpectedCount) {
-  global $gaRuntime;
-
-  if (($gaRuntime['pathCount'] ?? 0) > $aExpectedCount) {
-    gfErrorOr404('Expected count was' . SPACE . $aExpectedCount . SPACE .
-                 'but was' . SPACE . $gaRuntime['pathCount']);
-  }
-}
-
-/**********************************************************************************************************************
 * Check if the application has the supplied feature
 ***********************************************************************************************************************/
 function gfCheckFeature($aFeature, $aReturn = null) {

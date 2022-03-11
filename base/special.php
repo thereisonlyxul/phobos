@@ -2,6 +2,10 @@
 
 // == | Main | ========================================================================================================
 
+if (!function_exists("gfContent")) {
+  gfError('gfContent() is not defined. The Special Component requires an implementation.');
+}
+
 // The Special Component never has more than one level below it
 // We still have to determine the root of the component though...
 if (count($gaRuntime['currentPath']) == 1) {

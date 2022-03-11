@@ -41,7 +41,7 @@ $gaRuntime = array(
   'userAgent'           => gfSuperVar('server', 'HTTP_USER_AGENT'),
   'phpServerName'       => gfSuperVar('server', 'SERVER_NAME'),
   'phpRequestURI'       => gfSuperVar('server', 'REQUEST_URI'),
-  'qComponent'          => 'site',
+  'qComponent'          => gfSuperVar('get', 'component'),
   'qPath'               => gfSuperVar('get', 'path'),
 );
 
@@ -76,7 +76,6 @@ if ($gaRuntime['qPath']) {
 if (defined("APP_UTILS")) {
   // Merge our application-specific runtime state with the generic 
   $gaRuntime = array_merge($gaRuntime, array(
-    'qComponent'          => gfSuperVar('get', 'component'),
     'qApplication'        => gfSuperVar('get', 'appOverride'),
     'currentApplication'  => null,
     'orginalApplication'  => null,
@@ -242,7 +241,11 @@ if (defined("APP_UTILS")) {
 // --------------------------------------------------------------------------------------------------------------------
 
 if (!defined("COMPONENTS")) {
-  define("COMPONENTS", ['site' => BASE_RELPATH . '/site.php']);
+  define("COMPONENTS", ['site' => ROOT_PATH . BASE_RELPATH . 'site.php',
+                        'special' => ROOT_PATH . BASE_RELPATH . 'special.php']);
+  if (($gaRuntime['currentPath'][0] ?? null) == 'special') {
+    $gaRuntime['qComponent'] = 'special';
+  }
 }
 
 // Load component based on qComponent

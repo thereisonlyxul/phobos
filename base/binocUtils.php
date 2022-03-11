@@ -197,7 +197,13 @@ if (!function_exists('str_contains')) {
 function gfError($aValue, $aPHPError = false, $aExternalOutput = null) { 
   $pageHeader = ['default' => 'Unable to Comply', 'php' => 'PHP Error', 'output' => 'Output'];
 
-  $externalOutput = $aExternalOutput ?? function_exists('gfContent');
+  if ($aExternalOutput != null) {
+    $externalOutput = function_exists('gfContent');
+  }
+  else {
+    $externalOutput = $aExternalOutput;
+  }
+
   $isCLI = (php_sapi_name() == "cli");
   $isOutput = false;
 
@@ -495,6 +501,18 @@ function gfBuildPath(...$aPathParts) {
 ***********************************************************************************************************************/
 function gfStripRootPath($aPath) {
   return str_replace(ROOT_PATH, EMPTY_STRING, $aPath);
+}
+
+/**********************************************************************************************************************
+* Check the path count
+***********************************************************************************************************************/
+function gfCheckPathCount($aExpectedCount) {
+  global $gaRuntime;
+
+  if (($gaRuntime['pathCount'] ?? 0) > $aExpectedCount) {
+    gfErrorOr404('Expected count was' . SPACE . $aExpectedCount . SPACE .
+                 'but was' . SPACE . $gaRuntime['pathCount']);
+  }
 }
 
 /**********************************************************************************************************************
