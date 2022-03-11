@@ -66,7 +66,7 @@ const MODULES = array(
   'account'         => ROOT_PATH . MODULES_RELPATH . 'classAccount.php',
   'aviary'          => ROOT_PATH . MODULES_RELPATH . 'classAviary.php',
   'database'        => ROOT_PATH . MODULES_RELPATH . 'classDatabase.php',
-  'addons'          => ROOT_PATH . MODULES_RELPATH . 'classAddon.php',
+  'addons'          => ROOT_PATH . MODULES_RELPATH . 'classAddons.php',
   'content'         => ROOT_PATH . MODULES_RELPATH . 'classContent.php',
   'vc'              => ROOT_PATH . MODULES_RELPATH . 'nsIVersionComparator.php',
 );
