@@ -40,6 +40,7 @@ class classAviary {
 
     // ----------------------------------------------------------------------------------------------------------------
 
+    // Setup the repat rdf parser
     require_once(LIBRARIES['rdfParser']);
     $rdf = new Rdf_parser();
     $rdf->rdf_parser_create(null);
@@ -47,6 +48,7 @@ class classAviary {
     $rdf->rdf_set_statement_handler(['classAviary', 'mfStatementHandler']);
     $rdf->rdf_set_base(EMPTY_STRING);
 
+    // If the install manifest can't be parsed return why as a string.
     if (!$rdf->rdf_parse($aManifestData, strlen($aManifestData), true)) {
       $parseError = 'RDF Parsing Error' . COLON . SPACE .
                     xml_error_string(xml_get_error_code($rdf->rdf_parser['xml_parser'])) . NEW_LINE .
@@ -58,6 +60,7 @@ class classAviary {
 
     // ----------------------------------------------------------------------------------------------------------------
 
+    // We need to resolve em:localized by attaching the associated genid data into the manifest data
     if (array_key_exists('localized', $data['manifest']) &&
         is_array($data['manifest']['localized'])) {
       $localized = ['name' => EMPTY_ARRAY, 'description' => EMPTY_ARRAY, 'contributor' => EMPTY_ARRAY,
@@ -143,7 +146,10 @@ class classAviary {
 
     // ----------------------------------------------------------------------------------------------------------------
 
+    // Tell the repat rdf parser to fuck off
     $rdf->rdf_parser_free();
+
+    // Return the manifest
     return $data['manifest'];
   }
 
@@ -179,15 +185,22 @@ class classAviary {
       }
     }
     else {
+      // Previously, Mozilla did not BOTHER to even ATTEMPT to handle em:localized props
+      // Here we will attempt it. Though it does mean any multi-prop with localized-props
+      // COULD have these set but it /GENERALLY/ is not the job of the install manifest
+      // parser or the statement handler to say if that is right or wrong..
+      // Just make it possble.
       if (in_array(str_replace(self::EM_NS, EMPTY_STRING, $aPredicate),
                    ['contributor', 'developer', 'translator'])) {
         $aData[$aSubject][$aPredicate][] = $aObject;
       }
       else {
+        // We don't know what it is so save it anyway as Mozilla always did.
         $aData[$aSubject][$aPredicate] = $aObject;
       }
     }
 
+    // And return
     return $aData;
   }
 
@@ -228,6 +241,7 @@ class classAviary {
 
     // XXXTobin: We tend to mangle homepageURL to repositoryURL when it is a known forge
     // However, we should mangle back unless both are used.
+    // This should be removed after the launch of Phobos since we are introducing an em:repositoryURL
     if (!array_key_exists('homepageURL', $aManifest)) {
       if (array_key_exists('repositoryURL', $aManifest)) {
         $aManifest['homepageURL'] = $aManifest['repositoryURL'];
@@ -392,6 +406,65 @@ class classAviary {
     // ----------------------------------------------------------------------------------------------------------------
 
     return gfCreateXML($updateManifest, $aDirectOutput);
+  }
+
+  /********************************************************************************************************************
+  * Parses manifest array into update.rdf
+  ********************************************************************************************************************/
+  public function createSearchResults($aManifests, $aDirectOutput = null) {
+    global $gaRuntime;
+    $count = 0;
+    $warnings = EMPTY_ARRAY;
+
+    // Create the root searchresults element
+    $searchResults = ['@element' => 'searchresults', '@attributes' => EMPTY_ARRAY];
+
+    // Make sure aManifests is actually and array and an indexed list of manifests
+    if (!is_array($aManifests) || !array_is_list($aManifests)) {
+      // Log a warning if it is not
+      $warnings[] = 'Not a list of search results.';
+
+      // Make aManifests an empty array so that the subsequent foreach won't bitch.
+      $aManifests = EMPTY_ARRAY;
+    }
+
+    // Loop through manifests to create the structure for a search result add-on
+    // If it is null then assume empty array and pass through
+    foreach ($aManifests as $_key => $_value) {
+      $_addon = ['@element' => 'addon'];
+
+      $_addon[] = ['@element' => 'beer', '@content' => $_value['beer']]; 
+
+      $searchResults[] = $_addon;
+    }
+
+    // If the count has not be increased then there are no results so log a warning.
+    if ($count == 0) {
+      $warnings[] = 'No results.';
+    }
+
+    // Attach the total number of results to the searchresults element
+    $searchResults['@attributes']['total_results'] = $count;
+
+    // If we are in debug mode and we have warnings then create a phobos element
+    // and emit the warnings as warning elements.
+    // We do this so that this method has a safe failure that won't piss off either the
+    // xml parser or the code that consumes the search results in the Add-ons Manager code.
+    if ($gaRuntime['debugMode'] && $warnings != EMPTY_ARRAY) {
+      // Create phobos element
+      $warningResults = ['@element' => 'phobos'];
+
+      // Loop through warnings and create warning elements and attach them to the phobos element.
+      foreach ($warnings as $_value) {
+        $warningResults[] = ['@element' => 'warning', '@content' => $_value];
+      }
+
+      // Attach the phobos element with the warnings to the search results element.
+      $searchResults[] = $warningResults;
+    }
+
+    // Create the XML and return if not direct output.
+    return gfCreateXML($searchResults, $aDirectOutput);
   }
 }
 ?>
