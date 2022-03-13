@@ -35,7 +35,7 @@ class classAviary {
   * @param string     $aManifestData
   * @return array     $data["manifest"]
   ********************************************************************************************************************/
-  public function parseInstallManifest($aManifestData) {
+  public function parseInstallManifest($aManifestData, $aEmDevloperMerge = null) {
     $data = EMPTY_ARRAY;
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -114,7 +114,7 @@ class classAviary {
     // ----------------------------------------------------------------------------------------------------------------
 
     // em:developer is no longer supported. Merge it with em:contributors
-    if (array_key_exists('developer', $data['manifest'])) {
+    if ($aEmDevloperMerge && array_key_exists('developer', $data['manifest'])) {
       if (array_key_exists('contributor', $data['manifest'])) {
        $data['manifest']['contributor'] = array_values(array_unique(array_merge($data['manifest']['contributor'],
                                                                                 $data['manifest']['developer'])));
@@ -206,6 +206,11 @@ class classAviary {
 
   /********************************************************************************************************************
   * Parses manifest array into install.rdf
+  *
+  * @dep gfCreateXML()
+  * @param $aManifest        Parsed installManifest
+  * @param $aDirectOutput    If we should directly output the XML to the client
+  * @returns                 String with XML markup if not aDirectOutput
   ********************************************************************************************************************/
   public function createInstallManifest($aManifest, $aDirectOutput = null) {
     // The Root Element of an install manifest
@@ -335,6 +340,12 @@ class classAviary {
 
   /********************************************************************************************************************
   * Parses manifest array into update.rdf
+  *
+  * @dep AUS_XPI_TYPES
+  * @dep gfCreateXML()
+  * @param $aManifest        Parsed installManifest
+  * @param $aDirectOutput    If we should directly output the XML to the client
+  * @returns                 String with XML markup if not aDirectOutput
   ********************************************************************************************************************/
   public function createUpdateManifest($aManifest, $aDirectOutput = null) {
     // XXXTobin: This is for testing only
@@ -409,7 +420,26 @@ class classAviary {
   }
 
   /********************************************************************************************************************
-  * Parses manifest array into update.rdf
+  * Creates a search result that is consumed by the Add-ons Manager
+  *
+  * @dep EMPTY_ARRAY
+  * @dep SEARCH_XPI_TYPES (which requires XPINSTALL_TYPES)
+  * @dep gfCreateXML()
+  * @dep $gaRuntime
+  * @param $aManifests       List of parsed installManifests with additional stored and calculated data
+  * @param $aDirectOutput    If we should directly output the XML to the client
+  * @returns                 String with XML markup if not aDirectOutput
+  *
+  * Each installManifest in the list needs the following stored or calculated data:
+  * @dbAddon - slug
+  * @dbAddon - hasIcon
+  * @dbXPInstall - epoch
+  * @dbXPInstall - size
+  * @dbXPInstall - hash
+  * @classAddon - addonURL
+  * @classAddon - creatorURL
+  * @classAddon - iconURL
+  * @classAddon - downloadURL
   ********************************************************************************************************************/
   public function createSearchResults($aManifests, $aDirectOutput = null) {
     global $gaRuntime;
@@ -433,9 +463,46 @@ class classAviary {
     foreach ($aManifests as $_key => $_value) {
       $_addon = ['@element' => 'addon'];
 
-      $_addon[] = ['@element' => 'beer', '@content' => $_value['beer']]; 
+      $_addon[] = ['@element' => 'type', '@attributes' => ['id' => SEARCH_XPI_TYPES[$_value['type']]]];
+      $_addon[] = ['@element' => 'guid', '@content' => $_value['id']];
+      $_addon[] = ['@element' => 'name', '@content' => $_value['name']['en-US']];
+      $_addon[] = ['@element' => 'version', '@content' => $_value['version']];
+      $_addon[] = ['@element' => 'icon', '@attributes' => ['size' => '48'], '@content' => $_value['iconURL']];
+      $_addon[] = ['@element' => 'learnmore', '@content' =>  $_value['addonURL']];
+
+      if (array_key_exists('homepageURL', $_value)) {
+        $_addon[] = ['@element' => 'homepage', '@content' => $_value['homepageURL']];
+      }
+
+      // Deal with Authors
+      $_authors = ['@element' => 'authors'];
+
+      // The creator MUST first author element
+      $_authors[] = ['@element' => 'author', ['@element' => 'name', '@content' => $_value['creator']],
+                                             ['@element' => 'link', '@content' => $_value['creatorURL']]];
+
+      // Assign authors to the addon element
+      $_addon[] = $_authors;
+
+      // Deal with targetApplications
+      $targetApps = ['@element' => 'compatible_applications'];
+
+      foreach ($_value['targetApplication'] as $_key2 => $_value2) {
+        $targetApps[] = ['@element' => 'application', ['@element' => 'appID', '@content' => $_key2],
+                                                               ['@element' => 'min_version', '@content' => $_value2['minVersion']],
+                                                               ['@element' => 'max_version', '@content' => $_value2['maxVersion']]];
+      }
+
+      // Assign the targetApplications as application elements 
+      $_addon[] = $targetApps;
+
+      $_addon[] = ['@element' => 'last_updated', '@attributes' => ['epoch' => $_value['epoch']]];
+      $_addon[] = ['@element' => 'install',
+                   '@attributes' => ['size' => $_value['size'], 'hash' => $_value['hash']],
+                   '@content' => $_value['downloadURL']];
 
       $searchResults[] = $_addon;
+      $count++;
     }
 
     // If the count has not be increased then there are no results so log a warning.

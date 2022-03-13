@@ -29,7 +29,38 @@
  * IceDove-UXP:       {3aa07e56-beb0-47a0-b0cb-c735edd25419}
  * IceApe-UXP:        {9184b6fe-4a5c-484d-8b4b-efbfccbfb514}
  */
- 
+
+/* ----------------------------------------------------------------------------------------------------------------- */
+
+/* Olympia Add-on Types
+ * ADDON_ANY        = 0
+ * ADDON_EXTENSION  = 1
+ * ADDON_THEME      = 2
+ * ADDON_DICT       = 3
+ * ADDON_SEARCH     = 4
+ * ADDON_LPAPP      = 5   XXXTobin: This seems to be the PROPER locale type originally defined in XPInstall
+ * ADDON_LPADDON    = 6   XXXTobin: What the hell is the difference between LPAPP and LPADDON?!
+ * ADDON_PLUGIN     = 7
+ * ADDON_API        = 8   XXXOlympia: not actually a type but used to identify extensions + themes
+ *                        XXXTobin: Are these actual multipackage or on-the-fly multipackage via AMO Collections?
+ * ADDON_PERSONA    = 9
+ * ADDON_WEBAPP     = 11  XXXOlympia: Calling this ADDON_* is gross but we've gotta ship code.
+ *                        XXXTobin: no1curr
+ */
+
+/* ----------------------------------------------------------------------------------------------------------------- */
+
+/* Olympia Update Types
+ * ADDON_EXTENSION  : 'extension',
+ * ADDON_THEME      : 'theme',
+ * ADDON_DICT       : 'extension',        XXXTobin: extensions.. Really?
+ * ADDON_SEARCH     : 'search',           XXXTobin: We may never find out how this was intended to be handled.
+ * ADDON_LPAPP      : 'item',
+ * ADDON_LPADDON    : 'extension',        XXXTobin: See Olympia Add-on Types
+ * ADDON_PERSONA    : 'background-theme', XXXTobin: Ditto re: search
+ * ADDON_PLUGIN     : 'plugin',
+ */
+
 // --------------------------------------------------------------------------------------------------------------------
 
 // Do not allow this to be included more than once...
@@ -109,7 +140,7 @@ const TARGET_APPLICATION = array(
   'toolkit' => array(
     'id'            => 'toolkit@mozilla.org',
     'bit'           => 1,
-    'minVersion'    => '5.0.0a1'
+    'minVersion'    => '5.0.0a1',
     'maxVersion'    => '5.*',
     'maxOldVersion' => '4.*',
     'name'          => 'Goanna Runtime Environment',
@@ -122,7 +153,7 @@ const TARGET_APPLICATION = array(
   'palemoon' => array(
     'id'            => '{ec8030f7-c20a-464f-9b0e-13a3a9e97384}',
     'bit'           => 2,
-    'minVersion'    => '30.0.0a1'
+    'minVersion'    => '30.0.0a1',
     'maxVersion'    => '30.*',
     'maxOldVersion' => '29.*',
     'name'          => 'Pale Moon',
@@ -135,7 +166,7 @@ const TARGET_APPLICATION = array(
   'borealis' => array(
     'id'            => '{86c18b42-e466-4580-8b97-957ad5f8ea47}',
     'bit'           => 4,
-    'minVersion'    => '8.5.7900a1'
+    'minVersion'    => '8.5.7900a1',
     'maxVersion'    => '8.5.8400',
     'maxOldVersion' => '8.4.*',
     'name'          => 'Borealis Navigator',
@@ -148,9 +179,9 @@ const TARGET_APPLICATION = array(
   'interlink' => array(
     'id'            => '{3550f703-e582-4d05-9a08-453d09bdfdc6}',
     'bit'           => 8,
-    'minVersion'    => '52.9.7900a1'
+    'minVersion'    => '52.9.7900a1',
     'maxVersion'    => '52.9.8400',
-    'maxOldVersion' => '52.9.6914', /* Basically irrelevant for non-web clients */
+    'maxOldVersion' => '52.9.7899', /* Basically irrelevant for non-web clients */
     'name'          => 'Interlink Mail &amp; News',
     'shortName'     => 'Interlink',
     'commonType'    => 'client',
@@ -160,13 +191,15 @@ const TARGET_APPLICATION = array(
   ),
 );
 
-const OLD_PM_ID     = '{8de7fcbb-c55c-4fbe-bfc5-fc555c87dbc4}';
+const PALEMOON_GUID = '{8de7fcbb-c55c-4fbe-bfc5-fc555c87dbc4}';
 
 // --------------------------------------------------------------------------------------------------------------------
 
 // User Levels are not bit-wise so they correspond with the following indexed array order
-const USER_LEVELS       = ['unregistered', 'banned', 'user', 'developer', 'moderator', 'administrator'];
-const USER_DISPLAYNAMES = ['Unknown', 'Non-entity', 'Regular User', 'Add-on Developer', 'Add-ons Team', 'Phobos Overlord'];
+const USER_LEVELS         = ['unregistered', 'banned', 'user', 'developer',
+                             'moderator', 'administrator'];
+const USER_LEVELS_DISPLAY = ['Unknown', 'Non-entity', 'Regular User', 'Add-on Developer',
+                             'Add-ons Team', 'Phobos Overlord'];
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -191,24 +224,35 @@ const XPINSTALL_TYPES = array(
 const VALID_XPI_TYPES   = XPINSTALL_TYPES['extension'] | XPINSTALL_TYPES['theme'] |
                           XPINSTALL_TYPES['locale'] | XPINSTALL_TYPES['dictionary'];
 
-// These are unsupported "real" XPInstall types (plus external because it is completely virtual)
-const INVALID_XPI_TYPES = XPINSTALL_TYPES['app'] | XPINSTALL_TYPES['plugin'] | XPINSTALL_TYPES['multipackage'] |
-                          XPINSTALL_TYPES['experiment'] | XPINSTALL_TYPES['apiextension'] | XPINSTALL_TYPES['external'];
-
 // These are add-on types only Phobos understands. They are NOT installable in the application directly
 // We will treat them as any other xpi but deliver them to the client in different ways
 const EXTRA_XPI_TYPES   = XPINSTALL_TYPES['persona'] | XPINSTALL_TYPES['search-plugin'] |
                           XPINSTALL_TYPES['user-script'] | XPINSTALL_TYPES['user-style'];
 
-// For some reason, when Mozilla killed the full XPInstall system and replaced Smart Update with the Add-ons Update Checker
-// they used "item" for locales and dictionaries as the type in update.rdf
-const AUS_XPI_TYPES     = [XPINSTALL_TYPES['extension'] => 'extension', XPINSTALL_TYPES['theme'] => 'theme',
-                           XPINSTALL_TYPES['locale'] => 'item', XPINSTALL_TYPES['dictionary'] => 'item'];
+// These are unsupported "real" XPInstall types (plus external because it is completely virtual)
+const INVALID_XPI_TYPES = XPINSTALL_TYPES['app'] | XPINSTALL_TYPES['plugin'] | XPINSTALL_TYPES['multipackage'] |
+                          XPINSTALL_TYPES['experiment'] | XPINSTALL_TYPES['apiextension'] | XPINSTALL_TYPES['external'];
 
-// Add-ons Manager Search completely ignored the established bitwise types so we need to have a way to remap them to what
-// the Add-ons Manager search results xml expects
-const SEARCH_XPI_TYPES  = [XPINSTALL_TYPES['extension'] => 1, XPINSTALL_TYPES['theme'] => 2,
-                           XPINSTALL_TYPES['locale'] => 6, XPINSTALL_TYPES['dictionary'] => XPINSTALL_TYPES['dictionary']];
+// Originally XPInstall only needed to a handful of types since it was killed much refactoring and Olympia reused
+// older types. We are gonna match that for now even if they aren't actually implemented. 
+const AUS_XPI_TYPES = array(
+  XPINSTALL_TYPES['extension']      => 'extension',
+  XPINSTALL_TYPES['theme']          => 'theme',
+  XPINSTALL_TYPES['dictionary']     => 'extension',
+  XPINSTALL_TYPES['search-plugin']  => 'search',
+  XPINSTALL_TYPES['locale']         => 'item',
+  XPINSTALL_TYPES['persona']        => 'background-theme',
+);
+
+// Add-ons Manager Search uses the Olympia types so map the XPInstall Types to Olympia which match the Add-ons Manager
+const SEARCH_XPI_TYPES = array(
+  XPINSTALL_TYPES['extension']      => 1,
+  XPINSTALL_TYPES['theme']          => 2,
+  XPINSTALL_TYPES['dictionary']     => 3,
+  XPINSTALL_TYPES['search-plugin']  => 4,
+  XPINSTALL_TYPES['locale']         => 5,
+  XPINSTALL_TYPES['persona']        => 9,
+);
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -670,6 +714,37 @@ function gfGetCategoriesByType($aType) {
   return gfSuperVar('check', array_filter(CATEGORIES, function($aCat) use($aType) { return $aCat['type'] &= $aType; }));
 }
 
+/**********************************************************************************************************************
+* Build a URL
+***********************************************************************************************************************/
+function gfBuildURL($aDomain, $aQueryArguments, ...$aPath) {
+  global $gaRuntime;
+
+  $rv = gfBuildPath(...$aPath);
+
+  if (!$rv) {
+    return null;
+  }
+
+  if ($aDomain === 'link') {
+    $rv = $gaRuntime['currentScheme'] . SCHEME_SUFFIX .
+          $gaRuntime['currentSubDomain'] . DOT . $gaRuntime['currentDomain'] . $rv;
+  }
+  else {
+    $rv = $aDomain . $rv;
+  }
+
+  if (is_array($aQueryArguments)) {
+    $query = http_build_query($aQueryArguments, EMPTY_STRING, null, PHP_QUERY_RFC3986);
+
+    if ($query && $query != EMPTY_STRING) {
+      $query = str_replace(SPACE, '%20', urldecode($query));
+      $rv .= '?' . $query;
+    }
+  }
+
+  return $rv;
+}
 // ====================================================================================================================
 
 ?>

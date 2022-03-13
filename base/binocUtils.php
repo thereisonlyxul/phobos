@@ -194,16 +194,9 @@ if (!function_exists('str_contains')) {
 * @dep XML_TAG
 * @dep JSON_ENCODE_FLAGS
 **********************************************************************************************************************/
-function gfError($aValue, $aPHPError = false, $aExternalOutput = null) { 
+function gfError($aValue, $aPHPError = false, $aExternalOutput = true) { 
   $pageHeader = ['default' => 'Unable to Comply', 'php' => 'PHP Error', 'output' => 'Output'];
-
-  if ($aExternalOutput != null) {
-    $externalOutput = function_exists('gfContent');
-  }
-  else {
-    $externalOutput = $aExternalOutput;
-  }
-
+  $externalOutput = ($aExternalOutput === null) ? function_exists('gfContent') : $aExternalOutput;
   $isCLI = (php_sapi_name() == "cli");
   $isOutput = false;
 
@@ -472,9 +465,6 @@ function gfExplodePath($aPath) {
 function gfBuildPath(...$aPathParts) {
   $path = implode(SLASH, $aPathParts);
 
-  // Remove any cases of multiple slashes
-  $path = preg_replace('#/+#', '/', $path);
-
   $filesystem = str_starts_with($path, ROOT_PATH);
   
   // Add a pre-pending slash if this is not a file system path
@@ -487,6 +477,9 @@ function gfBuildPath(...$aPathParts) {
   if (!str_contains(basename($path), DOT) || ($filesystem && str_starts_with(basename($path), DOT))) {
     $path .= SLASH;
   }
+
+  // Remove any cases of multiple slashes
+  $path = preg_replace('#/+#', '/', $path);
 
   return $path;
 }
