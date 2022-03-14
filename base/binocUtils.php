@@ -416,6 +416,50 @@ function gfOutput($aContent, $aHeader = 'text') {
 }
 
 /**********************************************************************************************************************
+* Basic Filter Substitution of a string
+*
+* @dep EMPTY_STRING
+* @dep SLASH
+* @dep SPACE
+* @dep gfError()
+* @param $aSubsts               multi-dimensional array of keys and values to be replaced
+* @param $aString               string to operate on
+* @param $aRegEx                set to true if pcre
+* @returns                      bitwise int value representing applications
+***********************************************************************************************************************/
+function gfSubst($aMode, $aSubsts, $aString) {
+  $ePrefix = __FUNCTION__ . DASH_SEPARATOR;
+  if (!is_array($aSubsts)) {
+    gfError($ePrefix . '$aSubsts must be an array');
+  }
+
+  if (!is_string($aString)) {
+    gfError($ePrefix . '$aString must be a string');
+  }
+
+  $rv = $aString;
+
+  switch ($aMode) {
+    case 'simple':
+    case 'string':
+    case 'str':
+      foreach ($aSubsts as $_key => $_value) { $rv = str_replace($_key, $_value, $rv); }
+      break;
+    case 'regex':
+      foreach ($aSubsts as $_key => $_value) { $rv = preg_replace(SLASH . $_key . SLASH . 'iU', $_value, $rv); }
+      break;
+    default:
+      gfError($ePrefix . 'Unknown mode');
+  }
+
+  if (!$rv) {
+    gfError($ePrefix . 'Something has gone wrong...');
+  }
+
+  return $rv;
+}
+
+/**********************************************************************************************************************
 * Explodes a string to an array without empty elements if it starts or ends with the separator
 *
 * @dep DASH_SEPARATOR
@@ -506,6 +550,37 @@ function gfCheckPathCount($aExpectedCount) {
     gfErrorOr404('Expected count was' . SPACE . $aExpectedCount . SPACE .
                  'but was' . SPACE . $gaRuntime['pathCount']);
   }
+}
+
+/**********************************************************************************************************************
+* Build a URL
+***********************************************************************************************************************/
+function gfBuildURL($aDomain, $aQueryArguments, ...$aPath) {
+  global $gaRuntime;
+
+  $rv = gfBuildPath(...$aPath);
+
+  if (!$rv) {
+    return null;
+  }
+
+  if ($aDomain === 'link') {
+    $rv = $gaRuntime['currentScheme'] . SCHEME_SUFFIX .
+          $gaRuntime['currentSubDomain'] . DOT . $gaRuntime['currentDomain'] . $rv;
+  }
+  else {
+    $rv = $aDomain . $rv;
+  }
+
+  if (is_array($aQueryArguments)) {
+    $query = http_build_query($aQueryArguments, EMPTY_STRING, null, PHP_QUERY_RFC3986);
+
+    if ($query && $query != EMPTY_STRING) {
+      $rv .= '?' . gfSubst('str', ['%40' => "@", '%7B' => "{", '%7D' => "}"], $query);
+    }
+  }
+
+  return $rv;
 }
 
 /**********************************************************************************************************************
@@ -705,49 +780,6 @@ function gfWriteFile($aData, $aFile, $aRenameFile = null, $aOverwrite = null) {
 **********************************************************************************************************************/
 function gfHexString($aLength = 40) {
   return bin2hex(random_bytes(($aLength <= 1) ? 1 : (int)($aLength / 2)));
-}
-
-/**********************************************************************************************************************
-* Basic Filter Substitution of a string
-*
-* @dep EMPTY_STRING
-* @dep SLASH
-* @dep SPACE
-* @dep gfError()
-* @param $aSubsts               multi-dimensional array of keys and values to be replaced
-* @param $aString               string to operate on
-* @param $aRegEx                set to true if pcre
-* @returns                      bitwise int value representing applications
-***********************************************************************************************************************/
-function gfSubst($aMode, $aSubsts, $aString) {
-  $ePrefix = __FUNCTION__ . DASH_SEPARATOR;
-  if (!is_array($aSubsts)) {
-    gfError($ePrefix . '$aSubsts must be an array');
-  }
-
-  if (!is_string($aString)) {
-    gfError($ePrefix . '$aString must be a string');
-  }
-
-  $rv = $aString;
-
-  switch ($aMode) {
-    case 'simple':
-    case 'string':
-      foreach ($aSubsts as $_key => $_value) { $rv = str_replace($_key, $_value, $rv); }
-      break;
-    case 'regex':
-      foreach ($aSubsts as $_key => $_value) { $rv = preg_replace(SLASH . $_key . SLASH . 'iU', $_value, $rv); }
-      break;
-    default:
-      gfError($ePrefix . 'Unknown mode');
-  }
-
-  if (!$rv) {
-    gfError($ePrefix . 'Something has gone wrong...');
-  }
-
-  return $rv;
 }
 
 /**********************************************************************************************************************

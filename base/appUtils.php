@@ -714,37 +714,6 @@ function gfGetCategoriesByType($aType) {
   return gfSuperVar('check', array_filter(CATEGORIES, function($aCat) use($aType) { return $aCat['type'] &= $aType; }));
 }
 
-/**********************************************************************************************************************
-* Build a URL
-***********************************************************************************************************************/
-function gfBuildURL($aDomain, $aQueryArguments, ...$aPath) {
-  global $gaRuntime;
-
-  $rv = gfBuildPath(...$aPath);
-
-  if (!$rv) {
-    return null;
-  }
-
-  if ($aDomain === 'link') {
-    $rv = $gaRuntime['currentScheme'] . SCHEME_SUFFIX .
-          $gaRuntime['currentSubDomain'] . DOT . $gaRuntime['currentDomain'] . $rv;
-  }
-  else {
-    $rv = $aDomain . $rv;
-  }
-
-  if (is_array($aQueryArguments)) {
-    $query = http_build_query($aQueryArguments, EMPTY_STRING, null, PHP_QUERY_RFC3986);
-
-    if ($query && $query != EMPTY_STRING) {
-      $query = str_replace(SPACE, '%20', urldecode($query));
-      $rv .= '?' . $query;
-    }
-  }
-
-  return $rv;
-}
 // ====================================================================================================================
 
 ?>
