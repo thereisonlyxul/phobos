@@ -605,7 +605,15 @@ class SafeMySQL
 		$query = $comma = '';
 		foreach ($data as $key => $value)
 		{
-			$query .= $comma.$this->escapeIdent($key).'='.$this->escapeString($value);
+      if ( is_int($value) )
+      {
+        // Bit types coerced from strings are NOT the same as int from string.
+        // In any event, int is inherently safe because they are NOT strings!
+        $query .= $comma.$this->escapeIdent($key).'='.$this->escapeInt($value);
+      } elseif ( is_bool ) {
+      } else {
+        $query .= $comma.$this->escapeIdent($key).'='.$this->escapeString($value);
+      }
 			$comma  = ",";
 		}
 		return $query;

@@ -14,7 +14,7 @@ define('DEBUG_MODE', $_GET['debug'] ?? null);
 
 // Define basic constants for the software
 const SOFTWARE_NAME       = 'Phobos';
-const SOFTWARE_VERSION    = '3.0.0a1';
+const SOFTWARE_VERSION    = '1.0.0pre';
 const BASE_RELPATH        = '/base/';
 const SKIN_RELPATH        = '/skin/';
 

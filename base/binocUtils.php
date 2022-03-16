@@ -48,6 +48,7 @@ const HTTP_HEADERS          = array(
   501                       => 'HTTP/1.1 501 Not Implemented',
   'text'                    => 'Content-Type: text/plain',
   'html'                    => 'Content-Type: text/html',
+  'xhtml'                   => 'Content-Type: application/xhtml+xml',
   'css'                     => 'Content-Type: text/css',
   'xml'                     => 'Content-Type: text/xml',
   'json'                    => 'Content-Type: application/json',
@@ -69,6 +70,7 @@ const DOT                   = ".";
 const DASH                  = "-";
 const UNDERSCORE            = "_";
 const PIPE                  = "|";
+const AMP                   = "&";
 const DOLLAR                = "\$";
 const COLON                 = ":";
 const DBLCOLON              = COLON . COLON;
@@ -110,7 +112,10 @@ const JSON_INSTALL_MANIFEST = 'install' . JSON_EXTENSION;
 
 // --------------------------------------------------------------------------------------------------------------------
 
-const JSON_ENCODE_FLAGS     = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+const JSON_DISPLAY_FLAGS    = JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+const JSON_STORAGE_FLAGS    = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+const JSON_ENCODE_FLAGS     = JSON_DISPLAY_FLAGS;
+
 const FILE_WRITE_FLAGS      = "w+";
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -970,9 +975,6 @@ function gfCreateXML($aData, $aDirectOutput = null) {
   if (!$xml) {
     gfError('Could not generate xml/rdf.');
   }
-
-  // We want to always use UTF8 encoding and NOT have that shit translated into entities because raisins 
-  $xml = html_entity_decode($xml, ENT_QUOTES | ENT_SUBSTITUTE | ENT_XML1, "UTF-8");
 
   if ($aDirectOutput) {
     gfOutput($xml, 'xml');

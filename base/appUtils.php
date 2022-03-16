@@ -5,29 +5,30 @@
 /* Known Application IDs
  * Application IDs are normally in the form of a {GUID} or user@host ID.
  *
- * Mozilla Suite:     {86c18b42-e466-45a9-ae7a-9b95ba6f5640}
- * Firefox:           {ec8030f7-c20a-464f-9b0e-13a3a9e97384}
- * Thunderbird:       {3550f703-e582-4d05-9a08-453d09bdfdc6}
- * SeaMonkey:         {92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
- * Fennec (Android):  {aa3c5121-dab2-40e2-81ca-7ea25febc110}
- * Fennec (XUL):      {a23983c0-fd0e-11dc-95ff-0800200c9a66}
- * Sunbird:           {718e30fb-e89b-41dd-9da7-e25a45638b28}
- * Instantbird:       {33cb9019-c295-46dd-be21-8c4936574bee}
- * Netscape Browser:  {3db10fab-e461-4c80-8b97-957ad5f8ea47}
+ * Mozilla Suite:             {86c18b42-e466-45a9-ae7a-9b95ba6f5640}
+ * Firefox:                   {ec8030f7-c20a-464f-9b0e-13a3a9e97384}    (Also, Pale Moon 30+)
+ * Thunderbird:               {3550f703-e582-4d05-9a08-453d09bdfdc6}    (Also, Interlink Mail & News)
+ * SeaMonkey:                 {92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
+ * Fennec (Android):          {aa3c5121-dab2-40e2-81ca-7ea25febc110}
+ * Fennec (XUL):              {a23983c0-fd0e-11dc-95ff-0800200c9a66}
+ * Sunbird:                   {718e30fb-e89b-41dd-9da7-e25a45638b28}
+ * Instantbird:               {33cb9019-c295-46dd-be21-8c4936574bee}
+ * Netscape Browser:          {3db10fab-e461-4c80-8b97-957ad5f8ea47}
  *
- * Nvu:               {136c295a-4a5a-41cf-bf24-5cee526720d5}
- * Flock:             {a463f10c-3994-11da-9945-000d60ca027b}
- * Kompozer:          {20aa4150-b5f4-11de-8a39-0800200c9a66}
- * BlueGriffon:       bluegriffon@bluegriffon.com
- * Adblock Browser:   {55aba3ac-94d3-41a8-9e25-5c21fe874539}
- * Postbox:           postbox@postbox-inc.com
+ * Nvu:                       {136c295a-4a5a-41cf-bf24-5cee526720d5}
+ * Flock:                     {a463f10c-3994-11da-9945-000d60ca027b}
+ * Kompozer:                  {20aa4150-b5f4-11de-8a39-0800200c9a66}
+ * BlueGriffon:               bluegriffon@bluegriffon.com
+ * Adblock Browser:           {55aba3ac-94d3-41a8-9e25-5c21fe874539}
+ * Postbox:                   postbox@postbox-inc.com
  *
- * Pale Moon 25-29:   {8de7fcbb-c55c-4fbe-bfc5-fc555c87dbc4}
- * Borealis 0.9:      {a3210b97-8e8a-4737-9aa0-aa0e607640b9}
- * XUL Example:       example@uxp.app
+ * Pale Moon 25-29:           {8de7fcbb-c55c-4fbe-bfc5-fc555c87dbc4}
+ * Borealis 0.9:              {a3210b97-8e8a-4737-9aa0-aa0e607640b9}
+ * Ambassador (Standalone):   {4523665a-317f-4a66-9376-3763d1ad1978}    (Soft-abandoned, also, same as extension)
+ * XUL Example:               example@uxp.app
  *
- * IceDove-UXP:       {3aa07e56-beb0-47a0-b0cb-c735edd25419}
- * IceApe-UXP:        {9184b6fe-4a5c-484d-8b4b-efbfccbfb514}
+ * IceDove-UXP:               {3aa07e56-beb0-47a0-b0cb-c735edd25419}
+ * IceApe-UXP:                {9184b6fe-4a5c-484d-8b4b-efbfccbfb514}
  */
 
 /* ----------------------------------------------------------------------------------------------------------------- */
@@ -143,6 +144,8 @@ const TARGET_APPLICATION = array(
     'minVersion'    => '5.0.0a1',
     'maxVersion'    => '5.*',
     'maxOldVersion' => '4.*',
+    'domain'        => 'addons.thereisonlyxul.org',
+    'unified'       => false,
     'name'          => 'Goanna Runtime Environment',
     'shortName'     => 'GRE',
     'commonType'    => 'platform',
@@ -156,12 +159,14 @@ const TARGET_APPLICATION = array(
     'minVersion'    => '30.0.0a1',
     'maxVersion'    => '30.*',
     'maxOldVersion' => '29.*',
+    'domain'        => 'addons.palemoon.org',
+    'unified'       => false,
     'name'          => 'Pale Moon',
     'shortName'     => 'Pale Moon',
     'commonType'    => 'browser',
     'vendor'        => 'Moonchild Productions',
     'siteTitle'     => 'Pale Moon - Add-ons',
-    'features'      => ['e-cat', 'extensions', 'themes', 'language-packs', 'dictionaries', 'search-plugins']
+    'features'      => ['extensions', 'language-packs']
   ),
   'borealis' => array(
     'id'            => '{86c18b42-e466-4580-8b97-957ad5f8ea47}',
@@ -169,12 +174,14 @@ const TARGET_APPLICATION = array(
     'minVersion'    => '8.5.7900a1',
     'maxVersion'    => '8.5.8400',
     'maxOldVersion' => '8.4.*',
+    'domain'        => 'addons.binaryoutcast.com',
+    'unified'       => true,
     'name'          => 'Borealis Navigator',
     'shortName'     => 'Borealis',
     'commonType'    => 'navigator',
     'vendor'        => 'Binary Outcast',
     'siteTitle'     => 'Add-ons - Binary Outcast',
-    'features'      => ['unified', 'extensions', 'themes', 'dictionaries', 'search-plugins']
+    'features'      => ['extensions', 'themes', 'dictionaries', 'search-plugins']
   ),
   'interlink' => array(
     'id'            => '{3550f703-e582-4d05-9a08-453d09bdfdc6}',
@@ -182,12 +189,14 @@ const TARGET_APPLICATION = array(
     'minVersion'    => '52.9.7900a1',
     'maxVersion'    => '52.9.8400',
     'maxOldVersion' => '52.9.7899', /* Basically irrelevant for non-web clients */
+    'domain'        => 'addons.binaryoutcast.com',
+    'unified'       => true,
     'name'          => 'Interlink Mail &amp; News',
     'shortName'     => 'Interlink',
     'commonType'    => 'client',
     'vendor'        => 'Binary Outcast',
     'siteTitle'     => 'Add-ons - Binary Outcast',
-    'features'      => ['unified', 'disable-xpinstall', 'extensions', 'themes', 'dictionaries', 'search-plugins']
+    'features'      => ['disable-xpinstall', 'extensions', 'themes', 'dictionaries', 'search-plugins']
   ),
 );
 
@@ -403,9 +412,9 @@ const LICENSES = array(
   'MIT'                       => 'MIT License',
   'MPL-2.0'                   => 'Mozilla Public License 2.0',
   'MPL-1.1'                   => 'Mozilla Public License 1.1',
-  'Custom'                    => 'Custom License',
   'PD'                        => 'Public Domain',
   'COPYRIGHT'                 => '&copy;'
+  'Custom'                    => 'Custom License',
 );
 
 // ====================================================================================================================
@@ -660,24 +669,25 @@ function gfValidClientVersion($aCheckVersion = null, $aVersion = null) {
 }
 
 /**********************************************************************************************************************
-* Check if the application has the supplied feature
+* TBD
 ***********************************************************************************************************************/
-function gfCheckFeature($aFeature, $aReturn = null) {
+function gfGetAppDomainByID($aAppID) {
   global $gaRuntime;
+  $targetApplication = array_combine(array_column(TARGET_APPLICATION, 'id'),
+                                     array_column(TARGET_APPLICATION, 'domain'));
 
-  if (is_bool($gaRuntime['currentApplication'])) {
-    gfError(__FUNCTION__ . ': Unable to determine the application features.');
-  }
-  
-  if (!in_array($aFeature, TARGET_APPLICATION[$gaRuntime['currentApplication']]['features'])) {
-    if (!$aReturn) {
-      gfErrorOr404('Feature' . SPACE . $aFeature . SPACE . 'is not enabled for' . SPACE .
-                   $gaRuntime['currentApplication']);
-    }
-    return false;
-  }
+  return $targetApplication[$aAppID] ?? $gaRuntime['currentSubdomain'] . DOT . $gaRuntime['currentDomain'];
+}
 
-  return true;
+/**********************************************************************************************************************
+* TBD
+***********************************************************************************************************************/
+function gfGetAppDomainByName($aAppName) {
+  global $gaRuntime;
+  $targetApplication = array_combine(array_keys(TARGET_APPLICATION),
+                                     array_column(TARGET_APPLICATION, 'domain'));
+
+  return $targetApplication[$aAppName] ?? $gaRuntime['currentSubdomain'] . DOT . $gaRuntime['currentDomain'];
 }
 
 /**********************************************************************************************************************
@@ -705,6 +715,27 @@ function gfGetClientBits($aTargetApplications) {
   }
 
   return $applicationBits;
+}
+
+/**********************************************************************************************************************
+* Check if the application has the supplied feature
+***********************************************************************************************************************/
+function gfCheckFeature($aFeature, $aReturn = null) {
+  global $gaRuntime;
+
+  if (is_bool($gaRuntime['currentApplication'])) {
+    gfError(__FUNCTION__ . ': Unable to determine the application features.');
+  }
+  
+  if (!in_array($aFeature, TARGET_APPLICATION[$gaRuntime['currentApplication']]['features'])) {
+    if (!$aReturn) {
+      gfErrorOr404('Feature' . SPACE . $aFeature . SPACE . 'is not enabled for' . SPACE .
+                   $gaRuntime['currentApplication']);
+    }
+    return false;
+  }
+
+  return true;
 }
 
 /**********************************************************************************************************************

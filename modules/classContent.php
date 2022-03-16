@@ -4,6 +4,7 @@
 
 class classContent { 
   private $libSmarty;
+  
 
   /********************************************************************************************************************
   * Class constructor that sets initial state of things
@@ -11,8 +12,11 @@ class classContent {
   function __construct($useSmarty = null) {
     global $gaRuntime;
 
+    $gaRuntime['smartyContent'] = false;
+
     if ($useSmarty) {
       $this->initSmarty();
+      $gaRuntime['smartyContent'] = true;
     }
   }
 
@@ -54,9 +58,9 @@ class classContent {
       case 'resource':
       case 'cacheResource':
       case 'defaultPluginHandler':
-        gfError($ePrefix . $aType . SPACE . 'is not currently supported.';
+        gfError($ePrefix . $aType . SPACE . 'is not currently supported.');
       default:
-        gfError($ePrefix . 'Unknown smarty register type.';
+        gfError($ePrefix . 'Unknown smarty register type.');
     }
 
     return $rv;
@@ -155,7 +159,7 @@ class classContent {
 
     $javascript = ['src=', 'onload=', 'onunload=', 'onclick=', 'ondblclick=', 'onkeypress=', 'onkeyup=', 'onkeydown=',
                    'onmousedown=', 'onmouseenter=', 'onmouseleave', 'onmousemove=', 'onmouseover=', 'onmouseout=',
-                   'onmouseup=', 'onblur=']
+                   'onmouseup=', 'onblur='];
 
     foreach ($javascript as $_value) {
       if (str_contains($aContent, $_value)) {

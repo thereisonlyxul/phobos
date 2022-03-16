@@ -232,10 +232,27 @@ class classAviary {
 
     // ----------------------------------------------------------------------------------------------------------------
 
+    // XXXTobin: Bump version if not bumpped
+    if (!str_ends_with($aManifest['version'], '.1-fxguid')) {
+      $aManifest['version'] .= '.1-fxguid';
+    }
+
+    // XXXTobin: Remove email addresses from creator..
+    $aManifest['creator'] = preg_replace('<[\w.]+@[\w.]+>', EMPTY_STRING, $aManifest['creator']);
+    $aManifest['creator'] = trim($aManifest['creator']);
+
     // XXXTobin: aboutURL is the add-on's about box NOT website
     if (array_key_exists('aboutURL', $aManifest)) {
       if (!str_starts_with($aManifest['aboutURL'], 'chrome://')) {
         unset($aManifest['aboutURL']);
+      }
+    }
+
+    // XXXTobin: OptionsURL data:text
+    if (array_key_exists('optionsURL', $aManifest)) {
+      if (str_starts_with($aManifest['optionsURL'], 'data:text')) {
+        unset($aManifest['optionsURL']);
+        unset($aManifest['optionsType']);
       }
     }
 
@@ -283,7 +300,7 @@ class classAviary {
       }
 
       foreach ($_value as $_value2) {
-        $mainDescription[] = ['@element' => $_key, '@content' => $_value2];
+        $mainDescription[] = ['@element' => $_key, '@content' => trim($_value2)];
       }
     }
 
@@ -293,6 +310,10 @@ class classAviary {
     sort($locales);
 
     foreach ($locales as $_value) {
+      if ($_value == 'en-US') {
+        continue;
+      }
+
       $_name = $aManifest['name'][$_value] ?? null;
       $_desc = $aManifest['description'][$_value] ?? null;
       $_attrs = ['em:locale' => $_value];
@@ -303,6 +324,10 @@ class classAviary {
 
       if ($_desc) {
         $_attrs['em:description'] = $_desc;
+      }
+
+      if (count($_attrs) < 2) {
+        continue;
       }
 
       $mainDescription[] = ['@element' => 'em:localized', ['@element' => 'Description', '@attributes' => $_attrs]];
@@ -348,6 +373,8 @@ class classAviary {
   * @returns                 String with XML markup if not aDirectOutput
   ********************************************************************************************************************/
   public function createUpdateManifest($aManifest, $aDirectOutput = null) {
+    global $gaRuntime;
+
     // XXXTobin: This is for testing only
     if (!array_key_exists('updateLink', $aManifest)) {
       $aManifest['updateLink'] = 'about:blank?arg1=cabbage&arg2=celery';
@@ -392,25 +419,23 @@ class classAviary {
 
     // Add targetApplications as elements with attrs of the targetApplication description
     foreach ($aManifest['targetApplication'] as $_key => $_value) {
-       // RDF:RDF -> em:updates -> Description -> RDF:Seq -> RDF:li -> Description
-       $updateManifest[0][0][0][0][0][] = array(
-        '@element' => 'em:targetApplication',
+      $_link = 
+      // RDF:RDF -> em:updates -> Description -> RDF:Seq -> RDF:li -> Description
+      $updateManifest[0][0][0][0][0][] = array(
+      '@element' => 'em:targetApplication',
+      array(
+        '@element' => 'Description',
+        '@attributes' => array(
+          'em:id' => $_key,
+          'em:minVersion' => $_value['minVersion'],
+          'em:maxVersion' => $_value['maxVersion'],
+          'em:updateHash' => $aManifest['updateHash']
+        ),
         array(
-          '@element' => 'Description',
-          '@attributes' => array(
-            'em:id' => $_key,
-            'em:minVersion' => $_value['minVersion'],
-            'em:maxVersion' => $_value['maxVersion'],
-          ),
-          array(
-            '@element' => 'em:updateLink',
-            '@content' => $aManifest['updateLink'],
-          ),
-          array(
-            '@element' => 'em:updateHash',
-            '@content' => $aManifest['updateHash'],
-          )
-        )
+          '@element' => 'em:updateLink',
+          '@content' => $gaRuntime['currentScheme'] . SCHEME_SUFFIX . gfGetAppDomainByID($_key) . $aManifest['updateLink'],
+        ),
+      )
       );
     }    
 
@@ -488,9 +513,13 @@ class classAviary {
       $targetApps = ['@element' => 'compatible_applications'];
 
       foreach ($_value['targetApplication'] as $_key2 => $_value2) {
+        if (TARGET_APPLICATION[$gaRuntime['currentApplication']]['id'] != $_key) {
+          continue;
+        }
+
         $targetApps[] = ['@element' => 'application', ['@element' => 'appID', '@content' => $_key2],
-                                                               ['@element' => 'min_version', '@content' => $_value2['minVersion']],
-                                                               ['@element' => 'max_version', '@content' => $_value2['maxVersion']]];
+                                                      ['@element' => 'min_version', '@content' => $_value2['minVersion']],
+                                                      ['@element' => 'max_version', '@content' => $_value2['maxVersion']]];
       }
 
       // Assign the targetApplications as application elements 
