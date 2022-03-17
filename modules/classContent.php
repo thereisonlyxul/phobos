@@ -4,7 +4,7 @@
 
 class classContent { 
   private $libSmarty;
-  
+  private $smartyAssigns;
 
   /********************************************************************************************************************
   * Class constructor that sets initial state of things
@@ -16,8 +16,122 @@ class classContent {
 
     if ($useSmarty) {
       $this->initSmarty();
+
+      $this->smartyAssigns = array(
+        'SOFTWARE_NAME' => SOFTWARE_NAME,
+        'SOFTWARE_VERSION' => SOFTWARE_VERSION,
+        'SOFTWARE_DEBUG' => $gaRuntime['debugMode'],
+        'SITE_NAME' => TARGET_APPLICATION[$gaRuntime['currentApplication']]['siteTitle'] ??
+                       TARGET_APPLICATION[$gaRuntime['unifiedApps'][0]]['siteTitle'] ??
+                       SOFTWARE_NAME . DASH_SEPARATOR . SOFTWARE_VERSION,
+        'CONTENT_PATH' => gfBuildPath(gfStripRootPath(dirname(COMPONENTS[$gaRuntime['qComponent']])), 'content'),
+        'PAGE_PATH' => $gaRuntime['qPath'],
+      );
+
       $gaRuntime['smartyContent'] = true;
     }
+  }
+
+  /********************************************************************************************************************
+  * TBD
+  ********************************************************************************************************************/
+  public function displayStaticPage($aPageTitle, $aContentFile) {
+    global $gaRuntime;
+    $ePrefix = __CLASS__ . '::' . __FUNCTION__ . DASH_SEPARATOR;
+
+    if (!$this->libSmarty) {
+      gfError($ePrefix . 'Smarty is required.');
+    }
+
+    $this->smartyAssigns['SKIN_PATH'] = gfBuildPath(SKIN_RELPATH, $gaRuntime['currentSkin']);
+    $this->smartyAssigns['SITE_MENU'] = $gaRuntime['siteMenu'];
+    $this->smartyAssigns['PAGE_TITLE'] = $aPageTitle;
+
+    $template = gfBuildPath(ROOT_PATH, $this->smartyAssigns['SKIN_PATH'], 'template' . XHTML_EXTENSION);
+    $template = gfReadFile($template);
+
+    if (!$template) {
+      gfError($ePrefix . 'Could not load skin site template.');
+    }
+
+    $content = gfBuildPath(ROOT_PATH, $this->smartyAssigns['CONTENT_PATH'], $aContentFile . XHTML_EXTENSION);
+    $content = gfReadFile($content);
+
+    if (!$content) {
+      gfError($ePrefix . 'Could not load component static content.');
+    }
+
+    $page = str_replace('{%PAGE_CONTENT}', $content, $template);
+
+    $page = $this->parseSmarty($page);
+
+    if (!$page) {
+      gfError($ePrefix . 'Could not display static page.');
+    }
+
+    gfOutput($page, 'html');
+  }
+
+  /********************************************************************************************************************
+  * TBD
+  ********************************************************************************************************************/
+  public function displaySkinTemplate($aPageData, $aContentFile) {
+    global $gaRuntime;
+    $ePrefix = __CLASS__ . '::' . __FUNCTION__ . DASH_SEPARATOR;
+
+    if (!$this->libSmarty) {
+      gfError($ePrefix . 'Smarty is required.');
+    }
+
+    $this->smartyAssigns['SKIN_PATH'] = gfBuildPath(SKIN_RELPATH, $gaRuntime['currentSkin']);
+    $this->smartyAssigns['SITE_MENU'] = $gaRuntime['siteMenu'];
+    $this->smartyAssigns['VALID_CLIENT'] = $gaRuntime['validClient'];
+    $this->smartyAssigns['VALID_VERSION'] = $gaRuntime['validVersion'];
+
+    switch ($aContentFile) {
+      case 'addon-category':
+        $this->smartyAssigns['PAGE_TITLE'] = SECTIONS[$gaRuntime['currentPath'][0]]['name'];
+
+        $substs = array(
+          '{%APPLICATION_SHORTNAME}' => TARGET_APPLICATION[$gaRuntime['currentApplication']]['shortName'],
+          '{%APPLICATION_COMMONTYPE}' => TARGET_APPLICATION[$gaRuntime['currentApplication']]['commonType'],
+        );
+
+        $this->smartyAssigns['PAGE_DESCRIPTION'] = gfSubst('str', $substs, SECTIONS[$gaRuntime['currentPath'][0]]['description']);
+        $this->smartyAssigns['PAGE_DATA'] = $aPageData;
+        break;
+      case 'addon-page':
+        $this->smartyAssigns['PAGE_TITLE'] = $aPageData['addon']['slug'];
+        $this->smartyAssigns['PAGE_DATA'] = $aPageData['addon'];
+        break;
+      default:
+        $this->smartyAssigns['PAGE_TITLE'] = 'Unknown Page';
+        $this->smartyAssigns['PAGE_DATA'] = $aPageData;
+    }
+
+    $template = gfBuildPath(ROOT_PATH, $this->smartyAssigns['SKIN_PATH'], 'template' . XHTML_EXTENSION);
+    $template = gfReadFile($template);
+
+    if (!$template) {
+      gfError($ePrefix . 'Could not load skin site template.');
+    }
+
+    $content = gfBuildPath(ROOT_PATH, $this->smartyAssigns['SKIN_PATH'], $aContentFile . TEMPLATE_EXTENSION);
+    $content = gfReadFile($content);
+
+    if (!$content) {
+      gfError($ePrefix . 'Could not load skin content template.');
+    }
+
+    $page = str_replace('{%PAGE_CONTENT}', $content, $template);
+
+    $page = $this->parseSmarty($page);
+
+    if (!$page) {
+      gfError($ePrefix . 'Could not display static page.');
+    }
+
+    gfOutput($page, 'html');
   }
 
   /********************************************************************************************************************
@@ -30,7 +144,7 @@ class classContent {
     require_once(LIBRARIES['smarty']);
 
     $gaRuntime['qSmartyDebug'] = gfSuperVar('get', 'smartyDebug');
-    $objdir = gfBuildPath(ROOT_PATH, OBJECT_RELPATH, 'smarty', $gaRuntime['qComponent'], $gaRuntime['currentSkin']);
+    $objdir = gfBuildPath(ROOT_PATH, OBJ_RELPATH, 'smarty', $gaRuntime['qComponent'], $gaRuntime['currentSkin']);
 
     $this->libSmarty = new Smarty();
     $this->libSmarty->caching = 0;
@@ -47,7 +161,7 @@ class classContent {
     $ePrefix = __CLASS__ . '::' . __FUNCTION__ . DASH_SEPARATOR;
 
     if (!$this->libSmarty) {
-      gfError($ePrefix . 'Could not register' . ucFirst($aType) . '()' . SPACE . 'because smarty was not initialized');
+      gfError($ePrefix . 'Smarty is required.');
     }
 
     switch ($aType) {
@@ -62,6 +176,38 @@ class classContent {
       default:
         gfError($ePrefix . 'Unknown smarty register type.');
     }
+
+    return $rv;
+  }
+
+  /********************************************************************************************************************
+  * Registers various smarty things for use in templates
+  ********************************************************************************************************************/
+  public function parseSmarty($aContent) {
+    global $gaRuntime;
+    $ePrefix = __CLASS__ . '::' . __FUNCTION__ . DASH_SEPARATOR;
+
+    if (!$this->libSmarty) {
+      gfError($ePrefix . 'Smarty is required.');
+    }
+
+    foreach ($this->smartyAssigns as $_key => $_value) {
+      $this->libSmarty->assign($_key, $_value);
+    }
+
+    $smartyID = implode(DOT, $gaRuntime['currentPath']);
+
+    // Restore the built-in PHP error handler
+    restore_error_handler();
+
+    if (!$gaRuntime['debugMode']) {
+      error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
+    }
+
+    $rv = $this->libSmarty->fetch('string:' . $aContent, $smartyID, $smartyID);
+
+    // Re-set /our/ error handler
+    set_error_handler("gfErrorHandler");
 
     return $rv;
   }

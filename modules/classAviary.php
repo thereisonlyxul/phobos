@@ -375,10 +375,8 @@ class classAviary {
   public function createUpdateManifest($aManifest, $aDirectOutput = null) {
     global $gaRuntime;
 
-    // XXXTobin: This is for testing only
-    if (!array_key_exists('updateLink', $aManifest)) {
-      $aManifest['updateLink'] = 'about:blank?arg1=cabbage&arg2=celery';
-      $aManifest['updateHash'] = 'sha256:none';
+    if ($aManifest == null) {
+      gfOutput(XML_TAG . RDF_AUS_BLANK, 'xml');
     }
 
     $aManifest['type'] = AUS_XPI_TYPES[$aManifest['type']] ?? 'item';
@@ -393,12 +391,12 @@ class classAviary {
         'xmlns:em' => self::EM_NS,
       ),
       array(
-        '@element' => 'em:updates',
+        '@element' => 'Description',
+        '@attributes' => array(
+          'about' => 'urn:mozilla:' . $aManifest['type'] . COLON . $aManifest['id']
+        ),
         array(
-          '@element' => 'Description',
-          '@attributes' => array(
-            'about' => 'urn:mozilla:' . $aManifest['type'] . COLON . $aManifest['id']
-          ),
+          '@element' => 'em:updates',
           array(
             '@element' => 'RDF:Seq',
             array(
@@ -419,8 +417,18 @@ class classAviary {
 
     // Add targetApplications as elements with attrs of the targetApplication description
     foreach ($aManifest['targetApplication'] as $_key => $_value) {
-      $_link = 
-      // RDF:RDF -> em:updates -> Description -> RDF:Seq -> RDF:li -> Description
+      $_updateLink = $gaRuntime['currentScheme'] . SCHEME_SUFFIX . gfGetAppDomainByID($_key) . $aManifest['updateLink'];
+
+      if ($gaRuntime['debugMode']) {
+        $_updateLink = $gaRuntime['currentScheme'] . SCHEME_SUFFIX . DEVELOPER_DOMAIN . $aManifest['updateLink'];
+
+        if (($_key != TARGET_APPLICATION[$gaRuntime['currentApplication']]['id']) &&
+            ($_key != TARGET_APPLICATION['palemoon']['id'])) {
+          $_updateLink .= '&appOverride=' . gfGetAppNameByID($_key);
+        }
+      }
+
+      // RDF:RDF -> Description -> em:updates -> RDF:Seq -> RDF:li -> Description
       $updateManifest[0][0][0][0][0][] = array(
       '@element' => 'em:targetApplication',
       array(
@@ -433,7 +441,7 @@ class classAviary {
         ),
         array(
           '@element' => 'em:updateLink',
-          '@content' => $gaRuntime['currentScheme'] . SCHEME_SUFFIX . gfGetAppDomainByID($_key) . $aManifest['updateLink'],
+          '@content' =>  $_updateLink,
         ),
       )
       );

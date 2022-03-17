@@ -98,7 +98,7 @@ const MODULES = array(
   'account'         => ROOT_PATH . MODULES_RELPATH . 'classAccount.php',
   'aviary'          => ROOT_PATH . MODULES_RELPATH . 'classAviary.php',
   'database'        => ROOT_PATH . MODULES_RELPATH . 'classDatabase.php',
-  'addons'          => ROOT_PATH . MODULES_RELPATH . 'classAddons.php',
+  'addonManifest'   => ROOT_PATH . MODULES_RELPATH . 'classAddonManifest.php',
   'content'         => ROOT_PATH . MODULES_RELPATH . 'classContent.php',
   'vc'              => ROOT_PATH . MODULES_RELPATH . 'nsIVersionComparator.php',
 );
@@ -318,7 +318,7 @@ const SECTIONS = array(
                             ),
   'language-packs'  => array('type'        => XPINSTALL_TYPES['locale'],
                              'name'        => 'Language Packs',
-                             'description' => 'These add-ons provide strings for the UI in your local language.'
+                             'description' => 'These add-ons provide strings for the user interface in your local language.'
                             ),
   'dictionaries'    => array('type'        => XPINSTALL_TYPES['dictionary'],
                              'name'        => 'Dictionaries',
@@ -413,7 +413,7 @@ const LICENSES = array(
   'MPL-2.0'                   => 'Mozilla Public License 2.0',
   'MPL-1.1'                   => 'Mozilla Public License 1.1',
   'PD'                        => 'Public Domain',
-  'COPYRIGHT'                 => '&copy;'
+  'COPYRIGHT'                 => '&copy;',
   'Custom'                    => 'Custom License',
 );
 
@@ -688,6 +688,17 @@ function gfGetAppDomainByName($aAppName) {
                                      array_column(TARGET_APPLICATION, 'domain'));
 
   return $targetApplication[$aAppName] ?? $gaRuntime['currentSubdomain'] . DOT . $gaRuntime['currentDomain'];
+}
+
+/**********************************************************************************************************************
+* TBD
+***********************************************************************************************************************/
+function gfGetAppNameByID($aAppID) {
+  global $gaRuntime;
+  $targetApplication = array_combine(array_column(TARGET_APPLICATION, 'id'),
+                                     array_keys(TARGET_APPLICATION));
+
+  return $targetApplication[$aAppID] ?? $gaRuntime['currentApplication'];
 }
 
 /**********************************************************************************************************************

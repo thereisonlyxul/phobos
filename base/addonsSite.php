@@ -2,9 +2,7 @@
 
 // == | Setup | =======================================================================================================
 
-// ====================================================================================================================
-
-// == | Functions | ===================================================================================================
+gfImportModules('database', 'addonManifest', ['content', true]);
 
 // ====================================================================================================================
 
@@ -89,6 +87,8 @@ switch ($gvSection) {
 
       // Has Add-on Sub-Page
       if ($gvAddonSubPage) {
+        gfHeader(501); // NOT YET
+
         if (!in_array($gvAddonSubPage, ['releases', 'license'])) {
           gfErrorOr404('Invalid Add-on Sub-page');
         }
@@ -100,11 +100,21 @@ switch ($gvSection) {
         gfContent($gvPage);
       }
 
+      // Get Add-on Data
+      $gvManifest = $gmAddonManifest->getOneBySlug($gvAddonSlug);
+
+      if (!$gvManifest) {
+        gfErrorOr404('Could not find add-on' . COLON . SPACE . $gvAddonSlug);
+      }
+
       // Generate Add-on Page
+      /*
       $gvPage = ['title' => $gvAddonSlug . SPACE . 'Add-on Page',
-                 'content' => $gaRuntime,
+                 'content' => $gvManifest,
                  'menu' => $gaRuntime['siteMenu']];
       gfContent($gvPage);
+      */
+      $gmContent->displaySkinTemplate($gvManifest, 'addon-page');
     }
 
     gfRedirect(SLASH);
@@ -114,6 +124,7 @@ switch ($gvSection) {
 
     if (gfCheckFeature('e-cat', true) && !gfSuperVar('get', 'all')) {
       gfCheckPathCount(2);
+      gfHeader(501); // NOT YET
 
       $gvCategory = $gaRuntime['currentPath'][1] ?? null;
       $gvCategories = gfGetCategoriesByType(XPINSTALL_TYPES['extension']);
@@ -139,11 +150,18 @@ switch ($gvSection) {
 
     gfCheckPathCount(1);
 
+    // Get Add-on Data
+    $gvManifest = $gmAddonManifest->getAllByType(SECTIONS[$gvSection]['type']);
+
     // Generate Extension Page with All Extensions
-    $gvPage = ['title' => 'All Extensions',
-               'content' => $gaRuntime,
+    /*
+    $gvPage = ['title' => SECTIONS[$gvSection]['name'],
+               'description' => SECTIONS[$gvSection]['description'],
+               'content' => $gvManifest,
                'menu' => $gaRuntime['siteMenu']];
     gfContent($gvPage);
+    */
+    $gmContent->displaySkinTemplate($gvManifest, 'addon-category');
     break;
   case 'themes':
   case 'personas':
@@ -155,18 +173,22 @@ switch ($gvSection) {
     gfCheckFeature($gvSection);
     gfCheckPathCount(1);
 
-    $gvCategoryName = SECTIONS[$gvSection]['name'];
-    $gvAddonType = SECTIONS[$gvSection]['type'];
+    // Get Add-on Data
+    $gvManifest = $gmAddonManifest->getAllByType(SECTIONS[$gvSection]['type']);
 
-    // Generate Section Page for Add-on Type
-    $gvPage = ['title' => ucfirst($gaRuntime['currentApplication']) . SPACE . $gvCategoryName . SPACE . $gvAddonType,
-               'content' => $gaRuntime,
+    // Generate Section Page
+    /*
+    $gvPage = ['title' => SECTIONS[$gvSection]['name'],
+               'description' => SECTIONS[$gvSection]['description'],
+               'content' => $gvManifest,
                'menu' => $gaRuntime['siteMenu']];
     gfContent($gvPage);
+    */
+    $gmContent->displaySkinTemplate($gvManifest, 'addon-category');
     break;
   case 'search':
     gfCheckPathCount(1);
-    gfHeader(501);
+    gfHeader(501); // NOT YET
     break;
   default:
     // Deal with the Root Index and the Application Index
@@ -177,8 +199,11 @@ switch ($gvSection) {
           $gaRuntime['siteMenu'][SLASH . $_value . SLASH] = TARGET_APPLICATION[$_value]['name'];
         }
       }
+      /*
       $gvPage = ['title' => 'Add-ons Site Root', 'content' => $gaRuntime, 'menu' => $gaRuntime['siteMenu']];
       gfContent($gvPage);
+      */
+      $gmContent->displayStaticPage('Explore Add-ons', $gaRuntime['currentSkin'] . DASH . 'root');
     }
     elseif ($gaRuntime['unifiedMode'] && $gaRuntime['pathCount'] == 0 &&
             in_array($gaRuntime['currentApplication'], $gaRuntime['unifiedApps']) ?? EMPTY_ARRAY) {
