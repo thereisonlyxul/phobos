@@ -107,7 +107,7 @@ class classAddonManifest {
 
     $addonCols = $this->implodeSelect(['id', 'slug', 'type', 'enabled', 'reviewed', 'hasIcon', 'hasPreview',
                                         'owner', 'name', 'description', 'addonURL']);
-    $addon = $gmDatabase->get('all', "SELECT ?p FROM ?n WHERE `type` & ?i AND `targetClient` & ?i",
+    $addon = $gmDatabase->get('all', "SELECT ?p FROM ?n WHERE `type` & ?i AND `targetClient` & ?i ORDER BY `name` ASC",
                               $addonCols, 'addons', $aType, $client);
 
     $addon = $this->processAddon($addon);
