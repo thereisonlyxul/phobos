@@ -22,7 +22,7 @@ class classDatabase {
 
     $gaRuntime['currentDatabase'] = $creds['liveDB'];
 
-    if ($gaRuntime['debugMode'] || $gaRuntime['debugMode'] === false) {
+    if ($gaRuntime['phpServerName'] == DEVELOPER_DOMAIN) {
       $gaRuntime['currentDatabase'] = $creds['devDB'];
     }
 
