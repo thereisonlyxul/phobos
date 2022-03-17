@@ -83,8 +83,8 @@ if (defined("APP_UTILS")) {
     'unifiedApps'         => null,
     'validClient'         => null,
     'validVersion'        => null,
-    'debugMode'           => (gfSuperVar('server', 'SERVER_NAME') == DEVELOPER_DOMAIN ?
-                              !DEBUG_MODE : !gfSuperVar('get', 'debugOverride')),
+    'debugMode'           => (gfSuperVar('server', 'SERVER_NAME') == DEVELOPER_DOMAIN) ?
+                             !DEBUG_MODE : gfSuperVar('get', 'debugOverride'),
   ));
 
   // Decide which application by domain that the software will be serving
