@@ -164,7 +164,7 @@ $gvDiscoverHTML = <<<HTML_END
           </span>
           <span style="display: block; padding-top: 5px; padding-bottom: 20px; padding-right: 25px;">  
             <strong>This was accomplished by changing {$gvAppName}'s internal application ID to the original Firefox identifier. Going forward, the ID that {$gvAppName} 25-29 used will no longer be valid.</strong></br>
-            For more information, please see <a href="https://forum.palemoon.org/viewtopic.php?f=1&t=27831#p223816" target="_blank">the announcement</a> on the {$gvAppName} forums.
+            For more information, please see <a href="https://forum.palemoon.org/viewtopic.php?f=1&t=27956" target="_blank">the announcement</a> on the {$gvAppName} forums.
           </span>
           <span style="display: block; padding-top: 5px; padding-right: 25px; padding-bottom: 8px; text-align: center;">
             <strong><em>Please note that the offerings and features of the new Add-ons Site Service will initially be limited. This is a temporary condition due the Milestone (30.0.0) release being pushed up to address a critical security vulnerability affecting then-current and older versions.</em></strong>
