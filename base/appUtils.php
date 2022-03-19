@@ -166,7 +166,7 @@ const TARGET_APPLICATION = array(
     'commonType'    => 'browser',
     'vendor'        => 'Moonchild Productions',
     'siteTitle'     => 'Pale Moon - Add-ons',
-    'features'      => ['extensions', 'language-packs']
+    'features'      => ['extensions', 'themes', 'language-packs', 'dictionaries']
   ),
   'borealis' => array(
     'id'            => '{86c18b42-e466-4580-8b97-957ad5f8ea47}',
