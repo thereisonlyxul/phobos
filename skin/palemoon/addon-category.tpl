@@ -25,6 +25,6 @@
       </div>
     </a>
   {foreachelse}
-    <p><em>There are no available add-ons of this type.</em></p>
+    <p><em>There are <strong style="color: #BF0000;">currently</strong> no available add-ons of this type.</em></p>
   {/foreach}
 </div>
